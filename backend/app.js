@@ -10,7 +10,7 @@ app.use("/",(req, res, next) => {
 });
 
 // Connect to MongoDB
-mongoose.connect("mongodb+srv://admin:iPTXvEiynbCydYHa@cluster0.bhaclhu.mongodb.net/")
+mongoose.connect("mongodb+srv://sewminitheekshana00_db_user:sewmini123@cluster0.bhaclhu.mongodb.net/")
 .then(() => console.log("Connected to MongoDB"))
 .then(() => {
     app.listen(5000);
