@@ -1,18 +1,48 @@
-//password -   iPTXvEiynbCydYHa
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
-const express = require('express');
-const mongoose = require('mongoose');
 const app = express();
 
-// Middleware to parse JSON bodies
-app.use("/",(req, res, next) => {
-    res.send("Hello World!");
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Test Route
+app.get("/", (req, res) => {
+  res.send("UniNotes API is Running 🚀");
 });
 
-// Connect to MongoDB
-mongoose.connect("mongodb+srv://sewminitheekshana00_db_user:sewmini123@cluster0.bhaclhu.mongodb.net/")
-.then(() => console.log("Connected to MongoDB"))
+// 🔥 LOGIN ROUTE
+app.post("/api/auth/login", (req, res) => {
+  const { email, password } = req.body;
+
+  console.log("Login Request:", email, password);
+
+  res.json({
+    message: "Login Successful",
+    token: "dummy-token-123"
+  });
+});
+
+// 🔥 REGISTER ROUTE
+app.post("/api/auth/register", (req, res) => {
+  const { name, email, password } = req.body;
+
+  console.log("Register Request:", name, email);
+
+  res.json({
+    message: "Register Successful"
+  });
+});
+
+// MongoDB Connection
+mongoose.connect("mongodb+srv://admin:iPTXvEiynbCydYHa@cluster0.bhaclhu.mongodb.net/uninotesDB")
 .then(() => {
-    app.listen(5000);
+  console.log("Connected to MongoDB");
+
+  app.listen(5000, () => {
+    console.log("Server running on port 5000");
+  });
 })
-.catch((err) => console.log((err)));
+.catch((err) => console.log(err));
