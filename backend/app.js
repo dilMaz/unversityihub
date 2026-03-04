@@ -13,4 +13,4 @@ mongoose.connect("mongodb+srv://admin:iPTXvEiynbCydYHa@cluster0.bhaclhu.mongodb.
 .then(() => {
     app.listen(5000);
 })
-.catch((err) => console.log((err)));   
+.catch((err) => console.log((err)));
