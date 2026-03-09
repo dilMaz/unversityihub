@@ -17,6 +17,7 @@ function Login() {
       });
 
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard");
     } catch (err) {
       alert("Invalid Email or Password ❌");
@@ -49,6 +50,9 @@ function Login() {
         <div className="auth-link">
           Don’t have an account? <Link to="/register">Register</Link>
         </div>
+
+        <button onClick={() => navigate("/admin")}>Admin</button>
+
       </div>
     </div>
   );

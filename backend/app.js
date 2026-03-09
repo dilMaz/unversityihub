@@ -1,6 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
@@ -8,36 +10,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+
 // Test Route
 app.get("/", (req, res) => {
   res.send("UniNotes API is Running 🚀");
 });
 
-// 🔥 LOGIN ROUTE
-app.post("/api/auth/login", (req, res) => {
-  const { email, password } = req.body;
-
-  console.log("Login Request:", email, password);
-
-  res.json({
-    message: "Login Successful",
-    token: "dummy-token-123"
-  });
-});
-
-// 🔥 REGISTER ROUTE
-app.post("/api/auth/register", (req, res) => {
-  const { name, email, password } = req.body;
-
-  console.log("Register Request:", name, email);
-
-  res.json({
-    message: "Register Successful"
-  });
-});
-
 // MongoDB Connection
-mongoose.connect("mongodb+srv://admin:iPTXvEiynbCydYHa@cluster0.bhaclhu.mongodb.net/uninotesDB")
+mongoose.connect("mongodb+srv://sewminitheekshana00_db_user:sewmini123@cluster0.bhaclhu.mongodb.net/uninotesDB")
 .then(() => {
   console.log("Connected to MongoDB");
 

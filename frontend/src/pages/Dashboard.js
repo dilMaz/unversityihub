@@ -6,6 +6,7 @@ function Dashboard() {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/");
   };
 
@@ -51,6 +52,13 @@ function Dashboard() {
           <h3>👤 My Profile</h3>
           <button>
             View Profile
+          </button>
+        </div>
+
+        <div className="dashboard-card">
+          <h3>👑 Admin Panel</h3>
+          <button onClick={() => navigate("/admin")}>
+            Access Admin
           </button>
         </div>
 
