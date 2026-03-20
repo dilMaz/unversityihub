@@ -163,11 +163,25 @@ function AdminDashboard() {
               <div className="db-card-desc">Configure admin settings and system preferences.</div>
             </div>
             <button className="db-card-btn" onClick={() => navigate('/admin-panel')}>
-              Settings <span className="db-card-arrow">→</span>
+              Register Admin <span className="db-card-arrow">→</span>
+            </button>
+          </div>
+
+          {/* New Register Admin Card */}
+          <div className="db-card c8">
+            <div className="db-card-glow" />
+            <div className="db-card-icon">👨‍💼</div>
+            <div>
+              <div className="db-card-title">Register Admin</div>
+              <div className="db-card-desc">Create new admin accounts for the system.</div>
+            </div>
+            <button className="db-card-btn" onClick={() => navigate('/admin-panel')}>
+              Register New Admin <span className="db-card-arrow">→</span>
             </button>
           </div>
 
           <div className="db-card c7">
+
             <div className="db-card-glow" />
             <div className="db-card-icon">🎓</div>
             <div>
