@@ -7,20 +7,27 @@ function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.post("http://localhost:5000/api/auth/register", {
-        name,
-        email,
-        password,
-      });
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        { name, email, password }
+      );
+
+      console.log("REGISTER SUCCESS:", res.data);
 
       alert("Registration Successful ✅");
-      navigate("/");
+
+      // 🔥 REDIRECT TO LOGIN
+      navigate("/login");
+
     } catch (err) {
+      console.log(err);
       alert("Registration Failed ❌");
     }
   };
@@ -28,12 +35,12 @@ function Register() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>Create UniNotes Account</h2>
+        <h2>Create Account</h2>
 
         <form onSubmit={handleRegister}>
           <input
             type="text"
-            placeholder="Full Name"
+            placeholder="Enter Name"
             onChange={(e) => setName(e.target.value)}
             required
           />
@@ -47,7 +54,7 @@ function Register() {
 
           <input
             type="password"
-            placeholder="Create Password"
+            placeholder="Enter Password"
             onChange={(e) => setPassword(e.target.value)}
             required
           />
@@ -56,7 +63,7 @@ function Register() {
         </form>
 
         <div className="auth-link">
-          Already have an account? <Link to="/">Login</Link>
+          Already have an account? <Link to="/login">Login</Link>
         </div>
       </div>
     </div>

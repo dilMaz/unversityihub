@@ -3,8 +3,7 @@ const mongoose = require("mongoose");
 const noteSchema = new mongoose.Schema({
   title: String,
   subject: String,
-  category: String,
-  fileUrl: String,
+
   downloads: {
     type: Number,
     default: 0,
