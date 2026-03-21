@@ -15,6 +15,7 @@ const authRoutes = require("./routes/authRoutes");
 const noteRoutes = require("./routes/noteRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
+const Note = require("./models/Note");
 
 // test route
 app.get("/", (req, res) => {
@@ -37,8 +38,11 @@ app.get("/api/dashboard", authMiddleware, async (req, res) => {
     }
 
     res.json({
+      message: "Dashboard 🔐",
+      userId: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

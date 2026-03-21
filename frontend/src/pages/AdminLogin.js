@@ -3,69 +3,65 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "../styles/auth.css";
 
-function Login() {
+function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
+        "http://localhost:5000/api/auth/admin-login", // Assuming you have an admin login endpoint
         {
           email,
           password,
         }
       );
 
-      console.log("LOGIN DATA:", res.data);
+      console.log("ADMIN LOGIN DATA:", res.data);
 
       // 🔥 SAVE TOKEN + USER
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      if (res.data.user?.role === "admin") {
-        navigate("/admin-dashboard");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/admin-dashboard"); // Navigate to admin dashboard
 
     } catch (err) {
-      alert("Invalid Email or Password ❌");
+      alert("Invalid Admin Email or Password ❌");
     }
   };
 
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>Login to UniNotes</h2>
+        <h2>Admin Login to UniNotes</h2>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleAdminLogin}>
           <input
             type="email"
-            placeholder="Enter Email"
+            placeholder="Enter Admin Email"
             onChange={(e) => setEmail(e.target.value)}
             required
           />
 
           <input
             type="password"
-            placeholder="Enter Password"
+            placeholder="Enter Admin Password"
             onChange={(e) => setPassword(e.target.value)}
             required
           />
 
-          <button type="submit">Login</button>
+          <button type="submit">Admin Login</button>
         </form>
 
         <div className="auth-link">
-          Don’t have an account? <Link to="/register">Register</Link>
+          Back to <Link to="/login">User Login</Link>
         </div>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default AdminLogin;

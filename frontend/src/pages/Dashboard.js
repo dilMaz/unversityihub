@@ -68,6 +68,10 @@ function Dashboard() {
     navigate("/login");
   };
 
+  const goToAdmin = () => {
+    navigate("/admin-dashboard");
+  };
+
   return (
     <div className="db-root">
       <div className="db-wrap">
@@ -75,9 +79,14 @@ function Dashboard() {
         {/* Topbar */}
         <div className="db-topbar">
           <div className="db-logo">NoteVault</div>
-          <button className="db-logout" onClick={logout}>
-            <span>↩</span> Sign out
-          </button>
+          <div className="db-topbar-actions">
+            <button className="db-admin-btn" onClick={goToAdmin}>
+              👨‍💼 Admin
+            </button>
+            <button className="db-logout" onClick={logout}>
+              <span>↩</span> Sign out
+            </button>
+          </div>
         </div>
 
         {/* Hero */}
