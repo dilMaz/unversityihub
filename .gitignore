@@ -11,13 +11,21 @@
 /.env
 /backend/.env
 /frontend/.env*
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Backend uploads
-/backend/uploads/
+
 
 # Frontend build
 /frontend/build/
@@ -53,3 +61,8 @@ pids
 *.pid
 *.seed
 *.pid.lock
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

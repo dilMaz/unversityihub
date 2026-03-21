@@ -10,24 +10,56 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// imports
+// routes
 const authRoutes = require("./routes/authRoutes");
+const noteRoutes = require("./routes/noteRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
-const Note = require("./models/Note");
 const User = require("./models/User");
 
-// ================= TEST =================
+// test
 app.get("/", (req, res) => {
   res.send("API Running 🚀");
 });
 
-// ================= AUTH =================
+// auth
 app.use("/api/auth", authRoutes);
 
-// ================= DASHBOARD =================
+// notes
+app.use("/api/notes", noteRoutes);
+
+// dashboard
+  const user = await User.findById(req.user.id);
+
+    res.json({
+      message: "Dashboard 🔐",
+      userId: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+=======
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+
+    res.json({
+      message: "Dashboard 🔐",
+      userId: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+=======
+  const user = await User.findById(req.user.id);
 
     res.json({
       message: "Dashboard 🔐",
@@ -85,67 +117,15 @@ app.get("/api/notes", async (req, res) => {
       { title: { $regex: keyword, $options: "i" } },
       { subject: { $regex: keyword, $options: "i" } },
     ],
+=======
+  res.json({
+    name: user.name,
+    email: user.email,
+>>>>>>> 55460354892467c84a448fff191e584ba46a0c13
   });
-
-  res.json(notes);
 });
 
-// ================= DOWNLOAD =================
-app.put("/api/notes/:id/download", async (req, res) => {
-  const note = await Note.findById(req.params.id);
-
-  if (!note) return res.status(404).json({ message: "Note not found" });
-
-  note.downloads += 1;
-  await note.save();
-
-  // 🔥 OPTIONAL: save to user history
-  const user = await User.findById(req.user?.id);
-  if (user) {
-    user.downloads.push(note._id);
-    await user.save();
-  }
-
-  res.json({ downloads: note.downloads });
-});
-
-// ================= TOP RATED =================
-app.get("/api/notes/top", async (req, res) => {
-  try {
-    const notes = await Note.find().sort({ downloads: -1 }).limit(5);
-    res.json(notes);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ================= 🤖 RECOMMENDATION =================
-app.get("/api/notes/recommend", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).populate("downloads");
-
-    // ❌ no history
-    if (!user || !user.downloads || user.downloads.length === 0) {
-      return res.json([]);
-    }
-
-    // 🔥 last downloaded note
-    const lastNote = user.downloads[user.downloads.length - 1];
-
-    // 🔥 find similar subject notes
-    const recommended = await Note.find({
-      subject: lastNote.subject,
-      _id: { $ne: lastNote._id },
-    }).limit(5);
-
-    res.json(recommended);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ================= DB CONNECT =================
+// DB connect
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
