@@ -49,6 +49,29 @@ app.get("/api/dashboard", authMiddleware, async (req, res) => {
   }
 });
 
+// admin users (protected)
+app.get("/api/admin/users", authMiddleware, async (req, res) => {
+  try {
+    const users = await User.find({}, "_id name email role").sort({ name: 1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// admin delete user (protected)
+app.delete("/api/admin/users/:id", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "User deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // DB connect + server start
 mongoose
   .connect(process.env.MONGO_URI)

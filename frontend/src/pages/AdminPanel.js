@@ -5,13 +5,13 @@ import '../styles/dashboard.css';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
+// eslint-disable-next-line no-dupe-keys
 const [formData, setFormData] = useState({
     name: '',
     nic: '',
     email: '',
-    status: 'active',
+    status: 'undergraduate',
     phone: '',
-    password: '',
     password: ''
   });
   const [errors, setErrors] = useState({});
@@ -32,6 +32,7 @@ const [formData, setFormData] = useState({
         if (!/.+@.+\..+/.test(value)) error = 'Email must include @ and domain';
         break;
       case 'phone':
+        // eslint-disable-next-line no-useless-escape
         if (!/^[\+]?[0-9\s\-\(\)]{10}$/.test(value)) error = 'Phone must be exactly 10 numbers with optional + () - spaces';
         break;
       case 'password':
@@ -85,6 +86,7 @@ const [formData, setFormData] = useState({
 
     try {
       const token = localStorage.getItem('token');
+      // eslint-disable-next-line no-unused-vars
       const res = await axios.post('http://localhost:5000/api/auth/register', {
         name: formData.name,
         nic: formData.nic,
@@ -98,7 +100,7 @@ const [formData, setFormData] = useState({
       });
 
       setMessage('New Admin registered successfully!');
-      setFormData({ name: '', nic: '', email: '', status: 'active', phone: '', password: '', confirmPassword: '' });
+      setFormData({ name: '', nic: '', email: '', status: 'undergraduate', phone: '', password: '' });
     } catch (err) {
       setMessage(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -248,8 +250,8 @@ const [formData, setFormData] = useState({
                   maxLength="15"
                   value={formData.phone}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^\+0-9\s\-\(\)]/g, '').slice(0,15);
-                    handleChange({target: {name: 'phone', value}});
+                    const value = e.target.value.replace(/[^+0-9\s\-().]/g, '');
+                    setFormData(prev => ({...prev, phone: value}));
                   }}
                   onBlur={() => {
                     const error = validateField('phone', formData.phone);

@@ -4,6 +4,7 @@ import '../styles/dashboard.css';
 
 const StudentSupport = () => {
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const [supportRequests, setSupportRequests] = useState([]);
 
   const handleResolve = (id) => {

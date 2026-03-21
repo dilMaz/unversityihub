@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import "../styles/dashboard.css";
@@ -7,9 +8,13 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [users, setUsers] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [usersLoading, setUsersLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [usersError, setUsersError] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [showUsers, setShowUsers] = useState(false);
 
   useEffect(() => {

@@ -13,11 +13,18 @@ module.exports = (req, res, next) => {
       ? token.split(" ")[1]
       : token;
 
-    const decoded = jwt.verify(cleanToken, "secretkey");
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error("JWT_SECRET not configured in environment");
+      return res.status(500).json({ message: "Server configuration error" });
+    }
+
+    const decoded = jwt.verify(cleanToken, secret);
 
     req.user = decoded; // user id
     next();
   } catch (error) {
+    console.error("Token verification error:", error.message);
     res.status(401).json({ message: "Invalid token" });
   }
 };
