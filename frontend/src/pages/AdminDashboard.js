@@ -71,9 +71,7 @@ function AdminDashboard() {
         <div className="db-topbar">
           <div className="db-logo">Admin Panel</div>
           <div className="db-topbar-actions">
-            <button className="db-admin-btn" onClick={backToDashboard}>
-              ← Back to Dashboard
-            </button>
+
             <button className="db-logout" onClick={logout}>
               <span>↩</span> Sign out
             </button>
@@ -156,17 +154,7 @@ function AdminDashboard() {
           </div>
 
           {/* Register Admin Card */}
-          <div className="db-card c6">
-            <div className="db-card-glow" />
-            <div className="db-card-icon">👨‍💼</div>
-            <div>
-              <div className="db-card-title">Register Admin</div>
-              <div className="db-card-desc">Create new admin accounts for the system.</div>
-            </div>
-            <button className="db-card-btn" onClick={() => navigate('/admin-panel')}>
-              Register New Admin <span className="db-card-arrow">→</span>
-            </button>
-          </div>
+
 
           <div className="db-card c7">
 

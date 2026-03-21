@@ -80,9 +80,7 @@ function Dashboard() {
         <div className="db-topbar">
           <div className="db-logo">NoteVault</div>
           <div className="db-topbar-actions">
-            <button className="db-admin-btn" onClick={goToAdmin}>
-              👨‍💼 Admin
-            </button>
+
             <button className="db-logout" onClick={logout}>
               <span>↩</span> Sign out
             </button>
