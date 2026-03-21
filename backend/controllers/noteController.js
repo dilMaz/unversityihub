@@ -74,19 +74,14 @@ exports.topNotes = async (req, res) => {
 exports.recommendNotes = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("downloads");
+    const recommendationEngine = require("../utils/recommendationEngine");
 
-    if (!user || user.downloads.length === 0) {
-      return res.json([]);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const lastNote = user.downloads[user.downloads.length - 1];
-
-    const recommended = await Note.find({
-      subject: lastNote.subject,
-      _id: { $ne: lastNote._id },
-    }).limit(5);
-
-    res.json(recommended);
+    const recommendations = await recommendationEngine.getRecommendations(user);
+    res.json(recommendations);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

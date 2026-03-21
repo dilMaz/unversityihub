@@ -55,6 +55,9 @@ function NoteCard({ note, color, index }) {
 }
 
 function Section({ icon, label, tag, color, notes, loading }) {
+  // Handle undefined notes
+  const notesList = notes || [];
+  
   return (
     <div className="rec-section">
       <div className="rec-section-header">
@@ -68,13 +71,13 @@ function Section({ icon, label, tag, color, notes, loading }) {
       <div className="rec-scroll-row">
         {loading ? (
           [1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)
-        ) : notes.length === 0 ? (
+        ) : notesList.length === 0 ? (
           <div className="rec-section-empty">
             <span>📭</span>
             <p>Nothing here yet</p>
           </div>
         ) : (
-          notes.map((note, i) => (
+          notesList.map((note, i) => (
             <NoteCard key={note._id} note={note} color={color} index={i} />
           ))
         )}
@@ -95,9 +98,17 @@ function Recommended() {
           "http://localhost:5000/api/notes/recommend",
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setData(res.data);
+        // Ensure all required keys exist
+        const recommendations = {
+          contentBased: res.data?.contentBased || [],
+          trending: res.data?.trending || [],
+          recent: res.data?.recent || [],
+        };
+        setData(recommendations);
       } catch (err) {
         console.log(err);
+        // Set empty arrays on error
+        setData({ contentBased: [], trending: [], recent: [] });
       } finally {
         setLoading(false);
       }
