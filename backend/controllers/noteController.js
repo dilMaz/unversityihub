@@ -70,6 +70,30 @@ exports.recommendNotes = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+// 📤 Admin create note
+exports.createAdminNote = async (req, res) => {
+  try {
+    const { title, subject } = req.body;
+    const filePath = req.file ? req.file.path : null;
+
+    if (!title || !subject || !filePath) {
+      return res.status(400).json({ message: "Title, subject, and file required" });
+    }
+
+    const note = new Note({
+      title,
+      subject,
+      filePath,
+    });
+
+    await note.save();
+
+    res.status(201).json({ message: "Note uploaded successfully", note });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 const { getRecommendations } = require("../utils/recommendationEngine");
 
 // 🤖 RECOMMEND

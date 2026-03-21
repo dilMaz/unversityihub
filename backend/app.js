@@ -9,6 +9,23 @@ const app = express();
 // middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
+
+// multer
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/notes/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
+app.use(upload.single('noteFile'));
 
 // routes
 const authRoutes = require("./routes/authRoutes");
@@ -103,3 +120,4 @@ mongoose
     );
   })
   .catch((err) => console.log(err));
+
