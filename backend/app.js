@@ -28,21 +28,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
 
 // dashboard
-  const user = await User.findById(req.user.id);
-
-    res.json({
-      message: "Dashboard 🔐",
-      userId: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-=======
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -54,21 +39,6 @@ app.get("/api/dashboard", authMiddleware, async (req, res) => {
       email: user.email,
       role: user.role,
     });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-=======
-  const user = await User.findById(req.user.id);
-
-    res.json({
-      message: "Dashboard 🔐",
-      userId: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -98,6 +68,7 @@ app.delete("/api/admin/users/:id", authMiddleware, async (req, res) => {
 
 // ================= SEED =================
 app.get("/api/notes/seed", async (req, res) => {
+  const Note = require("./models/Note");
   await Note.deleteMany();
 
   const notes = await Note.insertMany([
@@ -110,6 +81,7 @@ app.get("/api/notes/seed", async (req, res) => {
 
 // ================= SEARCH =================
 app.get("/api/notes", async (req, res) => {
+  const Note = require("./models/Note");
   const keyword = req.query.search || "";
 
   const notes = await Note.find({
@@ -117,12 +89,8 @@ app.get("/api/notes", async (req, res) => {
       { title: { $regex: keyword, $options: "i" } },
       { subject: { $regex: keyword, $options: "i" } },
     ],
-=======
-  res.json({
-    name: user.name,
-    email: user.email,
->>>>>>> 55460354892467c84a448fff191e584ba46a0c13
   });
+  res.json(notes);
 });
 
 // DB connect
