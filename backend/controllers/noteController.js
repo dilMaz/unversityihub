@@ -1,62 +1,83 @@
 const Note = require("../models/Note");
 const User = require("../models/User");
 
-// seed
+// SEED
 exports.seedNotes = async (req, res) => {
-  await Note.deleteMany();
+  try {
+    await Note.deleteMany();
 
-  const notes = await Note.insertMany([
-    { title: "Java Notes", subject: "Programming", downloads: 0 },
-    { title: "DB Notes", subject: "Database", downloads: 0 },
-  ]);
+    const notes = await Note.insertMany([
+      { title: "Java Programming Basics", moduleCode: "IT101", subject: "Programming" },
+      { title: "Advanced Java", moduleCode: "IT201", subject: "Programming" },
+      { title: "Database Fundamentals", moduleCode: "DB101", subject: "Database" },
+      { title: "SQL Advanced", moduleCode: "DB201", subject: "Database" },
+      { title: "HTML Basics", moduleCode: "WD101", subject: "Web" },
+      { title: "CSS Design", moduleCode: "WD102", subject: "Web" },
+      { title: "JavaScript Intro", moduleCode: "JS101", subject: "Programming" },
+      { title: "React Guide", moduleCode: "JS201", subject: "Programming" },
+      { title: "Networking Basics", moduleCode: "NW101", subject: "Networking" },
+      { title: "Cloud Computing", moduleCode: "CL101", subject: "Cloud" },
+    ]);
 
-  res.json(notes);
-};
-
-// search
-exports.searchNotes = async (req, res) => {
-  const keyword = req.query.search || "";
-
-  const notes = await Note.find({
-    $or: [
-      { title: { $regex: keyword, $options: "i" } },
-      { subject: { $regex: keyword, $options: "i" } },
-    ],
-  });
-
-  res.json(notes);
-};
-
-// download
-exports.downloadNote = async (req, res) => {
-  const note = await Note.findById(req.params.id);
-
-  if (!note) return res.status(404).json({ message: "Note not found" });
-
-  note.downloads += 1;
-  await note.save();
-
-  const user = await User.findById(req.user?.id);
-  if (user) {
-    user.downloads.push(note._id);
-    await user.save();
+    res.json(notes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-
-  res.json({ downloads: note.downloads });
 };
 
-// top rated
+// SEARCH
+exports.searchNotes = async (req, res) => {
+  try {
+    const keyword = req.query.search || "";
+
+    const notes = await Note.find({
+      $or: [
+        { title: { $regex: keyword, $options: "i" } },
+        { moduleCode: { $regex: keyword, $options: "i" } },
+        { subject: { $regex: keyword, $options: "i" } },
+      ],
+    });
+
+    res.json(notes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// DOWNLOAD
+exports.downloadNote = async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    note.downloads += 1;
+    await note.save();
+
+    res.json({ downloads: note.downloads });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// TOP NOTES
 exports.topNotes = async (req, res) => {
-  const notes = await Note.find().sort({ downloads: -1 }).limit(5);
-  res.json(notes);
+  try {
+    const notes = await Note.find().sort({ downloads: -1 }).limit(5);
+    res.json(notes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-// recommendation
+// RECOMMEND NOTES
 exports.recommendNotes = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("downloads");
 
-    if (!user.downloads.length) return res.json([]);
+    if (!user || user.downloads.length === 0) {
+      return res.json([]);
+    }
 
     const lastNote = user.downloads[user.downloads.length - 1];
 
@@ -66,20 +87,6 @@ exports.recommendNotes = async (req, res) => {
     }).limit(5);
 
     res.json(recommended);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-const { getRecommendations } = require("../utils/recommendationEngine");
-
-// 🤖 RECOMMEND
-exports.recommendNotes = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).populate("downloads");
-
-    const data = await getRecommendations(user);
-
-    res.json(data);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

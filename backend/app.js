@@ -10,40 +10,51 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// routes
+// imports
 const authRoutes = require("./routes/authRoutes");
 const noteRoutes = require("./routes/noteRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
 
-// test
+// test route
 app.get("/", (req, res) => {
   res.send("API Running 🚀");
 });
 
-// auth
+// auth routes
 app.use("/api/auth", authRoutes);
 
-// notes
+// note routes
 app.use("/api/notes", noteRoutes);
 
-// dashboard
+// dashboard (protected)
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
-  const user = await User.findById(req.user.id);
+  try {
+    const user = await User.findById(req.user.id);
 
-  res.json({
-    name: user.name,
-    email: user.email,
-  });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      name: user.name,
+      email: user.email,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// DB connect
+// DB connect + server start
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("DB connected ✅");
-    app.listen(process.env.PORT, () =>
-      console.log("Server running 🚀")
-    );
+
+    const PORT = process.env.PORT || 5000;
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT} 🚀`);
+    });
   })
   .catch((err) => console.log(err));
