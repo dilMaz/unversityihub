@@ -26,7 +26,6 @@ const [formData, setFormData] = useState({
         if (!/^[a-zA-Z\s]+$/.test(value)) error = 'Name must contain only letters';
         break;
       case 'nic':
-        if (!/^[0-9]{12}V$/i.test(value)) error = 'NIC must be exactly 12 digits + V';
         break;
       case 'email':
         if (!/.+@.+\..+/.test(value)) error = 'Email must include @ and domain';
@@ -73,7 +72,7 @@ const [formData, setFormData] = useState({
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setMessage('Please fix errors below');
+      setErrors(newErrors);
       return;
     }
 
@@ -172,7 +171,7 @@ const [formData, setFormData] = useState({
 
               <div>
                 <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
-                  NIC Number (xxxxxxxxxxV)
+                  NIC Number 
                 </label>
                 <input
                   name="nic"
@@ -180,13 +179,11 @@ const [formData, setFormData] = useState({
                   maxLength="13"
                   value={formData.nic}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9V]/g, '').toUpperCase().slice(0,13);
+                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0,12);
                     setFormData({
                       ...formData,
                       nic: value
                     });
-                    const error = validateField('nic', value);
-                    setErrors(prev => ({...prev, nic: error}));
                   }}
                   onBlur={() => {
                     const error = validateField('nic', formData.nic);
@@ -240,7 +237,7 @@ const [formData, setFormData] = useState({
 
               <div>
                 <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
-                  Phone Number (10 digits)
+                  Phone Number 
                 </label>
                 <input
                   name="phone"
@@ -347,7 +344,7 @@ const [formData, setFormData] = useState({
                   opacity: loading ? 0.7 : 1
                 }}
               >
-                {loading ? 'Creating Admin...' : 'Create New Admin'}
+                {loading ? 'Creating Admin...' : 'Register New Admin'}
               </button>
             </div>
           </form>
