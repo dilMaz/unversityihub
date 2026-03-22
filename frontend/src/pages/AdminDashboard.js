@@ -129,17 +129,7 @@ function AdminDashboard() {
             </button>
           </div>
 
-          <div className="db-card c4">
-            <div className="db-card-glow" />
-            <div className="db-card-icon">⬆️</div>
-            <div>
-              <div className="db-card-title">Upload Notes</div>
-              <div className="db-card-desc">Manage and approve note uploads from users.</div>
-            </div>
-            <button className="db-card-btn" onClick={() => navigate('/admin-upload-notes')}>
-              Manage Uploads <span className="db-card-arrow">→</span>
-            </button>
-          </div>
+
 
           <div className="db-card c5">
             <div className="db-card-glow" />
