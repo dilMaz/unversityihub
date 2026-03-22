@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-app.use(upload.single('noteFile'));
+// Removed global multer - handled in routes
 
 // routes
 const authRoutes = require("./routes/authRoutes");
@@ -119,5 +119,8 @@ mongoose
       console.log("Server running 🚀")
     );
   })
-  .catch((err) => console.log(err));
+.catch((err) => {
+  console.error('MongoDB connection error:', err);
+  process.exit(1);
+});
 

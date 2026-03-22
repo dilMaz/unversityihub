@@ -12,6 +12,7 @@ import StudentSupport from "./pages/StudentSupport";
 import Search from "./pages/Search";
 import TopRated from "./pages/TopRated";
 import Recommended from "./pages/Recommended";
+import AdminReview from "./pages/AdminReview";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/top-rated" element={<TopRated />} />
         <Route path="/recommend" element={<Recommended />} />
+        <Route path="/admin-review" element={<AdminReview />} /> 
 
       </Routes>
     </Router>

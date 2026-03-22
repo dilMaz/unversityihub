@@ -112,7 +112,7 @@ function AdminDashboard() {
               <div className="db-card-title">Document Review</div>
               <div className="db-card-desc">Review and approve pending documents.</div>
             </div>
-            <button className="db-card-btn">
+<button className="db-card-btn" onClick={() => navigate('/admin-review')}>
               Review Docs <span className="db-card-arrow">→</span>
             </button>
           </div>

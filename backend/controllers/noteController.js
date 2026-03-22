@@ -52,24 +52,7 @@ exports.topNotes = async (req, res) => {
 };
 
 // recommendation
-exports.recommendNotes = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).populate("downloads");
 
-    if (!user.downloads.length) return res.json([]);
-
-    const lastNote = user.downloads[user.downloads.length - 1];
-
-    const recommended = await Note.find({
-      subject: lastNote.subject,
-      _id: { $ne: lastNote._id },
-    }).limit(5);
-
-    res.json(recommended);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
 // 📤 Admin create note
 exports.createAdminNote = async (req, res) => {
   try {
