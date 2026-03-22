@@ -154,7 +154,17 @@ function AdminDashboard() {
           </div>
 
           {/* Register Admin Card */}
-
+          <div className="db-card c6">
+            <div className="db-card-glow" />
+            <div className="db-card-icon">👨‍💼</div>
+            <div>
+              <div className="db-card-title">Admin Registration</div>
+              <div className="db-card-desc">Register new admin users for the system.</div>
+            </div>
+            <button className="db-card-btn" onClick={() => navigate('/admin-panel')}>
+              Register Admin <span className="db-card-arrow">→</span>
+            </button>
+          </div>
 
           <div className="db-card c7">
 
