@@ -46,15 +46,29 @@ function Dashboard() {
     const token = localStorage.getItem("token");
     if (!token) { navigate("/login"); return; }
 
+    // ✅ Fix 1 — localStorage user data directly use කරන්න
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser?.name) {
+      setName(storedUser.name);
+      setLoading(false);
+      return;
+    }
+
+    // ✅ Fix 2 — API call එක fallback විදිහට
     const fetchDashboard = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setName(res.data.name);
-      } catch {
-        localStorage.removeItem("token");
-        navigate("/login");
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+        // ✅ Fix 3 — 401 එකට විතරක් token delete කරන්න
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        }
       } finally {
         setLoading(false);
       }
@@ -65,6 +79,7 @@ function Dashboard() {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user"); // ✅ Fix 4 — user ද delete කරන්න
     navigate("/login");
   };
 
@@ -80,7 +95,6 @@ function Dashboard() {
         <div className="db-topbar">
           <div className="db-logo">NoteVault</div>
           <div className="db-topbar-actions">
-
             <button className="db-logout" onClick={logout}>
               <span>↩</span> Sign out
             </button>

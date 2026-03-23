@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/dashboard.css";
 
@@ -10,13 +10,22 @@ function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [usersError, setUsersError] = useState("");
-  const [showUsers, setShowUsers] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
+    if (!token) { navigate("/login"); return; }
+
+    // ✅ Fix 1 — role check කරන්න — admin නොවෙනම් dashboard එකට
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser?.role?.toLowerCase() !== "admin") {
+      navigate("/dashboard");
       return;
+    }
+
+    // ✅ Fix 2 — localStorage user data use කරන්න
+    if (storedUser?.name) {
+      setName(storedUser.name);
+      setLoading(false);
     }
 
     const fetchDashboard = async () => {
@@ -25,9 +34,14 @@ function AdminDashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setName(res.data.name);
-      } catch {
-        localStorage.removeItem("token");
-        navigate("/login");
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+        // ✅ Fix 3 — 401 එකට විතරක් token delete කරන්න
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        }
       } finally {
         setLoading(false);
       }
@@ -52,15 +66,8 @@ function AdminDashboard() {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user"); // ✅ Fix 4 — user ද delete කරන්න
     navigate("/login");
-  };
-
-  const backToDashboard = () => {
-    navigate("/dashboard");
-  };
-
-  const goToUsers = () => {
-    navigate("/admin-users");
   };
 
   return (
@@ -71,7 +78,6 @@ function AdminDashboard() {
         <div className="db-topbar">
           <div className="db-logo">Admin Panel</div>
           <div className="db-topbar-actions">
-
             <button className="db-logout" onClick={logout}>
               <span>↩</span> Sign out
             </button>
@@ -100,7 +106,7 @@ function AdminDashboard() {
               <div className="db-card-title">User Management</div>
               <div className="db-card-desc">View and manage all users in the system.</div>
             </div>
-            <button className="db-card-btn" onClick={goToUsers}>
+            <button className="db-card-btn" onClick={() => navigate('/admin-users')}>
               View Users <span className="db-card-arrow">→</span>
             </button>
           </div>
@@ -112,7 +118,7 @@ function AdminDashboard() {
               <div className="db-card-title">Document Review</div>
               <div className="db-card-desc">Review and approve pending documents.</div>
             </div>
-<button className="db-card-btn" onClick={() => navigate('/admin-review')}>
+            <button className="db-card-btn" onClick={() => navigate('/admin-review')}>
               Review Docs <span className="db-card-arrow">→</span>
             </button>
           </div>
@@ -129,8 +135,6 @@ function AdminDashboard() {
             </button>
           </div>
 
-
-
           <div className="db-card c5">
             <div className="db-card-glow" />
             <div className="db-card-icon">💬</div>
@@ -143,7 +147,6 @@ function AdminDashboard() {
             </button>
           </div>
 
-          {/* Register Admin Card */}
           <div className="db-card c6">
             <div className="db-card-glow" />
             <div className="db-card-icon">👨‍💼</div>
@@ -157,7 +160,6 @@ function AdminDashboard() {
           </div>
 
           <div className="db-card c7">
-
             <div className="db-card-glow" />
             <div className="db-card-icon">🎓</div>
             <div>
@@ -169,8 +171,6 @@ function AdminDashboard() {
             </button>
           </div>
         </div>
-
-        {/* Removed inline user table; navigation to AdminUsers page now handles user listing. */}
 
       </div>
     </div>
