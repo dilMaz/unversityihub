@@ -23,11 +23,18 @@ function TopRated() {
     fetchTopNotes();
   }, []);
 
-  // 📥 Download
+  // 📥 Download ✅ Fixed
   const handleDownload = async (id) => {
     setDownloading(id);
     try {
-      await axios.put(`http://localhost:5000/api/notes/${id}/download`);
+      const token = localStorage.getItem("token"); // ✅ token ගන්න
+      await axios.put(
+        `http://localhost:5000/api/notes/${id}/download`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }, // ✅ token යවන්න
+        }
+      );
       fetchTopNotes();
     } catch (err) {
       console.log(err);

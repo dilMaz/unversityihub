@@ -4,9 +4,10 @@ const noteSchema = new mongoose.Schema(
   {
     title: String,
     subject: String,
+    moduleCode: String,
     filePath: {
       type: String,
-      required: true
+      required: false, // ✅ මේක වෙනස් කළා
     },
     downloads: {
       type: Number,
@@ -16,4 +17,4 @@ const noteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Note", noteSchema);
+module.exports = mongoose.model("Note", noteSchema)

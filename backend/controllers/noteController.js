@@ -6,8 +6,11 @@ exports.seedNotes = async (req, res) => {
   await Note.deleteMany();
 
   const notes = await Note.insertMany([
-    { title: "Java Notes", subject: "Programming", downloads: 0 },
-    { title: "DB Notes", subject: "Database", downloads: 0 },
+    { title: "Java Programming Basics", subject: "Programming", moduleCode: "IT101", filePath: "seed", downloads: 1 },
+    { title: "Advanced Java",           subject: "Programming", moduleCode: "IT201", filePath: "seed", downloads: 0 },
+    { title: "Database Fundamentals",   subject: "Database",    moduleCode: "DB101", filePath: "seed", downloads: 0 },
+    { title: "SQL Advanced",            subject: "Database",    moduleCode: "DB201", filePath: "seed", downloads: 0 },
+    { title: "HTML Basics",             subject: "Web",         moduleCode: "WD101", filePath: "seed", downloads: 0 },
   ]);
 
   res.json(notes);
@@ -19,8 +22,9 @@ exports.searchNotes = async (req, res) => {
 
   const notes = await Note.find({
     $or: [
-      { title: { $regex: keyword, $options: "i" } },
-      { subject: { $regex: keyword, $options: "i" } },
+      { title:      { $regex: keyword, $options: "i" } },
+      { subject:    { $regex: keyword, $options: "i" } },
+      { moduleCode: { $regex: keyword, $options: "i" } },
     ],
   });
 
@@ -29,20 +33,27 @@ exports.searchNotes = async (req, res) => {
 
 // download
 exports.downloadNote = async (req, res) => {
-  const note = await Note.findById(req.params.id);
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
 
-  if (!note) return res.status(404).json({ message: "Note not found" });
+    note.downloads += 1;
+    await note.save();
 
-  note.downloads += 1;
-  await note.save();
+    const user = await User.findById(req.user?.id);
+    if (user) {
+      user.downloads.push(note._id);
+      await user.save();
+    }
 
-  const user = await User.findById(req.user?.id);
-  if (user) {
-    user.downloads.push(note._id);
-    await user.save();
+    if (!note.filePath || note.filePath === "seed") {
+      return res.json({ downloads: note.downloads, fileUrl: null });
+    }
+
+    res.json({ downloads: note.downloads, fileUrl: note.filePath });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-
-  res.json({ downloads: note.downloads });
 };
 
 // top rated
@@ -51,12 +62,10 @@ exports.topNotes = async (req, res) => {
   res.json(notes);
 };
 
-// recommendation
-
 // 📤 Admin create note
 exports.createAdminNote = async (req, res) => {
   try {
-    const { title, subject } = req.body;
+    const { title, subject, moduleCode } = req.body;
     const filePath = req.file ? req.file.path : null;
 
     if (!title || !subject || !filePath) {
@@ -66,6 +75,7 @@ exports.createAdminNote = async (req, res) => {
     const note = new Note({
       title,
       subject,
+      moduleCode,
       filePath,
     });
 
@@ -83,11 +93,17 @@ const { getRecommendations } = require("../utils/recommendationEngine");
 exports.recommendNotes = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("downloads");
+    console.log("USER ID:", req.user.id);
+    console.log("DOWNLOADS:", user.downloads);
 
     const data = await getRecommendations(user);
+    console.log("CONTENT BASED:", data.contentBased.length);
+    console.log("TRENDING:", data.trending.length);
+    console.log("RECENT:", data.recent.length);
 
     res.json(data);
   } catch (err) {
+    console.log("RECOMMEND ERROR:", err.message);
     res.status(500).json({ message: err.message });
   }
 };

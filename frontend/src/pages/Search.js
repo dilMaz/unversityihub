@@ -30,11 +30,18 @@ function Search() {
     if (e.key === "Enter") handleSearch();
   };
 
-  // 📥 Download function
+  // 📥 Download function ✅ Fixed
   const handleDownload = async (id) => {
     setDownloading(id);
     try {
-      await axios.put(`http://localhost:5000/api/notes/${id}/download`);
+      const token = localStorage.getItem("token"); // ✅ token ගන්න
+      await axios.put(
+        `http://localhost:5000/api/notes/${id}/download`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }, // ✅ token යවන්න
+        }
+      );
       handleSearch();
     } catch (err) {
       console.log(err);
