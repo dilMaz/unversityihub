@@ -13,7 +13,8 @@ module.exports = (req, res, next) => {
       ? token.split(" ")[1]
       : token;
 
-const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET || "secretkey");
+const secret = process.env.JWT_SECRET || "secretkey";
+const decoded = jwt.verify(cleanToken, secret);
 
     req.user = decoded; // user id
     next();

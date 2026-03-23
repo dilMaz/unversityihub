@@ -6,10 +6,14 @@ import "../styles/auth.css";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
       const res = await axios.post(
@@ -33,7 +37,10 @@ function Login() {
       }
 
     } catch (err) {
-      alert("Invalid Email or Password ❌");
+      console.error("Login error:", err);
+      setError(err.response?.data?.message || "Login failed. Check credentials.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,12 +49,18 @@ function Login() {
       <div className="auth-card">
         <h2>Login to UniNotes</h2>
 
+        {error && (
+          <div className="error-msg" style={{color: 'red', marginBottom: '1rem', padding: '0.5rem'}}>
+            {error}
+          </div>
+        )}
         <form onSubmit={handleLogin}>
           <input
             type="email"
             placeholder="Enter Email"
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading}
           />
 
           <input
@@ -55,9 +68,12 @@ function Login() {
             placeholder="Enter Password"
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={loading}
           />
 
-          <button type="submit">Login</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
 
         <div className="auth-link">
