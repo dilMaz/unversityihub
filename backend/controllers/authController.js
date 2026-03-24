@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 // Register
 exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, nic, email, password, phone, status } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -14,9 +14,12 @@ exports.register = async (req, res) => {
 
     const user = await User.create({
       name,
+      nic,
       email,
+      phone,
+      status,
       password: hashedPassword,
-      role: req.body.role && req.body.role === "admin" ? "admin" : "user",
+      role: req.body.role === "admin" ? "admin" : "user",
     });
 
     res.status(201).json({ message: "User Registered Successfully" });
@@ -36,7 +39,11 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid Password" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "JWT secret is not configured" });
+    }
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
 

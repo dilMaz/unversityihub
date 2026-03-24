@@ -5,18 +5,20 @@ import '../styles/dashboard.css';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
-// eslint-disable-next-line no-dupe-keys
-const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     nic: '',
     email: '',
-    status: 'undergraduate',
+    status: 'active',
     phone: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateField = (name, value) => {
     let error = '';
@@ -26,17 +28,23 @@ const [formData, setFormData] = useState({
         if (!/^[a-zA-Z\s]+$/.test(value)) error = 'Name must contain only letters';
         break;
       case 'nic':
-        if (!/^[0-9]{12}V$/i.test(value)) error = 'NIC must be exactly 12 digits + V';
+        if (!/^[0-9]{12}$/.test(value)) error = 'NIC must have exactly 12 numbers';
         break;
       case 'email':
         if (!/.+@.+\..+/.test(value)) error = 'Email must include @ and domain';
         break;
       case 'phone':
-        // eslint-disable-next-line no-useless-escape
-        if (!/^[\+]?[0-9\s\-\(\)]{10}$/.test(value)) error = 'Phone must be exactly 10 numbers with optional + () - spaces';
+        if (!/^[0-9]{10}$/.test(value.replace(/[\s\-()]/g, ''))) error = 'Phone must have exactly 10 numbers';
         break;
       case 'password':
-        if (value.length < 6) error = 'Password must be at least 6 characters';
+        if (value.length < 8 || value.length > 12) {
+          error = 'Password must be 8-12 characters';
+        } else if (!/(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/.test(value)) {
+          error = 'Must include uppercase/lowercase, numbers, symbols';
+        }
+        break;
+      case 'confirmPassword':
+        if (value !== formData.password) error = 'Passwords do not match';
         break;
       default:
         break;
@@ -52,7 +60,6 @@ const [formData, setFormData] = useState({
       [name]: value
     });
 
-    // Real-time validation
     const error = validateField(name, value);
     setErrors(prev => ({
       ...prev,
@@ -63,31 +70,23 @@ const [formData, setFormData] = useState({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Final validation
     const newErrors = {};
     Object.keys(formData).forEach(key => {
-      if (key !== 'confirmPassword') {
-        const error = validateField(key, formData[key]);
-        if (error) newErrors[key] = error;
-      }
+      const error = validateField(key, formData[key]);
+      if (error) newErrors[key] = error;
     });
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setMessage('Please fix errors below');
       return;
     }
 
-
-
     setLoading(true);
     setMessage('');
-    setErrors({});
 
     try {
       const token = localStorage.getItem('token');
-      // eslint-disable-next-line no-unused-vars
-      const res = await axios.post('http://localhost:5000/api/auth/register', {
+      await axios.post('http://localhost:5000/api/auth/register', {
         name: formData.name,
         nic: formData.nic,
         email: formData.email,
@@ -99,8 +98,8 @@ const [formData, setFormData] = useState({
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setMessage('New Admin registered successfully!');
-      setFormData({ name: '', nic: '', email: '', status: 'undergraduate', phone: '', password: '' });
+      setMessage('New Admin registered successfully! ✅');
+      setFormData({ name: '', nic: '', email: '', status: 'active', phone: '', password: '', confirmPassword: '' });
     } catch (err) {
       setMessage(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -113,7 +112,7 @@ const [formData, setFormData] = useState({
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Admin Register</div>
-          <button className="db-admin-btn" onClick={() => navigate('/admin-dashboard')}>
+          <button className="db-admin-btn" onClick={() => navigate('/admin-dashboard')} >
             ← Back to Dashboard
           </button>
         </div>
@@ -145,10 +144,6 @@ const [formData, setFormData] = useState({
                   type="text"
                   value={formData.name}
                   onChange={handleChange}
-                  onBlur={() => {
-                    const error = validateField('name', formData.name);
-                    setErrors(prev => ({...prev, name: error}));
-                  }}
                   required
                   placeholder="Enter full name"
                   style={{
@@ -174,28 +169,22 @@ const [formData, setFormData] = useState({
 
               <div>
                 <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
-                  NIC Number (xxxxxxxxxxV)
+                  NIC Number 
                 </label>
                 <input
                   name="nic"
                   type="text"
-                  maxLength="13"
+                  maxLength="12"
                   value={formData.nic}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9V]/g, '').toUpperCase().slice(0,13);
+                    const value = e.target.value.replace(/[^0-9]/g, '');
                     setFormData({
                       ...formData,
                       nic: value
                     });
-                    const error = validateField('nic', value);
-                    setErrors(prev => ({...prev, nic: error}));
-                  }}
-                  onBlur={() => {
-                    const error = validateField('nic', formData.nic);
-                    setErrors(prev => ({...prev, nic: error}));
                   }}
                   required
-                  placeholder="9412345678V"
+                  placeholder="200123456789"
                   style={{
                     width: '100%',
                     padding: '12px 16px',
@@ -203,7 +192,6 @@ const [formData, setFormData] = useState({
                     border: errors.nic ? '2px solid #ef4444' : '1px solid var(--border)',
                     borderRadius: '8px',
                     color: 'var(--text)',
-                    textTransform: 'uppercase'
                   }}
                 />
                 {errors.nic && (
@@ -233,11 +221,21 @@ const [formData, setFormData] = useState({
                     width: '100%',
                     padding: '12px 16px',
                     background: 'var(--surface2)',
-                    border: '1px solid var(--border)',
+                    border: errors.email ? '2px solid #ef4444' : '1px solid var(--border)',
                     borderRadius: '8px',
                     color: 'var(--text)',
                   }}
                 />
+                {errors.email && (
+                  <div style={{
+                    color: '#ef4444',
+                    fontSize: '14px',
+                    marginTop: '4px',
+                    fontWeight: '500'
+                  }}>
+                    {errors.email}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -247,18 +245,10 @@ const [formData, setFormData] = useState({
                 <input
                   name="phone"
                   type="tel"
-                  maxLength="15"
                   value={formData.phone}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^+0-9\s\-().]/g, '');
-                    setFormData(prev => ({...prev, phone: value}));
-                  }}
-                  onBlur={() => {
-                    const error = validateField('phone', formData.phone);
-                    setErrors(prev => ({...prev, phone: error}));
-                  }}
+                  onChange={handleChange}
                   required
-                  placeholder="0771234567 or +94771234567"
+                  placeholder="0771234567"
                   style={{
                     width: '100%',
                     padding: '12px 16px',
@@ -282,7 +272,7 @@ const [formData, setFormData] = useState({
 
               <div>
                 <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
-                  Current Status
+                  Student Status
                 </label>
                 <select
                   name="status"
@@ -300,19 +290,99 @@ const [formData, setFormData] = useState({
                   <option value="graduate">Graduate</option>
                   <option value="undergraduate">Undergraduate</option>
                 </select>
-                {errors.status && (
+              </div>
+
+              <div>
+                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  Password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter strong password"
+                    style={{
+                      width: '100%',
+                      padding: '12px 40px 12px 16px',
+                      background: 'var(--surface2)',
+                      border: errors.password ? '2px solid #ef4444' : '1px solid var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--text)',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--text-secondary)',
+                      fontSize: '18px'
+                    }}
+                  >
+                    {showPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+                {errors.password && (
                   <div style={{
                     color: '#ef4444',
                     fontSize: '14px',
                     marginTop: '4px',
                     fontWeight: '500'
                   }}>
-                    {errors.status}
+                    {errors.password}
                   </div>
                 )}
               </div>
 
-
+              <div>
+                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  Confirm Password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    placeholder="Confirm password"
+                    style={{
+                      width: '100%',
+                      padding: '12px 40px 12px 16px',
+                      background: 'var(--surface2)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--text)',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--text-secondary)',
+                      fontSize: '18px'
+                    }}
+                  >
+                    {showConfirmPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
 
               {message && (
                 <div style={{ 
@@ -349,7 +419,7 @@ const [formData, setFormData] = useState({
                   opacity: loading ? 0.7 : 1
                 }}
               >
-                {loading ? 'Creating Admin...' : 'Create New Admin'}
+                {loading ? 'Creating Admin...' : 'Register New Admin'}
               </button>
             </div>
           </form>

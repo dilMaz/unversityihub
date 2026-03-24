@@ -9,33 +9,32 @@ const app = express();
 // middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
-// imports
+// multer
+const multer = require('multer');
+
+// routes
 const authRoutes = require("./routes/authRoutes");
 const noteRoutes = require("./routes/noteRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
-const Note = require("./models/Note");
 
-// test route
+// test
 app.get("/", (req, res) => {
   res.send("API Running 🚀");
 });
 
-// auth routes
+// auth
 app.use("/api/auth", authRoutes);
 
-// note routes
+// notes
 app.use("/api/notes", noteRoutes);
 
-// dashboard (protected)
+// dashboard
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
 
     res.json({
       message: "Dashboard 🔐",
@@ -49,7 +48,7 @@ app.get("/api/dashboard", authMiddleware, async (req, res) => {
   }
 });
 
-// admin users (protected)
+// ================= ADMIN USERS =================
 app.get("/api/admin/users", authMiddleware, async (req, res) => {
   try {
     const users = await User.find({}, "_id name email role").sort({ name: 1 });
@@ -59,7 +58,6 @@ app.get("/api/admin/users", authMiddleware, async (req, res) => {
   }
 });
 
-// admin delete user (protected)
 app.delete("/api/admin/users/:id", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -72,16 +70,44 @@ app.delete("/api/admin/users/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// DB connect + server start
+// centralized API error handler
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ message: "File is too large. Maximum size is 50MB." });
+    }
+    return res.status(400).json({ message: err.message });
+  }
+
+  if (err) {
+    return res.status(400).json({ message: err.message || "Request failed" });
+  }
+
+  next();
+});
+
+// DB connect
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("DB connected ✅");
+    const port = Number(process.env.PORT) || 5000;
+    const server = app.listen(port, () =>
+      console.log("Server running 🚀")
+    );
 
-    const PORT = process.env.PORT || 5000;
+    server.on("error", (err) => {
+      if (err && err.code === "EADDRINUSE") {
+        console.log(`Port ${port} is already in use. Backend is likely already running.`);
+        return;
+      }
 
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT} 🚀`);
+      console.error("Server startup error:", err);
+      process.exit(1);
     });
   })
-  .catch((err) => console.log(err));
+.catch((err) => {
+  console.error('MongoDB connection error:', err);
+  process.exit(1);
+});
+
