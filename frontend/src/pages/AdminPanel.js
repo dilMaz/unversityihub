@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/dashboard.css';
@@ -19,6 +19,105 @@ const AdminPanel = () => {
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminsLoading, setAdminsLoading] = useState(true);
+  const [adminsError, setAdminsError] = useState('');
+  const [editingAdminId, setEditingAdminId] = useState('');
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    status: 'undergraduate',
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const fetchAdminUsers = async (showLoading = true) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setAdminsLoading(false);
+      setAdminsError('Missing auth token');
+      return;
+    }
+
+    try {
+      if (showLoading) setAdminsLoading(true);
+      setAdminsError('');
+      const res = await axios.get('http://localhost:5000/api/admin/users', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const users = Array.isArray(res.data) ? res.data : [];
+      setAdminUsers(users.filter((u) => (u.role || '').toLowerCase() === 'admin'));
+    } catch (err) {
+      setAdminsError(err.response?.data?.message || 'Failed to load admin users');
+    } finally {
+      setAdminsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminUsers();
+  }, []);
+
+  const startEditAdmin = (admin) => {
+    setEditingAdminId(admin._id);
+    setEditForm({
+      name: admin.name || '',
+      email: admin.email || '',
+      phone: admin.phone || '',
+      status: admin.status || 'undergraduate',
+    });
+    setMessage('');
+  };
+
+  const cancelEditAdmin = () => {
+    setEditingAdminId('');
+    setEditForm({
+      name: '',
+      email: '',
+      phone: '',
+      status: 'undergraduate',
+    });
+  };
+
+  const saveEditAdmin = async (adminId) => {
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      setMessage('Name and email are required to update admin details');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setMessage('Missing auth token');
+      return;
+    }
+
+    try {
+      setSavingEdit(true);
+      setMessage('');
+
+      await axios.put(
+        `http://localhost:5000/api/admin/users/${adminId}`,
+        {
+          name: editForm.name.trim(),
+          email: editForm.email.trim(),
+          phone: editForm.phone.trim(),
+          status: editForm.status,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setMessage('Admin details updated successfully! ✅');
+      cancelEditAdmin();
+      fetchAdminUsers(false);
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Failed to update admin details');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const validateField = (name, value) => {
     let error = '';
@@ -99,7 +198,8 @@ const AdminPanel = () => {
       });
 
       setMessage('New Admin registered successfully! ✅');
-      setFormData({ name: '', nic: '', email: '', status: 'active', phone: '', password: '', confirmPassword: '' });
+      setFormData({ name: '', nic: '', email: '', status: 'undergraduate', phone: '', password: '', confirmPassword: '' });
+      fetchAdminUsers(false);
     } catch (err) {
       setMessage(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -272,7 +372,7 @@ const AdminPanel = () => {
 
               <div>
                 <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
-                  Student Status
+                  Academic Status
                 </label>
                 <select
                   name="status"
@@ -427,6 +527,147 @@ const AdminPanel = () => {
               </button>
             </div>
           </form>
+
+          <div style={{ marginTop: '28px' }}>
+            <div className="db-section-title">All Admin Accounts</div>
+            <div className="user-table-wrap">
+              {adminsLoading ? (
+                <p>Loading admin users...</p>
+              ) : adminsError ? (
+                <p className="error-text">{adminsError}</p>
+              ) : adminUsers.length === 0 ? (
+                <p>No admin accounts found.</p>
+              ) : (
+                <table className="user-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Status</th>
+                      <th>Role</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminUsers.map((admin) => (
+                      <tr key={admin._id}>
+                        <td>
+                          {editingAdminId === admin._id ? (
+                            <input
+                              type="text"
+                              value={editForm.name}
+                              onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                              style={{
+                                width: '100%',
+                                padding: '8px 10px',
+                                background: 'var(--surface2)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '6px',
+                                color: 'var(--text)',
+                              }}
+                            />
+                          ) : (
+                            admin.name
+                          )}
+                        </td>
+                        <td>
+                          {editingAdminId === admin._id ? (
+                            <input
+                              type="email"
+                              value={editForm.email}
+                              onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
+                              style={{
+                                width: '100%',
+                                padding: '8px 10px',
+                                background: 'var(--surface2)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '6px',
+                                color: 'var(--text)',
+                              }}
+                            />
+                          ) : (
+                            admin.email
+                          )}
+                        </td>
+                        <td>
+                          {editingAdminId === admin._id ? (
+                            <input
+                              type="text"
+                              value={editForm.phone}
+                              onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+                              style={{
+                                width: '100%',
+                                padding: '8px 10px',
+                                background: 'var(--surface2)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '6px',
+                                color: 'var(--text)',
+                              }}
+                            />
+                          ) : (
+                            admin.phone || '-'
+                          )}
+                        </td>
+                        <td>
+                          {editingAdminId === admin._id ? (
+                            <select
+                              value={editForm.status}
+                              onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value }))}
+                              style={{
+                                width: '100%',
+                                padding: '8px 10px',
+                                background: 'var(--surface2)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '6px',
+                                color: 'var(--text)',
+                              }}
+                            >
+                              <option value="undergraduate">Undergraduate</option>
+                              <option value="graduate">Graduate</option>
+                            </select>
+                          ) : (
+                            admin.status || '-'
+                          )}
+                        </td>
+                        <td>admin</td>
+                        <td>
+                          {editingAdminId === admin._id ? (
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                type="button"
+                                className="db-admin-btn"
+                                onClick={() => saveEditAdmin(admin._id)}
+                                disabled={savingEdit}
+                              >
+                                {savingEdit ? 'Saving...' : 'Save'}
+                              </button>
+                              <button
+                                type="button"
+                                className="db-logout"
+                                onClick={cancelEditAdmin}
+                                disabled={savingEdit}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="db-admin-btn"
+                              onClick={() => startEditAdmin(admin)}
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

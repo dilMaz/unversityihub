@@ -21,6 +21,14 @@ const supportRoutes = require("./routes/supportRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
 
+const ensureAdmin = (req, res) => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ message: "Admin only" });
+    return false;
+  }
+  return true;
+};
+
 // test
 app.get("/", (req, res) => {
   res.send("API Running 🚀");
@@ -55,8 +63,58 @@ app.get("/api/dashboard", authMiddleware, async (req, res) => {
 // ================= ADMIN USERS =================
 app.get("/api/admin/users", authMiddleware, async (req, res) => {
   try {
-    const users = await User.find({}, "_id name email role").sort({ name: 1 });
+    if (!ensureAdmin(req, res)) return;
+
+    const users = await User.find({}, "_id name email nic phone status role").sort({ name: 1 });
     res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put("/api/admin/users/:id", authMiddleware, async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const { name, email, nic, phone, status } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if ((user.role || "").toLowerCase() !== "admin") {
+      return res.status(400).json({ message: "Only admin details can be edited here" });
+    }
+
+    if (email && email !== user.email) {
+      const duplicateEmail = await User.findOne({ email, _id: { $ne: user._id } });
+      if (duplicateEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+    }
+
+    if (status && !["graduate", "undergraduate"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    if (typeof name === "string") user.name = name.trim();
+    if (typeof email === "string") user.email = email.trim();
+    if (typeof nic === "string") user.nic = nic.trim();
+    if (typeof phone === "string") user.phone = phone.trim();
+    if (typeof status === "string") user.status = status;
+
+    await user.save();
+
+    res.json({
+      message: "Admin details updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        nic: user.nic,
+        phone: user.phone,
+        status: user.status,
+        role: user.role,
+      },
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -64,6 +122,8 @@ app.get("/api/admin/users", authMiddleware, async (req, res) => {
 
 app.delete("/api/admin/users/:id", authMiddleware, async (req, res) => {
   try {
+    if (!ensureAdmin(req, res)) return;
+
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
