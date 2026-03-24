@@ -34,7 +34,7 @@ const AdminPanel = () => {
         if (!/.+@.+\..+/.test(value)) error = 'Email must include @ and domain';
         break;
       case 'phone':
-        if (!/^[0-9]{10}$/.test(value.replace(/[\s\-\(\)]/g, ''))) error = 'Phone must have exactly 10 numbers';
+        if (!/^[0-9]{10}$/.test(value.replace(/[\s\-()]/g, ''))) error = 'Phone must have exactly 10 numbers';
         break;
       case 'password':
         if (value.length < 8 || value.length > 12) {
@@ -86,7 +86,7 @@ const AdminPanel = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:5000/api/auth/register', {
+      await axios.post('http://localhost:5000/api/auth/register', {
         name: formData.name,
         nic: formData.nic,
         email: formData.email,

@@ -2,6 +2,10 @@ const jwt = require("jsonwebtoken");
 
 module.exports = (req, res, next) => {
   try {
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "JWT secret is not configured" });
+    }
+
     const token = req.headers.authorization;
 
     if (!token) {
@@ -13,7 +17,7 @@ module.exports = (req, res, next) => {
       ? token.split(" ")[1]
       : token;
 
-const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET || "secretkey");
+    const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET);
 
     req.user = decoded; // user id
     next();
