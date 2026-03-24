@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
+import NoteComments from "../components/NoteComments";
 import "../styles/Search.css";
 
 function Search() {
@@ -11,7 +12,9 @@ function Search() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [downloading, setDownloading] = useState(null);
+  const [viewing, setViewing] = useState(null);
   const [expandedNote, setExpandedNote] = useState(null);
+  const [expandedCommentsNote, setExpandedCommentsNote] = useState(null);
   const [searchHistory, setSearchHistory] = useState([]);
 
   const debounceTimer = useRef(null);
@@ -199,6 +202,35 @@ function Search() {
     [forceBrowserDownload, getPublicFileUrl]
   );
 
+  const handleViewOnline = useCallback(async (noteId) => {
+    setViewing(noteId);
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Please login to view notes");
+        return;
+      }
+
+      const res = await axios.get(`${API_BASE_URL}/notes/${noteId}/view`, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 10000,
+      });
+
+      const publicUrl = getPublicFileUrl(res.data?.fileUrl);
+      if (!publicUrl) {
+        setError("This note file is missing on server. Please re-upload it.");
+        return;
+      }
+
+      window.open(publicUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to open note online");
+    } finally {
+      setViewing(null);
+    }
+  }, [API_BASE_URL, getPublicFileUrl]);
+
   // Clear search and results
   const handleClearSearch = useCallback(() => {
     setQuery("");
@@ -380,6 +412,15 @@ function Search() {
 
                 <div className="note-actions">
                   <button
+                    className="note-view-btn"
+                    onClick={() => handleViewOnline(note._id)}
+                    disabled={viewing === note._id}
+                    aria-label={`View ${note.title} online`}
+                  >
+                    {viewing === note._id ? "Opening..." : "View 👀"}
+                  </button>
+
+                  <button
                     className="note-download-btn"
                     onClick={() => handleDownload(note._id, note.title)}
                     disabled={downloading === note._id}
@@ -405,6 +446,20 @@ function Search() {
                   >
                     {expandedNote === note._id ? "Hide Quiz ▼" : "Quiz 📝"}
                   </button>
+
+                  <button
+                    className="note-comments-btn"
+                    onClick={() =>
+                      setExpandedCommentsNote(
+                        expandedCommentsNote === note._id ? null : note._id
+                      )
+                    }
+                    aria-label={`${
+                      expandedCommentsNote === note._id ? "Hide" : "Show"
+                    } comments for ${note.title}`}
+                  >
+                    {expandedCommentsNote === note._id ? "Hide Comments ▼" : "Comments 💬"}
+                  </button>
                 </div>
               </div>
 
@@ -412,6 +467,12 @@ function Search() {
               {expandedNote === note._id && (
                 <div className="note-quiz-container">
                   <QuizSection noteId={note._id} />
+                </div>
+              )}
+
+              {expandedCommentsNote === note._id && (
+                <div className="note-comments-container">
+                  <NoteComments noteId={note._id} />
                 </div>
               )}
             </div>
@@ -450,6 +511,49 @@ function Search() {
         .search-loading {
           text-align: center;
           padding: 40px 20px;
+        }
+
+        .note-actions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .note-view-btn,
+        .note-comments-btn {
+          border: none;
+          border-radius: 10px;
+          padding: 9px 12px;
+          font-size: 0.83rem;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .note-view-btn {
+          background: rgba(124, 92, 252, 0.18);
+          color: #d6ccff;
+        }
+
+        .note-comments-btn {
+          background: rgba(224, 95, 255, 0.16);
+          color: #efb2ff;
+        }
+
+        .note-view-btn:hover,
+        .note-comments-btn:hover {
+          transform: translateY(-1px);
+          opacity: 0.9;
+        }
+
+        .note-view-btn:disabled,
+        .note-comments-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .note-comments-container {
+          margin-top: 10px;
+          animation: slideDown 0.2s ease-out;
         }
 
         .search-spinner-large {

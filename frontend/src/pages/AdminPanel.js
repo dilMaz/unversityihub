@@ -285,10 +285,14 @@ const AdminPanel = () => {
                     border: errors.status ? '2px solid #ef4444' : '1px solid var(--border)',
                     borderRadius: '8px',
                     color: 'var(--text)',
+                    fontFamily: 'inherit',
+                    fontSize: '0.95rem',
+                    cursor: 'pointer',
                   }}
+                  className="admin-select"
                 >
-                  <option value="graduate">Graduate</option>
-                  <option value="undergraduate">Undergraduate</option>
+                  <option value="graduate" style={{ background: '#1a1a2e', color: '#f0eeff' }}>Graduate</option>
+                  <option value="undergraduate" style={{ background: '#1a1a2e', color: '#f0eeff' }}>Undergraduate</option>
                 </select>
               </div>
 

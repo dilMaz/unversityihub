@@ -399,8 +399,34 @@
   gap: 6px;
 }
 
+.cat-view-btn,
+.cat-comments-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 .cat-download-btn:hover:not(:disabled) {
   background: rgba(60, 255, 166, 0.24);
+  transform: translateY(-2px);
+}
+
+.cat-view-btn {
+  background: rgba(124, 92, 252, 0.15);
+  color: #d6ccff;
+}
+
+.cat-view-btn:hover:not(:disabled) {
+  background: rgba(124, 92, 252, 0.25);
   transform: translateY(-2px);
 }
 
@@ -415,9 +441,25 @@
 }
 
 .cat-download-btn:disabled,
-.cat-quiz-btn:disabled {
+.cat-quiz-btn:disabled,
+.cat-view-btn:disabled,
+.cat-comments-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.cat-comments-btn {
+  background: rgba(224, 95, 255, 0.16);
+  color: #efb2ff;
+}
+
+.cat-comments-btn:hover:not(:disabled) {
+  background: rgba(224, 95, 255, 0.26);
+  transform: translateY(-2px);
+}
+
+.cat-comments-container {
+  margin-top: 12px;
 }
 
 .cat-spinner {

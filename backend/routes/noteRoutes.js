@@ -7,6 +7,7 @@ const {
   seedNotes,
   searchNotes,
   downloadNote,
+  viewNote,
   topNotes,
   recommendNotes,
   createAdminNote,
@@ -15,6 +16,8 @@ const {
   getReviewedNotes,
   approveNote,
   rejectNote,
+  getNoteComments,
+  addNoteComment,
   generateQuiz,
   downloadQuizPDF,
   getQuizStatus,
@@ -80,6 +83,13 @@ router.put("/:id/reject", authMiddleware, rejectNote);
 
 // 📥 Download
 router.put("/:id/download", authMiddleware, downloadNote);
+
+// 👀 View online
+router.get("/:id/view", authMiddleware, viewNote);
+
+// 💬 Comments
+router.get("/:id/comments", authMiddleware, getNoteComments);
+router.post("/:id/comments", authMiddleware, addNoteComment);
 
 // 📝 QUIZ ROUTES
 // Get quiz status (check if generated)

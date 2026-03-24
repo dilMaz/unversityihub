@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import "./App.css";
 
 import NavBar from "./components/NavBar";
+import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -13,6 +14,7 @@ import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
 import StudentSupport from "./pages/StudentSupport";
+import UserSupport from "./pages/UserSupport";
 import Search from "./pages/Search";
 import TopRated from "./pages/TopRated";
 import Recommended from "./pages/Recommended";
@@ -54,6 +56,7 @@ function App() {
 
             {/* PROTECTED ROUTES */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/support" element={<ProtectedRoute><UserSupport /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
@@ -80,6 +83,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        <Footer />
       </div>
     </Router>
   );

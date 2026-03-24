@@ -104,6 +104,35 @@ button {
   cursor: pointer;
 }
 
+/* ────────────────────────────────────────────────────── */
+/* Select Dropdown Visibility - Ensure options are readable */
+/* ────────────────────────────────────────────────────── */
+select {
+  background-color: #131320;
+  color: #f0eeff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+}
+
+select option {
+  background-color: #131320;
+  color: #f0eeff;
+  padding: 8px;
+}
+
+select option:checked {
+  background: linear-gradient(#667eea, #667eea);
+  background-color: #667eea !important;
+  color: #f0eeff !important;
+}
+
+/* Fallback for different browsers */
+select option:hover {
+  background-color: #1a1a2e;
+}
+
+/* ────────────────────────────────────────────────────── */
+
 a {
   color: inherit;
 }

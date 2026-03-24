@@ -182,6 +182,22 @@
   min-height: 220px;
 }
 
+select.form-input {
+  color: #f0eeff;
+  background: #171722;
+}
+
+select.form-input option {
+  color: #f0eeff;
+  background: #131320;
+  padding: 8px;
+}
+
+select.form-input option:checked {
+  background: rgba(102, 126, 234, 0.3);
+  color: #f0eeff;
+}
+
 /* ── Semester Radio Buttons ────────────────────────────– */
 .semester-radios {
   display: flex;

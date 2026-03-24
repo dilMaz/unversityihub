@@ -3,6 +3,28 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/upload.css";
 
+const MODULE_CODE_OPTIONS = [
+  "IT1010",
+  "IT1020",
+  "IT1030",
+  "IT1040",
+  "IT1050",
+  "IT1060",
+  "IT2010",
+  "IT2020",
+  "IT2050",
+  "IT2080",
+];
+
+const MODULE_NAME_OPTIONS = [
+  "DS",
+  "PAF",
+  "ITPM",
+  "IWT",
+  "OOP",
+  "NDM",
+];
+
 function Upload() {
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
@@ -280,26 +302,30 @@ function Upload() {
           <div className="form-row">
             <div className="form-section">
               <label className="form-label">📌 Module Code</label>
-              <input
-                type="text"
+              <select
                 className="form-input"
-                placeholder="e.g., IT2234"
                 value={moduleCode}
-                onChange={(e) => setModuleCode(e.target.value.toUpperCase())}
-                maxLength={20}
-              />
+                onChange={(e) => setModuleCode(e.target.value)}
+              >
+                <option value="">Select module code</option>
+                {MODULE_CODE_OPTIONS.map((code) => (
+                  <option key={code} value={code}>{code}</option>
+                ))}
+              </select>
             </div>
 
             <div className="form-section">
               <label className="form-label">📘 Module Name</label>
-              <input
-                type="text"
+              <select
                 className="form-input"
-                placeholder="e.g., Object Oriented Programming"
                 value={moduleName}
                 onChange={(e) => setModuleName(e.target.value)}
-                maxLength={100}
-              />
+              >
+                <option value="">Select module name</option>
+                {MODULE_NAME_OPTIONS.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
             </div>
           </div>
 

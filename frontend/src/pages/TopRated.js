@@ -1,14 +1,24 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
+import NoteComments from "../components/NoteComments";
 import "../styles/TopRated.css";
 
 function TopRated() {
   const [notes, setNotes]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [downloading, setDownloading] = useState(null);
+  const [viewing, setViewing] = useState(null);
   const [expandedNote, setExpandedNote] = useState(null);
+  const [expandedCommentsNote, setExpandedCommentsNote] = useState(null);
   const [error, setError]         = useState(null);
+
+  const renderRating = useCallback((note) => {
+    const avg = Number(note?.averageRating || 0);
+    const rounded = Math.round(avg);
+    const stars = `${"★".repeat(rounded)}${"☆".repeat(5 - rounded)}`;
+    return `${stars} ${avg.toFixed(1)} (${note?.ratingCount || 0})`;
+  }, []);
 
   const getPublicFileUrl = useCallback((fileUrl) => {
     if (!fileUrl) return null;
@@ -124,6 +134,39 @@ function TopRated() {
     }
   }, [fetchTopNotes, forceBrowserDownload, getPublicFileUrl]);
 
+  const handleViewOnline = useCallback(async (id) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Please log in to view notes");
+      return;
+    }
+
+    setViewing(id);
+    setError(null);
+
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/notes/${id}/view`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 10000,
+        }
+      );
+
+      const publicUrl = getPublicFileUrl(response.data?.fileUrl);
+      if (publicUrl) {
+        window.open(publicUrl, "_blank", "noopener,noreferrer");
+      } else {
+        setError("This note file is missing on server. Please re-upload it.");
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to open note online");
+    } finally {
+      setViewing(null);
+    }
+  }, [getPublicFileUrl]);
+
   return (
     <div className="tr-root">
       <div className="tr-wrap">
@@ -195,11 +238,21 @@ function TopRated() {
                   <div className="tr-note-info">
                     <h3 className="tr-note-title">{note.title}</h3>
                     <span className="tr-note-subject">📚 {note.subject}</span>
+                    <span className="tr-note-rating">⭐ {renderRating(note)}</span>
                     <span className="tr-note-downloads">📥 {note.downloads} downloads</span>
                   </div>
 
                   {/* Download */}
                   <div className="tr-note-actions">
+                    <button
+                      className="tr-view-btn"
+                      onClick={() => handleViewOnline(note._id)}
+                      disabled={viewing === note._id}
+                      title={viewing === note._id ? "Opening..." : "View note online"}
+                    >
+                      {viewing === note._id ? "Opening..." : "View 👀"}
+                    </button>
+
                     <button
                       className="tr-download-btn"
                       onClick={() => handleDownload(note._id, note.title)}
@@ -219,6 +272,18 @@ function TopRated() {
                     >
                       {expandedNote === note._id ? "Hide ▼" : "Quiz 📝"}
                     </button>
+
+                    <button
+                      className="tr-comments-btn"
+                      onClick={() =>
+                        setExpandedCommentsNote(
+                          expandedCommentsNote === note._id ? null : note._id
+                        )
+                      }
+                      title={expandedCommentsNote === note._id ? "Hide comments" : "Show comments"}
+                    >
+                      {expandedCommentsNote === note._id ? "Hide 💬" : "Comments 💬"}
+                    </button>
                   </div>
                 </div>
 
@@ -226,6 +291,12 @@ function TopRated() {
                 {expandedNote === note._id && (
                   <div className="tr-quiz-container">
                     <QuizSection noteId={note._id} />
+                  </div>
+                )}
+
+                {expandedCommentsNote === note._id && (
+                  <div className="tr-comments-container">
+                    <NoteComments noteId={note._id} />
                   </div>
                 )}
               </div>
@@ -237,9 +308,40 @@ function TopRated() {
 
       <style jsx>{`
         .tr-note-actions {
-          display: flex;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 10px;
           margin-top: 15px;
+        }
+
+        .tr-view-btn,
+        .tr-comments-btn {
+          padding: 10px 16px;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .tr-view-btn {
+          background: linear-gradient(135deg, #6d5efc 0%, #8f7cff 100%);
+        }
+
+        .tr-comments-btn {
+          background: linear-gradient(135deg, #d86bff 0%, #f187ff 100%);
+        }
+
+        .tr-view-btn:hover,
+        .tr-comments-btn:hover {
+          transform: translateY(-2px);
+        }
+
+        .tr-view-btn:disabled,
+        .tr-comments-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .tr-quiz-btn {
@@ -260,6 +362,11 @@ function TopRated() {
         }
 
         .tr-quiz-container {
+          margin-top: -10px;
+          padding: 0 16px 16px 16px;
+        }
+
+        .tr-comments-container {
           margin-top: -10px;
           padding: 0 16px 16px 16px;
         }

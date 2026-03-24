@@ -259,6 +259,12 @@ body {
   color: var(--muted);
 }
 
+.tr-note-rating {
+  font-size: 0.8rem;
+  color: #ffd86a;
+  letter-spacing: 0.2px;
+}
+
 /* ── Download Button ───────────────────────────────────── */
 .tr-download-btn {
   display: inline-flex;

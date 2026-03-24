@@ -15,6 +15,32 @@ const ensureAdmin = (req, res) => {
 
 const approvedOrLegacyFilter = { $in: ["approved", null] };
 
+const normalizeRating = (rawRating, rawTone) => {
+  const numeric = Number(rawRating);
+  if (Number.isFinite(numeric) && numeric >= 1 && numeric <= 5) {
+    return Math.round(numeric);
+  }
+
+  // Backward compatibility for legacy good/bad comments.
+  if (rawTone === "good") return 5;
+  if (rawTone === "bad") return 1;
+  return null;
+};
+
+const calculateRatingStats = (comments = []) => {
+  const ratings = comments
+    .map((comment) => normalizeRating(comment?.rating, comment?.tone))
+    .filter((rating) => Number.isFinite(rating));
+
+  if (ratings.length === 0) {
+    return { averageRating: 0, ratingCount: 0 };
+  }
+
+  const total = ratings.reduce((sum, rating) => sum + rating, 0);
+  const averageRating = Number((total / ratings.length).toFixed(2));
+  return { averageRating, ratingCount: ratings.length };
+};
+
 // seed
 exports.seedNotes = async (req, res) => {
   const seedCandidates = [
@@ -191,11 +217,118 @@ exports.downloadNote = async (req, res) => {
   }
 };
 
+// view online (student-facing: approved only)
+exports.viewNote = async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const isApprovedForStudents =
+      note.moderationStatus === "approved" || note.moderationStatus == null;
+
+    if (!isApprovedForStudents && req.user?.role !== "admin") {
+      return res.status(403).json({ message: "This document is waiting for admin review" });
+    }
+
+    if (!note.filePath || note.filePath === "seed") {
+      return res.status(404).json({ message: "This note does not have a viewable file" });
+    }
+
+    if (!fs.existsSync(note.filePath)) {
+      return res.status(404).json({ message: "File not found on server. Please re-upload this note." });
+    }
+
+    return res.json({ fileUrl: note.filePath });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 // top rated (student-facing: approved only)
 exports.topNotes = async (req, res) => {
-  const notes = await Note.find({ moderationStatus: approvedOrLegacyFilter })
-    .sort({ downloads: -1 })
-    .limit(5);
+  const notes = await Note.aggregate([
+    {
+      $match: {
+        $or: [
+          { moderationStatus: "approved" },
+          { moderationStatus: null },
+          { moderationStatus: { $exists: false } },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        normalizedRatings: {
+          $map: {
+            input: { $ifNull: ["$comments", []] },
+            as: "comment",
+            in: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ["$$comment.rating", 1] },
+                    { $lte: ["$$comment.rating", 5] },
+                  ],
+                },
+                "$$comment.rating",
+                {
+                  $cond: [
+                    { $eq: ["$$comment.tone", "good"] },
+                    5,
+                    {
+                      $cond: [
+                        { $eq: ["$$comment.tone", "bad"] },
+                        1,
+                        null,
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        normalizedRatings: {
+          $filter: {
+            input: "$normalizedRatings",
+            as: "rating",
+            cond: { $ne: ["$$rating", null] },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        ratingCount: { $size: "$normalizedRatings" },
+        averageRating: {
+          $cond: [
+            { $gt: [{ $size: "$normalizedRatings" }, 0] },
+            { $round: [{ $avg: "$normalizedRatings" }, 2] },
+            0,
+          ],
+        },
+      },
+    },
+    {
+      $project: {
+        normalizedRatings: 0,
+      },
+    },
+    {
+      $sort: {
+        averageRating: -1,
+        ratingCount: -1,
+        downloads: -1,
+        createdAt: -1,
+      },
+    },
+    { $limit: 5 },
+  ]);
+
   res.json(notes);
 };
 
@@ -273,7 +406,7 @@ exports.rejectNote = async (req, res) => {
 // 📤 Admin create note
 exports.createAdminNote = async (req, res) => {
   try {
-    const { title, subject, moduleCode, category, description } = req.body;
+    const { title, subject, moduleCode, moduleName, category, description } = req.body;
     const filePath = req.file ? req.file.path : null;
 
     if (!title || !subject || !filePath) {
@@ -284,6 +417,7 @@ exports.createAdminNote = async (req, res) => {
       title,
       subject,
       moduleCode: moduleCode || "",
+      moduleName: moduleName || "",
       category: category || "Lecture Notes",
       description: description || "",
       filePath,
@@ -305,7 +439,16 @@ exports.createAdminNote = async (req, res) => {
 // 📤 Student create note
 exports.createStudentNote = async (req, res) => {
   try {
-    const { title, subject, moduleCode, category, description, academicYear, semester } = req.body;
+    const {
+      title,
+      subject,
+      moduleCode,
+      moduleName,
+      category,
+      description,
+      academicYear,
+      semester,
+    } = req.body;
     const filePath = req.file ? req.file.path : null;
 
     if (!title || !subject || !category || !filePath) {
@@ -323,6 +466,7 @@ exports.createStudentNote = async (req, res) => {
       title,
       subject,
       moduleCode: moduleCode || "",
+      moduleName: moduleName || "",
       category,
       description: description || "",
       filePath,
@@ -341,6 +485,84 @@ exports.createStudentNote = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+// comments list for a note
+exports.getNoteComments = async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id)
+      .populate("comments.user", "name")
+      .lean();
+
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const comments = Array.isArray(note.comments) ? note.comments : [];
+    const normalizedComments = comments.map((comment) => ({
+      ...comment,
+      rating: normalizeRating(comment?.rating, comment?.tone) || 3,
+    }));
+    normalizedComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    return res.json(normalizedComments);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+// add a star-rated comment
+exports.addNoteComment = async (req, res) => {
+  try {
+    const { rating, text } = req.body || {};
+    const normalizedRating = normalizeRating(rating);
+
+    if (!normalizedRating) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5 stars" });
+    }
+
+    const cleanedText = String(text || "").trim();
+    if (!cleanedText) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    if (cleanedText.length > 500) {
+      return res.status(400).json({ message: "Comment must be 500 characters or less" });
+    }
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const isApprovedForStudents =
+      note.moderationStatus === "approved" || note.moderationStatus == null;
+
+    if (!isApprovedForStudents && req.user?.role !== "admin") {
+      return res.status(403).json({ message: "You can comment only on approved notes" });
+    }
+
+    note.comments.push({
+      user: req.user?.id,
+      rating: normalizedRating,
+      text: cleanedText,
+    });
+
+    const stats = calculateRatingStats(note.comments);
+    note.averageRating = stats.averageRating;
+    note.ratingCount = stats.ratingCount;
+
+    await note.save();
+
+    const saved = await Note.findById(req.params.id)
+      .populate("comments.user", "name")
+      .lean();
+
+    const latestComment = saved.comments[saved.comments.length - 1];
+
+    return res.status(201).json({
+      message: "Comment added",
+      comment: latestComment,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
   }
 };
 
