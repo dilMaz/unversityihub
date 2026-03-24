@@ -12,6 +12,7 @@ const {
   createAdminNote,
   createStudentNote,
   getPendingReviewNotes,
+  getReviewedNotes,
   approveNote,
   rejectNote,
   generateQuiz,
@@ -73,6 +74,7 @@ router.post("/upload", authMiddleware, upload.single('noteFile'), createStudentN
 
 // 🧾 Admin moderation routes
 router.get("/review/pending", authMiddleware, getPendingReviewNotes);
+router.get("/review/history", authMiddleware, getReviewedNotes);
 router.put("/:id/approve", authMiddleware, approveNote);
 router.put("/:id/reject", authMiddleware, rejectNote);
 

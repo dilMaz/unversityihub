@@ -6,7 +6,9 @@ import '../styles/dashboard.css';
 const AdminReview = () => {
   const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
+  const [reviewedNotes, setReviewedNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [actionId, setActionId] = useState('');
@@ -32,6 +34,7 @@ const AdminReview = () => {
 
     fetchDashboard();
     fetchPendingNotes();
+    fetchReviewedNotes();
   }, [navigate]);
 
   const fetchPendingNotes = async () => {
@@ -47,6 +50,19 @@ const AdminReview = () => {
     }
   };
 
+  const fetchReviewedNotes = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/notes/review/history', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setReviewedNotes(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to fetch reviewed notes');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   const approveNote = async (id) => {
     try {
       setActionId(id);
@@ -54,6 +70,7 @@ const AdminReview = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNotes((prev) => prev.filter((note) => note._id !== id));
+      fetchReviewedNotes();
     } catch (err) {
       setError(err?.response?.data?.message || 'Approve failed');
     } finally {
@@ -68,6 +85,7 @@ const AdminReview = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNotes((prev) => prev.filter((note) => note._id !== id));
+      fetchReviewedNotes();
     } catch (err) {
       setError(err?.response?.data?.message || 'Reject failed');
     } finally {
@@ -80,6 +98,13 @@ const AdminReview = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('userRole');
     navigate('/');
+  };
+
+  const formatDate = (value) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleString();
   };
 
   return (
@@ -136,6 +161,49 @@ const AdminReview = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        <div className="db-section-title">Approved & Rejected Notes ({reviewedNotes.length})</div>
+
+        {historyLoading ? (
+          <div>Loading review history...</div>
+        ) : (
+          <div className="user-table-wrap">
+            <table className="user-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Subject</th>
+                  <th>Uploaded By</th>
+                  <th>Status</th>
+                  <th>Reviewed By</th>
+                  <th>Reviewed At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviewedNotes.length === 0 ? (
+                  <tr>
+                    <td colSpan="6">No approved or rejected notes yet.</td>
+                  </tr>
+                ) : (
+                  reviewedNotes.map((note) => (
+                    <tr key={note._id}>
+                      <td>{note.title || '-'}</td>
+                      <td>{note.subject || '-'}</td>
+                      <td>{note.uploadedBy?.name || 'Unknown'}</td>
+                      <td>
+                        <span className={`review-status-chip ${note.moderationStatus || 'pending'}`}>
+                          {(note.moderationStatus || 'pending').toUpperCase()}
+                        </span>
+                      </td>
+                      <td>{note.reviewedBy?.name || '-'}</td>
+                      <td>{formatDate(note.reviewedAt)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         )}
 

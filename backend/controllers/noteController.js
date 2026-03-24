@@ -214,6 +214,22 @@ exports.getPendingReviewNotes = async (req, res) => {
   }
 };
 
+// admin review table: approved + rejected notes
+exports.getReviewedNotes = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const notes = await Note.find({ moderationStatus: { $in: ["approved", "rejected"] } })
+      .sort({ reviewedAt: -1, updatedAt: -1 })
+      .populate("uploadedBy", "name email role")
+      .populate("reviewedBy", "name email role");
+
+    res.json(notes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // admin review action: approve
 exports.approveNote = async (req, res) => {
   try {
