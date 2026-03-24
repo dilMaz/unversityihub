@@ -1,14 +1,14 @@
 /* ── Footer Global Variables ─────────────────────────────────────── */
 :root {
-  --footer-bg: #0a0a0f;
-  --footer-surface: #111118;
-  --footer-surface-hover: #18181f;
-  --footer-border: rgba(255, 255, 255, 0.08);
-  --footer-text: #f0eeff;
-  --footer-text-muted: rgba(240, 238, 255, 0.55);
-  --footer-accent: #7c5cfc;
-  --footer-accent-2: #3cffa6;
-  --footer-accent-3: #ff8484;
+  --footer-bg: #08070f;
+  --footer-surface: #120b1c;
+  --footer-surface-hover: #1a0f28;
+  --footer-border: rgba(196, 181, 253, 0.2);
+  --footer-text: #f5f3ff;
+  --footer-text-muted: rgba(229, 220, 255, 0.62);
+  --footer-accent: #a78bfa;
+  --footer-accent-2: #c084fc;
+  --footer-accent-3: #fda4af;
 }
 
 /* ── Main Footer Container ───────────────────────────────────────── */
@@ -104,7 +104,7 @@
 
 .social-link:hover {
   border-color: var(--footer-accent-2);
-  background: rgba(60, 255, 166, 0.1);
+  background: rgba(192, 132, 252, 0.12);
   color: var(--footer-accent-2);
   transform: translateY(-4px);
 }
@@ -183,7 +183,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 24px;
-  background: linear-gradient(135deg, rgba(60, 255, 166, 0.06) 0%, rgba(124, 92, 252, 0.06) 100%);
+  background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, rgba(167, 139, 250, 0.1) 100%);
   border: 1px solid var(--footer-border);
   border-radius: 16px;
   padding: 24px;
@@ -285,8 +285,8 @@
   display: flex;
   align-items: center;
   padding: 6px 14px;
-  background: rgba(60, 255, 166, 0.1);
-  border: 1px solid rgba(60, 255, 166, 0.2);
+  background: rgba(192, 132, 252, 0.14);
+  border: 1px solid rgba(192, 132, 252, 0.3);
   border-radius: 20px;
 }
 
@@ -308,7 +308,7 @@
 .footer-decoration-1 {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(124, 92, 252, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.2) 0%, transparent 70%);
   top: -100px;
   right: 5%;
   z-index: -1;
@@ -317,7 +317,7 @@
 .footer-decoration-2 {
   width: 250px;
   height: 250px;
-  background: radial-gradient(circle, rgba(60, 255, 166, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.16) 0%, transparent 70%);
   bottom: -50px;
   left: 5%;
   z-index: -1;
