@@ -30,17 +30,16 @@ const cards = [
   },
 ];
 
-const stats = [
-  { label: "Notes Saved", value: "248", icon: "📄" },
-  { label: "Subjects",    value: "12",  icon: "📚" },
-  { label: "Bookmarks",  value: "37",  icon: "🔖" },
-  { label: "Streak",     value: "14d", icon: "🔥" },
-];
-
 function Dashboard() {
   const navigate = useNavigate();
   const [name, setName]       = useState("");
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([
+    { label: "Total Notes", value: "0", icon: "📄" },
+    { label: "Subjects", value: "0", icon: "📚" },
+    { label: "Categories", value: "0", icon: "📂" },
+    { label: "Downloads", value: "0", icon: "📥" },
+  ]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -75,16 +74,47 @@ function Dashboard() {
     };
 
     fetchDashboard();
+
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/notes?search=");
+        const notes = Array.isArray(res.data) ? res.data : [];
+
+        setStats([
+          { label: "Total Notes", value: String(notes.length), icon: "📄" },
+          {
+            label: "Subjects",
+            value: String(new Set(notes.map((n) => n.subject).filter(Boolean)).size),
+            icon: "📚",
+          },
+          {
+            label: "Categories",
+            value: String(new Set(notes.map((n) => n.category).filter(Boolean)).size),
+            icon: "📂",
+          },
+          {
+            label: "Downloads",
+            value: String(notes.reduce((sum, n) => sum + (n.downloads || 0), 0)),
+            icon: "📥",
+          },
+        ]);
+      } catch (err) {
+        setStats([
+          { label: "Total Notes", value: "0", icon: "📄" },
+          { label: "Subjects", value: "0", icon: "📚" },
+          { label: "Categories", value: "0", icon: "📂" },
+          { label: "Downloads", value: "0", icon: "📥" },
+        ]);
+      }
+    };
+
+    fetchStats();
   }, [navigate]);
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user"); // ✅ Fix 4 — user ද delete කරන්න
     navigate("/login");
-  };
-
-  const goToAdmin = () => {
-    navigate("/admin-dashboard");
   };
 
   return (

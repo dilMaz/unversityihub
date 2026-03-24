@@ -4,7 +4,7 @@ import '../styles/dashboard.css';
 
 const StudentSupport = () => {
   const navigate = useNavigate();
-  const [supportRequests, setSupportRequests] = useState([]);
+  const [supportRequests] = useState([]);
 
   const handleResolve = (id) => {
     alert(`Request ${id} marked as resolved!`);

@@ -10,15 +10,21 @@ function Register() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [status, setStatus] = useState("undergraduate");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await axios.post(
@@ -35,12 +41,11 @@ function Register() {
 
       console.log("REGISTER SUCCESS:", res.data);
 
-      alert("Registration Successful ✅");
       navigate("/login");
 
     } catch (err) {
       console.error("Register error:", err);
-      setError(err.response?.data?.message || "Registration failed");
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -49,7 +54,11 @@ function Register() {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <div className="auth-brand">
+          <div className="auth-brand-name">UniHub</div>
+        </div>
         <h2>Create Account</h2>
+        <p className="auth-subtitle">Start sharing and discovering smarter notes</p>
 
         {error && (
           <div className="error-msg" style={{color: 'red', marginBottom: '1rem', padding: '0.5rem'}}>
@@ -58,13 +67,16 @@ function Register() {
         )}
 
         <form onSubmit={handleRegister}>
+          <label className="auth-label">Full Name</label>
           <input
             type="text"
             placeholder="Enter Name"
+            value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
 
+          <label className="auth-label">Email</label>
           <input
             type="text"
             placeholder="NIC (optional)"
@@ -74,10 +86,12 @@ function Register() {
           <input
             type="email"
             placeholder="Enter Email"
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
 
+          <label className="auth-label">Password</label>
           <input
             type="tel"
             placeholder="Phone (optional)"
@@ -92,6 +106,7 @@ function Register() {
           <input
             type="password"
             placeholder="Enter Password"
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />

@@ -48,9 +48,11 @@ exports.login = async (req, res) => {
 
     if (!isMatch) return res.status(400).json({ message: "Invalid Password" });
 
-    // ✅ Fix — process.env.JWT_SECRET use කරන්න (fallback consistent)
-    const secret = process.env.JWT_SECRET || "secretkey";
-    const token = jwt.sign({ id: user._id }, secret, {
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "JWT secret is not configured" });
+    }
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
 

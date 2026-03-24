@@ -96,6 +96,30 @@ function AdminDashboard() {
           <p>Manage your application and user data.</p>
         </div>
 
+        <div className="db-stats">
+          <div className="db-stat">
+            <div className="db-stat-label">Registered Users</div>
+            <div className="db-stat-value">{usersLoading ? "..." : users.length}</div>
+            <span className="db-stat-accent">👥</span>
+          </div>
+          <div className="db-stat">
+            <div className="db-stat-label">Admin Accounts</div>
+            <div className="db-stat-value">
+              {usersLoading ? "..." : users.filter((u) => (u.role || "").toLowerCase() === "admin").length}
+            </div>
+            <span className="db-stat-accent">🛡️</span>
+          </div>
+          <div className="db-stat">
+            <div className="db-stat-label">Student Accounts</div>
+            <div className="db-stat-value">
+              {usersLoading ? "..." : users.filter((u) => (u.role || "").toLowerCase() !== "admin").length}
+            </div>
+            <span className="db-stat-accent">🎓</span>
+          </div>
+        </div>
+
+        {usersError && <div className="error-text">{usersError}</div>}
+
         {/* Admin Features */}
         <div className="db-section-title">Admin Features</div>
         <div className="db-cards">
