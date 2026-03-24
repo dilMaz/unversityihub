@@ -13,6 +13,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import Search from "./pages/Search";
 import TopRated from "./pages/TopRated";
 import Recommended from "./pages/Recommended";
@@ -66,6 +67,7 @@ function App() {
             <Route path="/admin-upload-notes" element={<AdminRoute><AdminUploadNotes /></AdminRoute>} />
             <Route path="/admin-comments" element={<AdminRoute><AdminComments /></AdminRoute>} />
             <Route path="/admin-panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+            <Route path="/admin-analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
             <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
 
             {/* PROGRAM FLOW */}

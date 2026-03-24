@@ -155,7 +155,7 @@ function AdminDashboard() {
               <div className="db-card-title">Analytics</div>
               <div className="db-card-desc">View system statistics and analytics.</div>
             </div>
-            <button className="db-card-btn">
+            <button className="db-card-btn" onClick={() => navigate('/admin-analytics')}>
               View Analytics <span className="db-card-arrow">→</span>
             </button>
           </div>
