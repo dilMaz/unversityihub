@@ -58,6 +58,26 @@ const noteSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    moderationStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "approved",
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
+    reviewedAt: {
+      type: Date,
+      required: false,
+    },
+    reviewComment: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 300,
+    },
     // 📚 Quiz Generation Fields
     quizStatus: {
       type: String,

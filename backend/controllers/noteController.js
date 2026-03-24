@@ -1,6 +1,19 @@
 const Note = require("../models/Note");
 const User = require("../models/User");
 const fs = require("fs");
+const PDFDocument = require("pdfkit");
+const { getRecommendations } = require("../utils/recommendationEngine");
+const { generateQuizFromNote } = require("../utils/quizGenerator");
+
+const ensureAdmin = (req, res) => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ message: "Admin only" });
+    return false;
+  }
+  return true;
+};
+
+const approvedOrLegacyFilter = { $in: ["approved", null] };
 
 // seed
 exports.seedNotes = async (req, res) => {
@@ -126,14 +139,15 @@ exports.seedNotes = async (req, res) => {
   });
 };
 
-// search
+// search (student-facing: approved only)
 exports.searchNotes = async (req, res) => {
   const keyword = req.query.search || "";
 
   const notes = await Note.find({
+    moderationStatus: approvedOrLegacyFilter,
     $or: [
-      { title:      { $regex: keyword, $options: "i" } },
-      { subject:    { $regex: keyword, $options: "i" } },
+      { title: { $regex: keyword, $options: "i" } },
+      { subject: { $regex: keyword, $options: "i" } },
       { moduleCode: { $regex: keyword, $options: "i" } },
     ],
   });
@@ -146,6 +160,13 @@ exports.downloadNote = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const isApprovedForStudents =
+      note.moderationStatus === "approved" || note.moderationStatus == null;
+
+    if (!isApprovedForStudents && req.user?.role !== "admin") {
+      return res.status(403).json({ message: "This document is waiting for admin review" });
+    }
 
     if (note.filePath && note.filePath !== "seed" && !fs.existsSync(note.filePath)) {
       return res.status(404).json({ message: "File not found on server. Please re-upload this note." });
@@ -170,10 +191,67 @@ exports.downloadNote = async (req, res) => {
   }
 };
 
-// top rated
+// top rated (student-facing: approved only)
 exports.topNotes = async (req, res) => {
-  const notes = await Note.find().sort({ downloads: -1 }).limit(5);
+  const notes = await Note.find({ moderationStatus: approvedOrLegacyFilter })
+    .sort({ downloads: -1 })
+    .limit(5);
   res.json(notes);
+};
+
+// admin review list: pending notes only
+exports.getPendingReviewNotes = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const notes = await Note.find({ moderationStatus: "pending" })
+      .sort({ createdAt: -1 })
+      .populate("uploadedBy", "name email role");
+
+    res.json(notes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// admin review action: approve
+exports.approveNote = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    note.moderationStatus = "approved";
+    note.reviewComment = req.body?.comment || "";
+    note.reviewedBy = req.user?.id;
+    note.reviewedAt = new Date();
+    await note.save();
+
+    res.json({ message: "Document approved", note });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// admin review action: reject
+exports.rejectNote = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    note.moderationStatus = "rejected";
+    note.reviewComment = req.body?.comment || "";
+    note.reviewedBy = req.user?.id;
+    note.reviewedAt = new Date();
+    await note.save();
+
+    res.json({ message: "Document rejected", note });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // 📤 Admin create note
@@ -195,6 +273,9 @@ exports.createAdminNote = async (req, res) => {
       filePath,
       uploadedBy: req.user?.id,
       uploadSource: "admin",
+      moderationStatus: "approved",
+      reviewedBy: req.user?.id,
+      reviewedAt: new Date(),
     });
 
     await note.save();
@@ -211,7 +292,6 @@ exports.createStudentNote = async (req, res) => {
     const { title, subject, moduleCode, category, description, academicYear, semester } = req.body;
     const filePath = req.file ? req.file.path : null;
 
-    // Validation
     if (!title || !subject || !category || !filePath) {
       return res.status(400).json({ message: "Title, subject, category, and file required" });
     }
@@ -234,12 +314,13 @@ exports.createStudentNote = async (req, res) => {
       uploadSource: "student",
       academicYear: year,
       semester: sem,
+      moderationStatus: "pending",
     });
 
     await note.save();
 
     res.status(201).json({
-      message: "Note uploaded successfully",
+      message: "Note uploaded and sent for admin review",
       note,
     });
   } catch (err) {
@@ -247,25 +328,13 @@ exports.createStudentNote = async (req, res) => {
   }
 };
 
-const { getRecommendations } = require("../utils/recommendationEngine");
-const { generateQuizFromNote, formatQuizForPDF } = require("../utils/quizGenerator");
-const PDFDocument = require("pdfkit");
-
 // 🤖 RECOMMEND
 exports.recommendNotes = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("downloads");
-    console.log("USER ID:", req.user.id);
-    console.log("DOWNLOADS:", user.downloads);
-
     const data = await getRecommendations(user);
-    console.log("CONTENT BASED:", data.contentBased.length);
-    console.log("TRENDING:", data.trending.length);
-    console.log("RECENT:", data.recent.length);
-
     res.json(data);
   } catch (err) {
-    console.log("RECOMMEND ERROR:", err.message);
     res.status(500).json({ message: err.message });
   }
 };
@@ -276,7 +345,6 @@ exports.generateQuiz = async (req, res) => {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: "Note not found" });
 
-    // Check if quiz already exists
     if (note.quiz && note.quiz.questions && note.quiz.questions.length > 0) {
       return res.json({
         message: "Quiz already generated",
@@ -284,12 +352,9 @@ exports.generateQuiz = async (req, res) => {
       });
     }
 
-    // Update status to generating
     note.quizStatus = "generating";
     await note.save();
 
-    // For now, use note title + subject as content
-    // In production, you'd extract text from the PDF file
     const noteContent = `
 Title: ${note.title}
 Subject: ${note.subject}
@@ -299,12 +364,10 @@ This note contains important information about ${note.subject}.
 Key concepts: Core fundamentals, advanced topics, and practical applications.
 `;
 
-    // Generate quiz using Claude AI
     const questions = await generateQuizFromNote(note.title, noteContent);
 
-    // Save quiz to database
     note.quiz = {
-      questions: questions,
+      questions,
       generatedAt: new Date(),
       generatedBy: "Claude AI",
     };
@@ -321,7 +384,6 @@ Key concepts: Core fundamentals, advanced topics, and practical applications.
       note.quizStatus = "failed";
       await note.save();
     }
-    console.log("QUIZ GENERATION ERROR:", err.message);
     res.status(500).json({ message: `Failed to generate quiz: ${err.message}` });
   }
 };
@@ -338,25 +400,20 @@ exports.downloadQuizPDF = async (req, res) => {
       });
     }
 
-    // Generate PDF
     const doc = new PDFDocument();
 
-    // Set response headers
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="Quiz_${note.title.replace(/ /g, "_")}.pdf"`
     );
 
-    // Pipe to response
     doc.pipe(res);
 
-    // Add content
     doc.fontSize(20).text(`Quiz: ${note.title}`, { underline: true });
     doc.fontSize(12).text(`Subject: ${note.subject}\n`, { underline: false });
     doc.fontSize(10).text(`Generated: ${new Date().toLocaleDateString()}\n\n`);
 
-    // Add questions
     note.quiz.questions.forEach((q, idx) => {
       doc.fontSize(12).text(`Question ${idx + 1}: ${q.question}`, {
         underline: true,
@@ -374,7 +431,6 @@ exports.downloadQuizPDF = async (req, res) => {
       doc.fontSize(10).text("");
     });
 
-    // Add answer key
     doc.addPage().fontSize(16).text("ANSWER KEY", { underline: true });
     doc.fontSize(10).text("");
 
@@ -384,10 +440,8 @@ exports.downloadQuizPDF = async (req, res) => {
       doc.text(`Explanation: ${q.explanation}\n`);
     });
 
-    // Finalize PDF
     doc.end();
   } catch (err) {
-    console.log("PDF DOWNLOAD ERROR:", err.message);
     res.status(500).json({ message: err.message });
   }
 };

@@ -9,6 +9,7 @@ const AdminReview = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
+  const [actionId, setActionId] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -35,13 +36,12 @@ const AdminReview = () => {
 
   const fetchPendingNotes = async () => {
     try {
-      // TODO: Backend endpoint for pending reviews
-      const res = await axios.get('http://localhost:5000/api/notes', {
+      const res = await axios.get('http://localhost:5000/api/notes/review/pending', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNotes(res.data);
     } catch (err) {
-      setError('Failed to fetch notes for review');
+      setError(err?.response?.data?.message || 'Failed to fetch notes for review');
     } finally {
       setLoading(false);
     }
@@ -49,25 +49,29 @@ const AdminReview = () => {
 
   const approveNote = async (id) => {
     try {
-      // TODO: Backend approve endpoint
+      setActionId(id);
       await axios.put(`http://localhost:5000/api/notes/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      fetchPendingNotes();
+      setNotes((prev) => prev.filter((note) => note._id !== id));
     } catch (err) {
-      setError('Approve failed');
+      setError(err?.response?.data?.message || 'Approve failed');
+    } finally {
+      setActionId('');
     }
   };
 
   const rejectNote = async (id) => {
     try {
-      // TODO: Backend reject endpoint
+      setActionId(id);
       await axios.put(`http://localhost:5000/api/notes/${id}/reject`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      fetchPendingNotes();
+      setNotes((prev) => prev.filter((note) => note._id !== id));
     } catch (err) {
-      setError('Reject failed');
+      setError(err?.response?.data?.message || 'Reject failed');
+    } finally {
+      setActionId('');
     }
   };
 
@@ -107,14 +111,27 @@ const AdminReview = () => {
                 <div className="db-card-icon">📄</div>
                 <div>
                   <div className="db-card-title">{note.title}</div>
-                  <div className="db-card-desc">{note.subject} - {note.downloads} downloads</div>
+                  <div className="db-card-desc">
+                    {note.subject} • Uploaded by {note.uploadedBy?.name || 'Unknown'}
+                  </div>
+                  <div className="db-card-desc">
+                    Status: {note.moderationStatus || 'pending'}
+                  </div>
                 </div>
                 <div>
-                  <button onClick={() => approveNote(note._id)} className="approve-btn">
-                    Approve ✅
+                  <button
+                    onClick={() => approveNote(note._id)}
+                    className="approve-btn"
+                    disabled={actionId === note._id}
+                  >
+                    {actionId === note._id ? 'Working...' : 'Approve ✅'}
                   </button>
-                  <button onClick={() => rejectNote(note._id)} className="reject-btn">
-                    Reject ❌
+                  <button
+                    onClick={() => rejectNote(note._id)}
+                    className="reject-btn"
+                    disabled={actionId === note._id}
+                  >
+                    {actionId === note._id ? 'Working...' : 'Reject ❌'}
                   </button>
                 </div>
               </div>

@@ -11,6 +11,9 @@ const {
   recommendNotes,
   createAdminNote,
   createStudentNote,
+  getPendingReviewNotes,
+  approveNote,
+  rejectNote,
   generateQuiz,
   downloadQuizPDF,
   getQuizStatus,
@@ -67,6 +70,11 @@ router.post("/admin-upload", authMiddleware, upload.single('noteFile'), (req, re
 
 // 📤 Student upload (authenticated users)
 router.post("/upload", authMiddleware, upload.single('noteFile'), createStudentNote);
+
+// 🧾 Admin moderation routes
+router.get("/review/pending", authMiddleware, getPendingReviewNotes);
+router.put("/:id/approve", authMiddleware, approveNote);
+router.put("/:id/reject", authMiddleware, rejectNote);
 
 // 📥 Download
 router.put("/:id/download", authMiddleware, downloadNote);
