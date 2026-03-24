@@ -2,70 +2,62 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/dashboard.css";
-
-const cards = [
-  {
-    cls: "c1",
-    icon: "🔍",
-    title: "Search Notes",
-    desc: "Find any note instantly by keyword, subject, or tag across your entire library.",
-    btn: "Search Now",
-    route: "/search",
-  },
-  {
-    cls: "c2",
-    icon: "⭐",
-    title: "Top Rated",
-    desc: "Browse the highest-rated notes curated by fellow students and educators.",
-    btn: "View Top Notes",
-    route: "/top-rated",
-  },
-  {
-    cls: "c3",
-    icon: "🤖",
-    title: "Recommended",
-    desc: "AI-powered suggestions tailored to your study patterns and saved content.",
-    btn: "View Suggestions",
-    route: "/recommend",
-  },
-];
+import { API_BASE_URL } from "../config/appConfig";
+import {
+  buildInsights,
+  buildStats,
+  getDefaultStats,
+  getQuickActions,
+  getRecentNotes,
+  getSubjectDistribution,
+} from "../data/dashboardData";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const [name, setName]       = useState("");
+  const [name, setName] = useState("");
+  const [userRole, setUserRole] = useState("user");
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState([
-    { label: "Total Notes", value: "0", icon: "📄" },
-    { label: "Subjects", value: "0", icon: "📚" },
-    { label: "Categories", value: "0", icon: "📂" },
-    { label: "Downloads", value: "0", icon: "📥" },
-  ]);
+  const [stats, setStats] = useState(getDefaultStats());
+  const [notes, setNotes] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) { navigate("/login"); return; }
-
-    // ✅ Fix 1 — localStorage user data directly use කරන්න
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser?.name) {
-      setName(storedUser.name);
-      setLoading(false);
+    if (!token) {
+      navigate("/login");
       return;
     }
 
-    // ✅ Fix 2 — API call එක fallback විදිහට
+    const storedRole = localStorage.getItem("userRole") || "user";
+    setUserRole(storedRole);
+
+    let storedUser = null;
+    try {
+      storedUser = JSON.parse(localStorage.getItem("user"));
+    } catch (_err) {
+      storedUser = null;
+    }
+
+    if (storedUser?.name) {
+      setName(storedUser.name);
+      setLoading(false);
+    }
+
     const fetchDashboard = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/dashboard", {
+        const res = await axios.get(`${API_BASE_URL}/api/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setName(res.data.name);
+        if (res.data.role) {
+          setUserRole(res.data.role);
+          localStorage.setItem("userRole", res.data.role);
+        }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-        // ✅ Fix 3 — 401 එකට විතරක් token delete කරන්න
         if (err.response?.status === 401) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
+          localStorage.removeItem("userRole");
           navigate("/login");
         }
       } finally {
@@ -77,45 +69,23 @@ function Dashboard() {
 
     const fetchStats = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/notes?search=");
-        const notes = Array.isArray(res.data) ? res.data : [];
-
-        setStats([
-          { label: "Total Notes", value: String(notes.length), icon: "📄" },
-          {
-            label: "Subjects",
-            value: String(new Set(notes.map((n) => n.subject).filter(Boolean)).size),
-            icon: "📚",
-          },
-          {
-            label: "Categories",
-            value: String(new Set(notes.map((n) => n.category).filter(Boolean)).size),
-            icon: "📂",
-          },
-          {
-            label: "Downloads",
-            value: String(notes.reduce((sum, n) => sum + (n.downloads || 0), 0)),
-            icon: "📥",
-          },
-        ]);
+        const res = await axios.get(`${API_BASE_URL}/api/notes?search=`);
+        const fetchedNotes = Array.isArray(res.data) ? res.data : [];
+        setNotes(fetchedNotes);
+        setStats(buildStats(fetchedNotes));
       } catch (err) {
-        setStats([
-          { label: "Total Notes", value: "0", icon: "📄" },
-          { label: "Subjects", value: "0", icon: "📚" },
-          { label: "Categories", value: "0", icon: "📂" },
-          { label: "Downloads", value: "0", icon: "📥" },
-        ]);
+        setNotes([]);
+        setStats(getDefaultStats());
       }
     };
 
     fetchStats();
   }, [navigate]);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user"); // ✅ Fix 4 — user ද delete කරන්න
-    navigate("/login");
-  };
+  const quickActions = getQuickActions(userRole);
+  const recentNotes = getRecentNotes(notes, 4);
+  const subjectDistribution = getSubjectDistribution(notes, 4);
+  const insights = buildInsights(notes);
 
   return (
     <div className="db-root">
@@ -123,12 +93,7 @@ function Dashboard() {
 
         {/* Topbar */}
         <div className="db-topbar">
-          <div className="db-logo">NoteVault</div>
-          <div className="db-topbar-actions">
-            <button className="db-logout" onClick={logout}>
-              <span>↩</span> Sign out
-            </button>
-          </div>
+          <div className="db-logo">UniHub</div>
         </div>
 
         {/* Hero */}
@@ -146,7 +111,7 @@ function Dashboard() {
         {/* Stats */}
         <div className="db-stats">
           {stats.map((s) => (
-            <div className="db-stat" key={s.label}>
+            <div className="db-stat" key={s.key || s.label}>
               <div className="db-stat-label">{s.label}</div>
               <div className="db-stat-value">{s.value}</div>
               <span className="db-stat-accent">{s.icon}</span>
@@ -157,9 +122,9 @@ function Dashboard() {
         {/* Cards */}
         <div className="db-section-title">Quick Actions</div>
         <div className="db-cards">
-          {cards.map((c) => (
+          {quickActions.map((c) => (
             <div
-              key={c.route}
+              key={c.id}
               className={`db-card ${c.cls}`}
               onClick={() => navigate(c.route)}
             >
@@ -177,6 +142,62 @@ function Dashboard() {
               </button>
             </div>
           ))}
+        </div>
+
+        <div className="db-section-title">Study Pulse</div>
+        <div className="db-grid">
+          <div className="db-panel db-insights">
+            <h3>Performance Insights</h3>
+            <div className="db-insight-list">
+              {insights.map((item) => (
+                <div className="db-insight-item" key={item.id}>
+                  <span className="db-insight-label">{item.label}</span>
+                  <strong className="db-insight-value">{item.value}</strong>
+                  <small>{item.helper}</small>
+                </div>
+              ))}
+            </div>
+
+            <div className="db-subject-stack">
+              {subjectDistribution.length === 0 ? (
+                <div className="db-empty">No subject activity yet.</div>
+              ) : (
+                subjectDistribution.map((item) => (
+                  <div className="db-subject-row" key={item.subject}>
+                    <div className="db-subject-meta">
+                      <span>{item.subject}</span>
+                      <span>{item.percent}</span>
+                    </div>
+                    <div className="db-progress-track">
+                      <div className="db-progress-fill" style={{ width: `${item.width}%` }} />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="db-panel db-recent">
+            <h3>Recent Notes</h3>
+            {recentNotes.length === 0 ? (
+              <div className="db-empty">Upload notes to see recent activity.</div>
+            ) : (
+              <div className="db-recent-list">
+                {recentNotes.map((note) => (
+                  <button
+                    key={note._id || `${note.title}-${note.createdAt}`}
+                    className="db-recent-item"
+                    onClick={() => navigate("/search")}
+                  >
+                    <span className="db-recent-title">{note.title}</span>
+                    <span className="db-recent-meta">
+                      {(note.subject || "General") + " • " + (note.downloads || 0) + " downloads"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
       </div>

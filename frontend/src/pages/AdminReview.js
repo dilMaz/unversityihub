@@ -73,7 +73,9 @@ const AdminReview = () => {
 
   const logout = () => {
     localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
+    navigate('/');
   };
 
   return (

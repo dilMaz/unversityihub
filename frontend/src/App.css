@@ -1,8 +1,36 @@
 /* Application shell keeps page spacing consistent with sticky navbar */
 .app-shell {
   min-height: 100vh;
+  position: relative;
 }
 
 .app-content {
   min-height: calc(100vh - 70px);
+  position: relative;
+}
+
+.app-shell::before,
+.app-shell::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(46px);
+}
+
+.app-shell::before {
+  width: 260px;
+  height: 260px;
+  top: 18%;
+  left: -70px;
+  background: rgba(53, 201, 255, 0.18);
+}
+
+.app-shell::after {
+  width: 290px;
+  height: 290px;
+  right: -90px;
+  bottom: 10%;
+  background: rgba(255, 143, 77, 0.16);
 }

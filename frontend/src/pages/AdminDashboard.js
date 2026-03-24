@@ -66,8 +66,9 @@ function AdminDashboard() {
 
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user"); // ✅ Fix 4 — user ද delete කරන්න
-    navigate("/login");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    navigate("/");
   };
 
   return (
