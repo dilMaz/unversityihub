@@ -208,6 +208,33 @@ exports.closeTicket = async (req, res) => {
   }
 };
 
+// Delete ticket (student can only delete their own, admin can delete any)
+exports.deleteTicket = async (req, res) => {
+  try {
+    const ticket = await SupportTicket.findById(req.params.id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    // Check permissions: only student who created it or admin can delete
+    const isOwner = ticket.studentId?.toString() === req.user?.id;
+    const isAdmin = req.user?.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: "You can only delete your own tickets" });
+    }
+
+    await SupportTicket.findByIdAndDelete(req.params.id);
+
+    res.json({
+      message: "Ticket deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // Get ticket statistics (admin)
 exports.getTicketStats = async (req, res) => {
   try {
