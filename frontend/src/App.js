@@ -4,6 +4,7 @@ import "./App.css";
 import NavBar from "./components/NavBar";
 
 import Home from "./pages/Home";
+import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -19,6 +20,9 @@ import Recommended from "./pages/Recommended";
 import Upload from "./pages/Upload";
 import Categories from "./pages/Categories";
 import AdminReview from "./pages/AdminReview";
+import Programs from "./pages/features/programs/Programs";
+import ProgramDetail from "./pages/features/programs/ProgramDetail";
+import ModuleNotes from "./pages/ModuleNotes";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -41,30 +45,41 @@ function App() {
       <div className="app-shell">
         <NavBar />
         <main className="app-content">
-      <Routes>
+          <Routes>
+            {/* HOME */}
+            <Route path="/" element={<Home />} />
 
-        <Route path="/" element={<Home />} />
+            {/* EXISTING */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+            {/* PROTECTED ROUTES */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+            <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
+            <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+            <Route path="/top-rated" element={<ProtectedRoute><TopRated /></ProtectedRoute>} />
+            <Route path="/recommend" element={<ProtectedRoute><Recommended /></ProtectedRoute>} />
 
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-        <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
-        <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-        <Route path="/top-rated" element={<ProtectedRoute><TopRated /></ProtectedRoute>} />
-        <Route path="/recommend" element={<ProtectedRoute><Recommended /></ProtectedRoute>} />
+            {/* ADMIN ROUTES */}
+            <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin-users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin-upload-notes" element={<AdminRoute><AdminUploadNotes /></AdminRoute>} />
+            <Route path="/admin-comments" element={<AdminRoute><AdminComments /></AdminRoute>} />
+            <Route path="/admin-panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+            <Route path="/admin-student-support" element={<AdminRoute><StudentSupport /></AdminRoute>} />
+            <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
 
-        <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="/admin-users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-        <Route path="/admin-upload-notes" element={<AdminRoute><AdminUploadNotes /></AdminRoute>} />
-        <Route path="/admin-comments" element={<AdminRoute><AdminComments /></AdminRoute>} />
-        <Route path="/admin-panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
-        <Route path="/admin-student-support" element={<AdminRoute><StudentSupport /></AdminRoute>} />
-        <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+            {/* PROGRAM FLOW */}
+            <Route path="/programs" element={<Programs />} />
+            <Route path="/programs/:programName" element={<ProgramDetail />} />
 
-      </Routes>
+            {/* MODULE NOTES */}
+            <Route path="/module/:moduleCode" element={<ModuleNotes />} />
+
+            {/* CATCH ALL */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </main>
       </div>
     </Router>
