@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/dashboard.css';
+import '../styles/adminPanel.css';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ const AdminPanel = () => {
     name: '',
     nic: '',
     email: '',
-    status: 'active',
+    status: 'undergraduate',
     phone: '',
     password: '',
     confirmPassword: ''
@@ -208,7 +209,7 @@ const AdminPanel = () => {
   };
 
   return (
-    <div className="db-root">
+    <div className="db-root admin-panel-page">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Admin Register</div>
@@ -223,20 +224,14 @@ const AdminPanel = () => {
           <p>Add a new admin user to manage the system.</p>
         </div>
 
-        <div style={{ marginTop: '40px' }}>
+        <div className="ap-layout">
+          <div>
           <div className="db-section-title">Admin Registration Form</div>
           
-          <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
-            <div style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '12px',
-              padding: '24px',
-              display: 'grid',
-              gap: '20px'
-            }}>
-              <div>
-                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+          <form onSubmit={handleSubmit} className="ap-form-card">
+            <div className="ap-form-grid">
+              <div className="ap-field">
+                <label className="ap-label">
                   Admin Name
                 </label>
                 <input
@@ -246,30 +241,14 @@ const AdminPanel = () => {
                   onChange={handleChange}
                   required
                   placeholder="Enter full name"
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'var(--surface2)',
-                    border: errors.name ? '2px solid #ef4444' : '1px solid var(--border)',
-                    borderRadius: '8px',
-                    color: 'var(--text)',
-                  }}
+                  className={`ap-input ${errors.name ? 'ap-input-error' : ''}`}
                 />
-                {errors.name && (
-                  <div style={{
-                    color: '#ef4444',
-                    fontSize: '14px',
-                    marginTop: '4px',
-                    fontWeight: '500'
-                  }}>
-                    {errors.name}
-                  </div>
-                )}
+                {errors.name && <div className="ap-error">{errors.name}</div>}
               </div>
 
-              <div>
-                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
-                  NIC Number 
+              <div className="ap-field">
+                <label className="ap-label">
+                  NIC Number
                 </label>
                 <input
                   name="nic"
@@ -285,29 +264,13 @@ const AdminPanel = () => {
                   }}
                   required
                   placeholder="200123456789"
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'var(--surface2)',
-                    border: errors.nic ? '2px solid #ef4444' : '1px solid var(--border)',
-                    borderRadius: '8px',
-                    color: 'var(--text)',
-                  }}
+                  className={`ap-input ${errors.nic ? 'ap-input-error' : ''}`}
                 />
-                {errors.nic && (
-                  <div style={{
-                    color: '#ef4444',
-                    fontSize: '14px',
-                    marginTop: '4px',
-                    fontWeight: '500'
-                  }}>
-                    {errors.nic}
-                  </div>
-                )}
+                {errors.nic && <div className="ap-error">{errors.nic}</div>}
               </div>
 
-              <div>
-                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+              <div className="ap-field">
+                <label className="ap-label">
                   Email
                 </label>
                 <input
@@ -317,29 +280,13 @@ const AdminPanel = () => {
                   onChange={handleChange}
                   required
                   placeholder="admin@university.edu"
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'var(--surface2)',
-                    border: errors.email ? '2px solid #ef4444' : '1px solid var(--border)',
-                    borderRadius: '8px',
-                    color: 'var(--text)',
-                  }}
+                  className={`ap-input ${errors.email ? 'ap-input-error' : ''}`}
                 />
-                {errors.email && (
-                  <div style={{
-                    color: '#ef4444',
-                    fontSize: '14px',
-                    marginTop: '4px',
-                    fontWeight: '500'
-                  }}>
-                    {errors.email}
-                  </div>
-                )}
+                {errors.email && <div className="ap-error">{errors.email}</div>}
               </div>
 
-              <div>
-                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+              <div className="ap-field">
+                <label className="ap-label">
                   Phone Number (10 digits)
                 </label>
                 <input
@@ -349,58 +296,31 @@ const AdminPanel = () => {
                   onChange={handleChange}
                   required
                   placeholder="0771234567"
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'var(--surface2)',
-                    border: errors.phone ? '2px solid #ef4444' : '1px solid var(--border)',
-                    borderRadius: '8px',
-                    color: 'var(--text)',
-                  }}
+                  className={`ap-input ${errors.phone ? 'ap-input-error' : ''}`}
                 />
-                {errors.phone && (
-                  <div style={{
-                    color: '#ef4444',
-                    fontSize: '14px',
-                    marginTop: '4px',
-                    fontWeight: '500'
-                  }}>
-                    {errors.phone}
-                  </div>
-                )}
+                {errors.phone && <div className="ap-error">{errors.phone}</div>}
               </div>
 
-              <div>
-                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+              <div className="ap-field">
+                <label className="ap-label">
                   Academic Status
                 </label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'var(--surface2)',
-                    border: errors.status ? '2px solid #ef4444' : '1px solid var(--border)',
-                    borderRadius: '8px',
-                    color: 'var(--text)',
-                    fontFamily: 'inherit',
-                    fontSize: '0.95rem',
-                    cursor: 'pointer',
-                  }}
-                  className="admin-select"
+                  className={`ap-input ${errors.status ? 'ap-input-error' : ''}`}
                 >
-                  <option value="graduate" style={{ background: '#1a1a2e', color: '#f0eeff' }}>Graduate</option>
-                  <option value="undergraduate" style={{ background: '#1a1a2e', color: '#f0eeff' }}>Undergraduate</option>
+                  <option value="graduate">Graduate</option>
+                  <option value="undergraduate">Undergraduate</option>
                 </select>
               </div>
 
-              <div>
-                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+              <div className="ap-field">
+                <label className="ap-label">
                   Password
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="ap-password-wrap">
                   <input
                     name="password"
                     type={showPassword ? "text" : "password"}
@@ -408,50 +328,24 @@ const AdminPanel = () => {
                     onChange={handleChange}
                     required
                     placeholder="Enter strong password"
-                    style={{
-                      width: '100%',
-                      padding: '12px 40px 12px 16px',
-                      background: 'var(--surface2)',
-                      border: errors.password ? '2px solid #ef4444' : '1px solid var(--border)',
-                      borderRadius: '8px',
-                      color: 'var(--text)',
-                    }}
+                    className={`ap-input ap-password-input ${errors.password ? 'ap-input-error' : ''}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: 'var(--text-secondary)',
-                      fontSize: '18px'
-                    }}
+                    className="ap-eye-btn"
                   >
-                    {showPassword ? '🙈' : '👁️'}
+                    {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
-                {errors.password && (
-                  <div style={{
-                    color: '#ef4444',
-                    fontSize: '14px',
-                    marginTop: '4px',
-                    fontWeight: '500'
-                  }}>
-                    {errors.password}
-                  </div>
-                )}
+                {errors.password && <div className="ap-error">{errors.password}</div>}
               </div>
 
-              <div>
-                <label style={{ color: 'var(--text)', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+              <div className="ap-field">
+                <label className="ap-label">
                   Confirm Password
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="ap-password-wrap">
                   <input
                     name="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
@@ -459,51 +353,20 @@ const AdminPanel = () => {
                     onChange={handleChange}
                     required
                     placeholder="Confirm password"
-                    style={{
-                      width: '100%',
-                      padding: '12px 40px 12px 16px',
-                      background: 'var(--surface2)',
-                      border: '1px solid var(--border)',
-                      borderRadius: '8px',
-                      color: 'var(--text)',
-                    }}
+                    className="ap-input ap-password-input"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: 'var(--text-secondary)',
-                      fontSize: '18px'
-                    }}
+                    className="ap-eye-btn"
                   >
-                    {showConfirmPassword ? '🙈' : '👁️'}
+                    {showConfirmPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
               </div>
 
               {message && (
-                <div style={{ 
-                  padding: '12px', 
-                  borderRadius: '8px', 
-                  textAlign: 'center',
-                  fontWeight: '500',
-                  ...(message.includes('successfully') ? { 
-                    background: 'rgba(34, 197, 94, 0.1)', 
-                    color: '#22c55e',
-                    border: '1px solid #22c55e' 
-                  } : { 
-                    background: 'rgba(239, 68, 68, 0.1)', 
-                    color: '#ef4444',
-                    border: '1px solid #ef4444' 
-                  })
-                }}>
+                <div className={`ap-message ${message.includes('successfully') ? 'success' : 'error'}`}>
                   {message}
                 </div>
               )}
@@ -511,24 +374,15 @@ const AdminPanel = () => {
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  padding: '14px 24px',
-                  background: 'linear-gradient(90deg, #7c5cfc, #e05fff)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontWeight: '600',
-                  fontSize: '16px',
-                  opacity: loading ? 0.7 : 1
-                }}
+                className="ap-submit-btn"
               >
                 {loading ? 'Creating Admin...' : 'Register New Admin'}
               </button>
             </div>
           </form>
+          </div>
 
-          <div style={{ marginTop: '28px' }}>
+          <div>
             <div className="db-section-title">All Admin Accounts</div>
             <div className="user-table-wrap">
               {adminsLoading ? (
@@ -558,14 +412,7 @@ const AdminPanel = () => {
                               type="text"
                               value={editForm.name}
                               onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                              style={{
-                                width: '100%',
-                                padding: '8px 10px',
-                                background: 'var(--surface2)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '6px',
-                                color: 'var(--text)',
-                              }}
+                              className="ap-table-input"
                             />
                           ) : (
                             admin.name
@@ -577,14 +424,7 @@ const AdminPanel = () => {
                               type="email"
                               value={editForm.email}
                               onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
-                              style={{
-                                width: '100%',
-                                padding: '8px 10px',
-                                background: 'var(--surface2)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '6px',
-                                color: 'var(--text)',
-                              }}
+                              className="ap-table-input"
                             />
                           ) : (
                             admin.email
@@ -596,14 +436,7 @@ const AdminPanel = () => {
                               type="text"
                               value={editForm.phone}
                               onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
-                              style={{
-                                width: '100%',
-                                padding: '8px 10px',
-                                background: 'var(--surface2)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '6px',
-                                color: 'var(--text)',
-                              }}
+                              className="ap-table-input"
                             />
                           ) : (
                             admin.phone || '-'
@@ -614,14 +447,7 @@ const AdminPanel = () => {
                             <select
                               value={editForm.status}
                               onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value }))}
-                              style={{
-                                width: '100%',
-                                padding: '8px 10px',
-                                background: 'var(--surface2)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '6px',
-                                color: 'var(--text)',
-                              }}
+                              className="ap-table-input"
                             >
                               <option value="undergraduate">Undergraduate</option>
                               <option value="graduate">Graduate</option>
@@ -630,10 +456,10 @@ const AdminPanel = () => {
                             admin.status || '-'
                           )}
                         </td>
-                        <td>admin</td>
+                        <td><span className="ap-role-chip">admin</span></td>
                         <td>
                           {editingAdminId === admin._id ? (
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            <div className="ap-actions">
                               <button
                                 type="button"
                                 className="db-admin-btn"

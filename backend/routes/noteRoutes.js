@@ -16,6 +16,8 @@ const {
   getReviewedNotes,
   approveNote,
   rejectNote,
+  getAllCommentsByNoteForAdmin,
+  deleteNoteCommentByAdmin,
   getNoteComments,
   addNoteComment,
   generateQuiz,
@@ -80,6 +82,10 @@ router.get("/review/pending", authMiddleware, getPendingReviewNotes);
 router.get("/review/history", authMiddleware, getReviewedNotes);
 router.put("/:id/approve", authMiddleware, approveNote);
 router.put("/:id/reject", authMiddleware, rejectNote);
+
+// 💬 Admin comments management
+router.get("/comments/admin/all", authMiddleware, getAllCommentsByNoteForAdmin);
+router.delete("/:noteId/comments/:commentId", authMiddleware, deleteNoteCommentByAdmin);
 
 // 📥 Download
 router.put("/:id/download", authMiddleware, downloadNote);

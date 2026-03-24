@@ -566,6 +566,80 @@ exports.addNoteComment = async (req, res) => {
   }
 };
 
+// admin: all comments grouped by note
+exports.getAllCommentsByNoteForAdmin = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const notes = await Note.find({ "comments.0": { $exists: true } })
+      .select("title subject moduleCode comments averageRating ratingCount updatedAt")
+      .populate("comments.user", "name email")
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    const grouped = notes.map((note) => {
+      const normalizedComments = (Array.isArray(note.comments) ? note.comments : [])
+        .map((comment) => ({
+          _id: comment._id,
+          text: comment.text,
+          rating: normalizeRating(comment?.rating, comment?.tone) || 3,
+          createdAt: comment.createdAt,
+          user: comment.user
+            ? {
+                _id: comment.user._id,
+                name: comment.user.name,
+                email: comment.user.email,
+              }
+            : null,
+        }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      return {
+        _id: note._id,
+        title: note.title,
+        subject: note.subject,
+        moduleCode: note.moduleCode || "",
+        averageRating: note.averageRating || 0,
+        ratingCount: note.ratingCount || normalizedComments.length,
+        commentsCount: normalizedComments.length,
+        comments: normalizedComments,
+      };
+    });
+
+    return res.json(grouped);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+// admin: delete a comment from a note
+exports.deleteNoteCommentByAdmin = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const { noteId, commentId } = req.params;
+    const note = await Note.findById(noteId);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const comment = note.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    note.comments.pull(commentId);
+
+    const stats = calculateRatingStats(note.comments);
+    note.averageRating = stats.averageRating;
+    note.ratingCount = stats.ratingCount;
+
+    await note.save();
+
+    return res.json({ message: "Comment deleted successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 // 🤖 RECOMMEND
 exports.recommendNotes = async (req, res) => {
   try {
