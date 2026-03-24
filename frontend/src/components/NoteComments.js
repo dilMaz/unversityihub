@@ -6,9 +6,32 @@ function NoteComments({ noteId }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [updatingId, setUpdatingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
+  const [editingId, setEditingId] = useState("");
+  const [editText, setEditText] = useState("");
+  const [editRating, setEditRating] = useState(5);
   const [error, setError] = useState("");
   const [text, setText] = useState("");
   const [rating, setRating] = useState(5);
+
+  const getCurrentUserId = () => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed?.id || parsed?._id || null;
+    } catch (_err) {
+      return null;
+    }
+  };
+
+  const isOwnComment = (comment) => {
+    const currentUserId = getCurrentUserId();
+    const commentUserId = comment?.user?._id || comment?.user?.id || comment?.user;
+    if (!currentUserId || !commentUserId) return false;
+    return String(currentUserId) === String(commentUserId);
+  };
 
   const fetchComments = async () => {
     const token = localStorage.getItem("token");
@@ -71,6 +94,84 @@ function NoteComments({ noteId }) {
     }
   };
 
+  const startEdit = (comment) => {
+    setEditingId(comment._id);
+    setEditText(comment.text || "");
+    setEditRating(Number(comment.rating) || 3);
+    setError("");
+  };
+
+  const cancelEdit = () => {
+    setEditingId("");
+    setEditText("");
+    setEditRating(5);
+  };
+
+  const handleUpdate = async (commentId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Please log in to edit comments");
+      return;
+    }
+
+    if (!editText.trim()) {
+      setError("Please write a comment");
+      return;
+    }
+
+    setUpdatingId(commentId);
+    setError("");
+    try {
+      await axios.put(
+        `http://localhost:5000/api/notes/${noteId}/comments/${commentId}`,
+        { text: editText.trim(), rating: editRating },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 10000,
+        }
+      );
+
+      cancelEdit();
+      await fetchComments();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update comment");
+    } finally {
+      setUpdatingId("");
+    }
+  };
+
+  const handleDelete = async (commentId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Please log in to delete comments");
+      return;
+    }
+
+    const confirmed = window.confirm("Delete this comment?");
+    if (!confirmed) return;
+
+    setDeletingId(commentId);
+    setError("");
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/notes/${noteId}/comments/${commentId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 10000,
+        }
+      );
+
+      if (editingId === commentId) {
+        cancelEdit();
+      }
+      await fetchComments();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete comment");
+    } finally {
+      setDeletingId("");
+    }
+  };
+
   return (
     <div className="note-comments">
       <h4 className="note-comments-title">Comments ({comments.length})</h4>
@@ -124,7 +225,75 @@ function NoteComments({ noteId }) {
               <span className="note-comment-user">{comment.user?.name || "Student"}</span>
               <span className="note-comment-rating">{"★".repeat(comment.rating || 3)}{"☆".repeat(5 - (comment.rating || 3))}</span>
             </div>
-            <p className="note-comment-text">{comment.text}</p>
+
+            {editingId === comment._id ? (
+              <div className="note-comment-edit-box">
+                <div className="note-rating-picker" aria-label="Edit star rating">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={`star-btn ${star <= editRating ? "active" : ""}`}
+                      onClick={() => setEditRating(star)}
+                      title={`${star} star${star > 1 ? "s" : ""}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span className="selected-rating">{editRating}/5</span>
+                </div>
+
+                <textarea
+                  className="note-comment-input"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                />
+
+                <div className="note-comment-actions-row">
+                  <button
+                    type="button"
+                    className="note-comment-action-btn primary"
+                    onClick={() => handleUpdate(comment._id)}
+                    disabled={updatingId === comment._id}
+                  >
+                    {updatingId === comment._id ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    className="note-comment-action-btn"
+                    onClick={cancelEdit}
+                    disabled={updatingId === comment._id}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="note-comment-text">{comment.text}</p>
+            )}
+
+            {isOwnComment(comment) ? (
+              <div className="note-comment-owner-actions">
+                <button
+                  type="button"
+                  className="note-comment-action-btn"
+                  onClick={() => startEdit(comment)}
+                  disabled={deletingId === comment._id || updatingId === comment._id}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="note-comment-action-btn danger"
+                  onClick={() => handleDelete(comment._id)}
+                  disabled={deletingId === comment._id || updatingId === comment._id}
+                >
+                  {deletingId === comment._id ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            ) : null}
           </div>
         ))}
       </div>

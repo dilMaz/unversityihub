@@ -103,9 +103,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 240px;
+  max-height: 340px;
   overflow: auto;
   padding-right: 4px;
+  padding-bottom: 8px;
 }
 
 .note-comment-item {
@@ -139,4 +140,53 @@
   color: #d8d6ec;
   font-size: 0.88rem;
   line-height: 1.45;
+}
+
+.note-comment-owner-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.note-comment-edit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-comment-actions-row {
+  display: flex;
+  gap: 8px;
+}
+
+.note-comment-action-btn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: #d8d6ec;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.note-comment-action-btn:hover:not(:disabled) {
+  border-color: rgba(124, 92, 252, 0.6);
+  color: #f0eeff;
+}
+
+.note-comment-action-btn.primary {
+  background: linear-gradient(135deg, #7c5cfc, #e05fff);
+  border-color: transparent;
+  color: #fff;
+}
+
+.note-comment-action-btn.danger {
+  border-color: rgba(255, 99, 132, 0.45);
+  color: #ff9bb0;
+}
+
+.note-comment-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

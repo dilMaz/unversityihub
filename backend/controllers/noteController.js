@@ -331,6 +331,44 @@ exports.addNoteComment = async (req, res) => {
   }
 };
 
+exports.updateNoteComment = async (req, res) => {
+  try {
+    const { id, commentId } = req.params;
+    const note = await Note.findById(id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const comment = note.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    const isAdmin = req.user?.role === "admin";
+    const isOwner = String(comment.user) === String(req.user?.id);
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "You can only edit your own comments" });
+    }
+
+    const nextText = (req.body?.text ?? comment.text).toString().trim();
+    if (!nextText) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    comment.text = nextText.slice(0, 500);
+
+    if (req.body?.rating !== undefined) {
+      const parsedRating = Number(req.body.rating);
+      if (Number.isFinite(parsedRating)) {
+        comment.rating = Math.max(1, Math.min(5, Math.round(parsedRating)));
+      }
+    }
+
+    recalculateRating(note);
+    await note.save();
+
+    res.json({ message: "Comment updated" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // 💬 Admin comments management
 exports.getAllCommentsByNoteForAdmin = async (req, res) => {
   try {
@@ -362,18 +400,22 @@ exports.getAllCommentsByNoteForAdmin = async (req, res) => {
 
 exports.deleteNoteCommentByAdmin = async (req, res) => {
   try {
-    if (!ensureAdmin(req, res)) return;
-
     const { noteId, commentId } = req.params;
     const note = await Note.findById(noteId);
     if (!note) return res.status(404).json({ message: "Note not found" });
 
-    const originalCount = (note.comments || []).length;
-    note.comments = (note.comments || []).filter((comment) => String(comment._id) !== String(commentId));
-
-    if (note.comments.length === originalCount) {
+    const comment = note.comments.id(commentId);
+    if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
+
+    const isAdmin = req.user?.role === "admin";
+    const isOwner = String(comment.user) === String(req.user?.id);
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "You can only delete your own comments" });
+    }
+
+    comment.deleteOne();
 
     recalculateRating(note);
     await note.save();

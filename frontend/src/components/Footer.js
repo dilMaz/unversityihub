@@ -19,16 +19,16 @@ function Footer() {
               Empowering students with knowledge sharing and collaborative learning.
             </p>
             <div className="social-links">
-              <a href="#" className="social-link" title="Facebook">
+              <a href="https://facebook.com" className="social-link" title="Facebook" target="_blank" rel="noreferrer">
                 <span>f</span>
               </a>
-              <a href="#" className="social-link" title="Twitter">
+              <a href="https://x.com" className="social-link" title="Twitter" target="_blank" rel="noreferrer">
                 <span>𝕏</span>
               </a>
-              <a href="#" className="social-link" title="LinkedIn">
+              <a href="https://linkedin.com" className="social-link" title="LinkedIn" target="_blank" rel="noreferrer">
                 <span>in</span>
               </a>
-              <a href="#" className="social-link" title="Instagram">
+              <a href="https://instagram.com" className="social-link" title="Instagram" target="_blank" rel="noreferrer">
                 <span>📷</span>
               </a>
             </div>

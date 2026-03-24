@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/dashboard.css';
@@ -16,7 +16,7 @@ const AdminComments = () => {
   const [error, setError] = useState('');
   const [deletingCommentId, setDeletingCommentId] = useState('');
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
@@ -36,11 +36,11 @@ const AdminComments = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     fetchComments();
-  }, []);
+  }, [fetchComments]);
 
   const handleDeleteComment = async (noteId, commentId) => {
     const confirmed = window.confirm('Delete this comment?');

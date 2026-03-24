@@ -20,6 +20,7 @@ const {
   deleteNoteCommentByAdmin,
   getNoteComments,
   addNoteComment,
+  updateNoteComment,
   generateQuiz,
   downloadQuizPDF,
   getQuizStatus,
@@ -96,6 +97,11 @@ router.get("/:id/view", authMiddleware, viewNote);
 // 💬 Comments
 router.get("/:id/comments", authMiddleware, getNoteComments);
 router.post("/:id/comments", authMiddleware, addNoteComment);
+router.put("/:id/comments/:commentId", authMiddleware, updateNoteComment);
+router.delete("/:id/comments/:commentId", authMiddleware, (req, res, next) => {
+  req.params.noteId = req.params.id;
+  next();
+}, deleteNoteCommentByAdmin);
 
 // 📝 QUIZ ROUTES
 // Get quiz status (check if generated)
