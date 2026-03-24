@@ -77,9 +77,6 @@ function Footer() {
             <h4 className="section-title">Support</h4>
             <ul className="footer-links">
               <li>
-                <Link to="/support">Submit Support Ticket</Link>
-              </li>
-              <li>
                 <a href="#contact">Contact Us</a>
               </li>
               <li>

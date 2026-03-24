@@ -17,7 +17,6 @@ const multer = require('multer');
 // routes
 const authRoutes = require("./routes/authRoutes");
 const noteRoutes = require("./routes/noteRoutes");
-const supportRoutes = require("./routes/supportRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
 
@@ -39,9 +38,6 @@ app.use("/api/auth", authRoutes);
 
 // notes
 app.use("/api/notes", noteRoutes);
-
-// support tickets
-app.use("/api/support", supportRoutes);
 
 // dashboard
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
