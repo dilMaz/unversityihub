@@ -1,0 +1,94 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="960" y1="0" x2="960" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0E3B74"/>
+      <stop offset="0.45" stop-color="#0A2B56"/>
+      <stop offset="1" stop-color="#06162E"/>
+    </linearGradient>
+    <linearGradient id="sunGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#56E5FF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#56E5FF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="windowLight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#73DEFF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#40C3E8" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="hall" x1="960" y1="720" x2="960" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A203F"/>
+      <stop offset="1" stop-color="#08172C"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+
+  <ellipse cx="1450" cy="170" rx="300" ry="190" fill="url(#sunGlow)"/>
+  <ellipse cx="410" cy="140" rx="250" ry="140" fill="#FF9A4D" fill-opacity="0.12"/>
+
+  <g opacity="0.25" stroke="#84D8FF" stroke-width="1">
+    <path d="M0 180H1920"/>
+    <path d="M0 260H1920"/>
+    <path d="M0 340H1920"/>
+    <path d="M0 420H1920"/>
+  </g>
+
+  <g>
+    <rect x="120" y="370" width="320" height="240" fill="#0B2446"/>
+    <rect x="450" y="310" width="420" height="300" fill="#0C2A50"/>
+    <rect x="900" y="350" width="300" height="260" fill="#0A274C"/>
+    <rect x="1220" y="290" width="250" height="320" fill="#0D2D57"/>
+    <rect x="1490" y="330" width="280" height="280" fill="#0A2548"/>
+  </g>
+
+  <g opacity="0.85">
+    <rect x="500" y="350" width="30" height="20" fill="url(#windowLight)"/>
+    <rect x="545" y="350" width="30" height="20" fill="url(#windowLight)"/>
+    <rect x="590" y="350" width="30" height="20" fill="url(#windowLight)"/>
+    <rect x="635" y="350" width="30" height="20" fill="url(#windowLight)"/>
+    <rect x="680" y="350" width="30" height="20" fill="url(#windowLight)"/>
+    <rect x="725" y="350" width="30" height="20" fill="url(#windowLight)"/>
+    <rect x="770" y="350" width="30" height="20" fill="url(#windowLight)"/>
+
+    <rect x="1270" y="340" width="24" height="16" fill="url(#windowLight)"/>
+    <rect x="1306" y="340" width="24" height="16" fill="url(#windowLight)"/>
+    <rect x="1342" y="340" width="24" height="16" fill="url(#windowLight)"/>
+    <rect x="1378" y="340" width="24" height="16" fill="url(#windowLight)"/>
+    <rect x="1270" y="368" width="24" height="16" fill="url(#windowLight)"/>
+    <rect x="1306" y="368" width="24" height="16" fill="url(#windowLight)"/>
+    <rect x="1342" y="368" width="24" height="16" fill="url(#windowLight)"/>
+    <rect x="1378" y="368" width="24" height="16" fill="url(#windowLight)"/>
+  </g>
+
+  <rect y="620" width="1920" height="460" fill="url(#hall)"/>
+
+  <g opacity="0.9">
+    <path d="M120 730C400 670 760 650 960 650C1160 650 1520 670 1800 730V820H120V730Z" fill="#0D2F59"/>
+    <path d="M140 830C420 770 770 750 960 750C1150 750 1500 770 1780 830V910H140V830Z" fill="#0C2A50"/>
+    <path d="M160 920C430 860 780 840 960 840C1140 840 1490 860 1760 920V1005H160V920Z" fill="#0B2445"/>
+  </g>
+
+  <g opacity="0.45" stroke="#66D4FF" stroke-width="2">
+    <path d="M210 760H1710"/>
+    <path d="M230 860H1690"/>
+    <path d="M250 950H1670"/>
+  </g>
+
+  <g opacity="0.8" fill="#8AE8FF">
+    <circle cx="500" cy="782" r="3"/>
+    <circle cx="705" cy="782" r="3"/>
+    <circle cx="910" cy="782" r="3"/>
+    <circle cx="1115" cy="782" r="3"/>
+    <circle cx="1320" cy="782" r="3"/>
+
+    <circle cx="530" cy="880" r="3"/>
+    <circle cx="735" cy="880" r="3"/>
+    <circle cx="940" cy="880" r="3"/>
+    <circle cx="1145" cy="880" r="3"/>
+    <circle cx="1350" cy="880" r="3"/>
+
+    <circle cx="560" cy="968" r="3"/>
+    <circle cx="765" cy="968" r="3"/>
+    <circle cx="970" cy="968" r="3"/>
+    <circle cx="1175" cy="968" r="3"/>
+    <circle cx="1380" cy="968" r="3"/>
+  </g>
+</svg>
