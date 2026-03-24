@@ -2,6 +2,8 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const getJwtSecret = () => process.env.JWT_SECRET || "unihub_dev_secret";
+
 // Register
 exports.register = async (req, res) => {
   const { name, nic = 'N/A', email, password, phone = 'N/A', status = 'undergraduate', role = 'user' } = req.body;
@@ -48,11 +50,7 @@ exports.login = async (req, res) => {
 
     if (!isMatch) return res.status(400).json({ message: "Invalid Password" });
 
-    if (!process.env.JWT_SECRET) {
-      return res.status(500).json({ message: "JWT secret is not configured" });
-    }
-
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, getJwtSecret(), {
       expiresIn: "1d",
     });
 
