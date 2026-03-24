@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -13,16 +13,26 @@ import Search from "./pages/Search";
 import TopRated from "./pages/TopRated";
 import Recommended from "./pages/Recommended";
 
+import HomePage from "./pages/HomePage";
+import Programs from "./pages/features/programs/Programs";
+import ProgramDetail from "./pages/features/programs/ProgramDetail";
+import Navbar from "./components/Navbar";
+import ModuleNotes from "./pages/ModuleNotes";
+
 function App() {
   return (
     <Router>
+
+      <Navbar />
+
       <Routes>
 
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* HOME */}
+        <Route path="/" element={<HomePage />} />
 
+        {/* EXISTING */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin-users" element={<AdminUsers />} />
@@ -33,6 +43,12 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/top-rated" element={<TopRated />} />
         <Route path="/recommend" element={<Recommended />} />
+
+        {/* PROGRAM FLOW */}
+        <Route path="/programs" element={<Programs />} />
+        <Route path="/programs/:programName" element={<ProgramDetail />} />
+
+        <Route path="/module/:moduleCode" element={<ModuleNotes />} />
 
       </Routes>
     </Router>
