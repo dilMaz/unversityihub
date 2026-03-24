@@ -62,14 +62,14 @@ function AdminAnalytics() {
         responseType: "blob",
       });
 
-      const blob = new Blob([res.data], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob([res.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       const now = new Date();
       link.href = url;
       link.setAttribute(
         "download",
-        `admin-monthly-analytics-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}.csv`
+        `admin-monthly-analytics-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}.pdf`
       );
       document.body.appendChild(link);
       link.click();
@@ -89,7 +89,7 @@ function AdminAnalytics() {
           <div className="db-logo">Admin Analytics</div>
           <div className="analytics-topbar-actions">
             <button className="db-admin-btn" onClick={handleDownloadMonthly} disabled={downloading || loading}>
-              {downloading ? "Preparing CSV..." : "Download Monthly Analytics"}
+              {downloading ? "Preparing PDF..." : "Download Monthly Analytics (PDF)"}
             </button>
             <button className="db-logout" onClick={() => navigate("/admin-dashboard")}>
               ← Back to Admin

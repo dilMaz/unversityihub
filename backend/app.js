@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const PDFDocument = require("pdfkit");
 
 const app = express();
 
@@ -269,18 +270,61 @@ app.get("/api/admin/analytics/monthly/download", authMiddleware, async (req, res
     if (!ensureAdmin(req, res)) return;
 
     const payload = await getAnalyticsPayload(12);
-    const csvLines = ["Month,New Users,New Notes,New Comments"];
+    const now = new Date();
+    const fileName = `admin-monthly-analytics-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}.pdf`;
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+
+    const doc = new PDFDocument({ margin: 40, size: "A4" });
+    doc.pipe(res);
+
+    doc.fontSize(18).text("Monthly Analytics Report", { underline: true });
+    doc.moveDown(0.4);
+    doc.fontSize(10).fillColor("#555").text(`Generated on: ${now.toLocaleString()}`);
+    doc.fillColor("#000");
+
+    doc.moveDown(1);
+    doc.fontSize(14).text("Website Summary");
+    doc.moveDown(0.4);
+    doc.fontSize(11).text(`Total Users: ${payload.summary.totalUsers}`);
+    doc.text(`Total Admins: ${payload.summary.totalAdmins}`);
+    doc.text(`Total Students: ${payload.summary.totalStudents}`);
+    doc.text(`Total Notes: ${payload.summary.totalNotes}`);
+    doc.text(`Total Comments: ${payload.summary.totalComments}`);
+    doc.text(`Total Downloads: ${payload.summary.totalDownloads}`);
+
+    doc.moveDown(1);
+    doc.fontSize(14).text("Monthly Trend (Last 12 Months)");
+    doc.moveDown(0.5);
+
+    const startX = 40;
+    let y = doc.y;
+
+    doc.fontSize(10).fillColor("#111");
+    doc.text("Month", startX, y, { width: 140 });
+    doc.text("New Users", startX + 150, y, { width: 100, align: "right" });
+    doc.text("New Notes", startX + 260, y, { width: 100, align: "right" });
+    doc.text("New Comments", startX + 370, y, { width: 110, align: "right" });
+    y += 18;
+
+    doc.moveTo(startX, y - 4).lineTo(555, y - 4).strokeColor("#ddd").stroke();
 
     payload.monthly.forEach((row) => {
-      csvLines.push(`${row.monthLabel},${row.users},${row.notes},${row.comments}`);
+      if (y > 760) {
+        doc.addPage();
+        y = 50;
+      }
+
+      doc.fillColor("#000").fontSize(10);
+      doc.text(row.monthLabel, startX, y, { width: 140 });
+      doc.text(String(row.users || 0), startX + 150, y, { width: 100, align: "right" });
+      doc.text(String(row.notes || 0), startX + 260, y, { width: 100, align: "right" });
+      doc.text(String(row.comments || 0), startX + 370, y, { width: 110, align: "right" });
+      y += 16;
     });
 
-    const now = new Date();
-    const fileName = `admin-monthly-analytics-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}.csv`;
-
-    res.setHeader("Content-Type", "text/csv; charset=utf-8");
-    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
-    res.status(200).send(csvLines.join("\n"));
+    doc.end();
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
