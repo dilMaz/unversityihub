@@ -11,21 +11,27 @@ function ensureUploadsDir() {
 
 exports.create = async (req, res) => {
   try {
+    console.log('🔍 Support request received:', req.body);
+    console.log('👤 User ID from token:', req.user.id);
+    
     const { title, category, description, priority } = req.body;
 
     if (!title || !category || !description) {
+      console.log('❌ Missing required fields');
       return res
         .status(400)
         .json({ message: "Title, category, and description are required" });
     }
 
     if (!CATEGORIES.includes(category)) {
+      console.log('❌ Invalid category:', category);
       return res.status(400).json({ message: "Invalid category" });
     }
 
     const allowedPriority = ["low", "medium", "high"];
     const p = (priority || "medium").toLowerCase();
     if (!allowedPriority.includes(p)) {
+      console.log('❌ Invalid priority:', p);
       return res.status(400).json({ message: "Invalid priority" });
     }
 
@@ -34,6 +40,7 @@ exports.create = async (req, res) => {
       attachment = path.join("support", req.file.filename).replace(/\\/g, "/");
     }
 
+    console.log('📝 Creating support request...');
     const doc = await SupportRequest.create({
       title: title.trim(),
       category,
@@ -43,8 +50,10 @@ exports.create = async (req, res) => {
       student: req.user.id,
     });
 
+    console.log('✅ Support request created:', doc._id);
     res.status(201).json(doc);
   } catch (err) {
+    console.error('❌ Support request creation error:', err);
     res.status(500).json({ message: err.message });
   }
 };

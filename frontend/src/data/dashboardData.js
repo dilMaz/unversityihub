@@ -35,12 +35,21 @@ const baseQuickActions = [
     btn: "Upload Now",
     route: "/upload",
   },
+  {
+    id: "student-support",
+    cls: "c5",
+    icon: "🆘",
+    title: "Student Support",
+    desc: "Facing issues? Get help from our support team for any problems you encounter.",
+    btn: "Get Support",
+    route: "/student-support",
+  },
 ];
 
 const adminQuickActions = [
   {
     id: "admin-panel",
-    cls: "c5",
+    cls: "c6",
     icon: "🛡️",
     title: "Admin Panel",
     desc: "Moderate users, review submissions, and keep quality standards high.",
