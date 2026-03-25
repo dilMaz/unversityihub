@@ -469,6 +469,7 @@ function TopRated() {
         )}
 
       </div>
+    </div>
     );
   }
 }
