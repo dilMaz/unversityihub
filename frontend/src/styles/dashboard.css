@@ -205,6 +205,37 @@ body {
   background: rgba(124, 92, 252, 0.08);
 }
 
+.review-status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border);
+}
+
+.review-status-chip.approved {
+  color: #3cffa6;
+  background: rgba(60, 255, 166, 0.12);
+  border-color: rgba(60, 255, 166, 0.35);
+}
+
+.review-status-chip.rejected {
+  color: #ff8484;
+  background: rgba(255, 132, 132, 0.12);
+  border-color: rgba(255, 132, 132, 0.35);
+}
+
+.review-status-chip.pending {
+  color: #f5c842;
+  background: rgba(245, 200, 66, 0.12);
+  border-color: rgba(245, 200, 66, 0.35);
+}
+
 .error-text {
   color: #ff6b6b;
   font-weight: 600;

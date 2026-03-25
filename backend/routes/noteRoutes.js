@@ -7,10 +7,20 @@ const {
   seedNotes,
   searchNotes,
   downloadNote,
+  viewNote,
   topNotes,
   recommendNotes,
   createAdminNote,
   createStudentNote,
+  getPendingReviewNotes,
+  getReviewedNotes,
+  approveNote,
+  rejectNote,
+  getAllCommentsByNoteForAdmin,
+  deleteNoteCommentByAdmin,
+  getNoteComments,
+  addNoteComment,
+  updateNoteComment,
   generateQuiz,
   downloadQuizPDF,
   getQuizStatus,
@@ -68,8 +78,30 @@ router.post("/admin-upload", authMiddleware, upload.single('noteFile'), (req, re
 // 📤 Student upload (authenticated users)
 router.post("/upload", authMiddleware, upload.single('noteFile'), createStudentNote);
 
+// 🧾 Admin moderation routes
+router.get("/review/pending", authMiddleware, getPendingReviewNotes);
+router.get("/review/history", authMiddleware, getReviewedNotes);
+router.put("/:id/approve", authMiddleware, approveNote);
+router.put("/:id/reject", authMiddleware, rejectNote);
+
+// 💬 Admin comments management
+router.get("/comments/admin/all", authMiddleware, getAllCommentsByNoteForAdmin);
+router.delete("/:noteId/comments/:commentId", authMiddleware, deleteNoteCommentByAdmin);
+
 // 📥 Download
 router.put("/:id/download", authMiddleware, downloadNote);
+
+// 👀 View online
+router.get("/:id/view", authMiddleware, viewNote);
+
+// 💬 Comments
+router.get("/:id/comments", authMiddleware, getNoteComments);
+router.post("/:id/comments", authMiddleware, addNoteComment);
+router.put("/:id/comments/:commentId", authMiddleware, updateNoteComment);
+router.delete("/:id/comments/:commentId", authMiddleware, (req, res, next) => {
+  req.params.noteId = req.params.id;
+  next();
+}, deleteNoteCommentByAdmin);
 
 // 📝 QUIZ ROUTES
 // Get quiz status (check if generated)

@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const PDFDocument = require("pdfkit");
 
 const app = express();
 
@@ -19,6 +20,136 @@ const authRoutes = require("./routes/authRoutes");
 const noteRoutes = require("./routes/noteRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
+const Note = require("./models/Note");
+
+const ensureAdmin = (req, res) => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ message: "Admin only" });
+    return false;
+  }
+  return true;
+};
+
+const monthKey = (year, month) => `${year}-${String(month).padStart(2, "0")}`;
+
+const buildMonthSlots = (monthCount = 6) => {
+  const now = new Date();
+  const slots = [];
+
+  for (let i = monthCount - 1; i >= 0; i -= 1) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    slots.push({
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      key: monthKey(date.getFullYear(), date.getMonth() + 1),
+      label: date.toLocaleString("en-US", { month: "short", year: "numeric" }),
+    });
+  }
+
+  return slots;
+};
+
+const mapAggByMonth = (rows = []) => {
+  const map = new Map();
+  rows.forEach((row) => {
+    const key = monthKey(row?._id?.year, row?._id?.month);
+    map.set(key, row?.count || 0);
+  });
+  return map;
+};
+
+const getAnalyticsPayload = async (monthCount = 6) => {
+  const monthSlots = buildMonthSlots(monthCount);
+  const startDate = new Date(monthSlots[0].year, monthSlots[0].month - 1, 1);
+
+  const [
+    totalUsers,
+    totalAdmins,
+    totalNotes,
+    commentsCountRows,
+    downloadsRows,
+    usersMonthlyRows,
+    notesMonthlyRows,
+    commentsMonthlyRows,
+  ] = await Promise.all([
+    User.countDocuments(),
+    User.countDocuments({ role: "admin" }),
+    Note.countDocuments(),
+    Note.aggregate([
+      { $unwind: "$comments" },
+      { $count: "total" },
+    ]),
+    Note.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $ifNull: ["$downloads", 0] } },
+        },
+      },
+    ]),
+    User.aggregate([
+      { $match: { createdAt: { $gte: startDate } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+    Note.aggregate([
+      { $match: { createdAt: { $gte: startDate } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+    Note.aggregate([
+      { $unwind: "$comments" },
+      { $match: { "comments.createdAt": { $gte: startDate } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$comments.createdAt" },
+            month: { $month: "$comments.createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+  ]);
+
+  const usersMap = mapAggByMonth(usersMonthlyRows);
+  const notesMap = mapAggByMonth(notesMonthlyRows);
+  const commentsMap = mapAggByMonth(commentsMonthlyRows);
+
+  const monthly = monthSlots.map((slot) => ({
+    monthKey: slot.key,
+    monthLabel: slot.label,
+    users: usersMap.get(slot.key) || 0,
+    notes: notesMap.get(slot.key) || 0,
+    comments: commentsMap.get(slot.key) || 0,
+  }));
+
+  return {
+    summary: {
+      totalUsers,
+      totalAdmins,
+      totalStudents: Math.max(totalUsers - totalAdmins, 0),
+      totalNotes,
+      totalComments: commentsCountRows[0]?.total || 0,
+      totalDownloads: downloadsRows[0]?.total || 0,
+    },
+    monthly,
+  };
+};
 
 // test
 app.get("/", (req, res) => {
@@ -51,8 +182,58 @@ app.get("/api/dashboard", authMiddleware, async (req, res) => {
 // ================= ADMIN USERS =================
 app.get("/api/admin/users", authMiddleware, async (req, res) => {
   try {
-    const users = await User.find({}, "_id name email role").sort({ name: 1 });
+    if (!ensureAdmin(req, res)) return;
+
+    const users = await User.find({}, "_id name email nic phone status role").sort({ name: 1 });
     res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put("/api/admin/users/:id", authMiddleware, async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const { name, email, nic, phone, status } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if ((user.role || "").toLowerCase() !== "admin") {
+      return res.status(400).json({ message: "Only admin details can be edited here" });
+    }
+
+    if (email && email !== user.email) {
+      const duplicateEmail = await User.findOne({ email, _id: { $ne: user._id } });
+      if (duplicateEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+    }
+
+    if (status && !["graduate", "undergraduate"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    if (typeof name === "string") user.name = name.trim();
+    if (typeof email === "string") user.email = email.trim();
+    if (typeof nic === "string") user.nic = nic.trim();
+    if (typeof phone === "string") user.phone = phone.trim();
+    if (typeof status === "string") user.status = status;
+
+    await user.save();
+
+    res.json({
+      message: "Admin details updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        nic: user.nic,
+        phone: user.phone,
+        status: user.status,
+        role: user.role,
+      },
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -60,11 +241,110 @@ app.get("/api/admin/users", authMiddleware, async (req, res) => {
 
 app.delete("/api/admin/users/:id", authMiddleware, async (req, res) => {
   try {
+    if (!ensureAdmin(req, res)) return;
+
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: "User deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ================= ADMIN ANALYTICS =================
+app.get("/api/admin/analytics/summary", authMiddleware, async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const payload = await getAnalyticsPayload(6);
+    res.json(payload);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get("/api/admin/analytics/monthly/download", authMiddleware, async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const payload = await getAnalyticsPayload(12);
+    const now = new Date();
+    const fileName = `admin-monthly-analytics-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}.pdf`;
+    const websiteName = process.env.WEBSITE_NAME || "UniHub";
+    const websiteUrl = process.env.WEBSITE_URL || "http://localhost:3000";
+    const supportEmail = process.env.WEBSITE_SUPPORT_EMAIL || "support@unihub.local";
+    const generatedBy = req.user?.id ? `Admin (${req.user.id})` : "Admin";
+    const reportPeriod = payload.monthly?.length
+      ? `${payload.monthly[0].monthLabel} - ${payload.monthly[payload.monthly.length - 1].monthLabel}`
+      : "N/A";
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+
+    const doc = new PDFDocument({ margin: 40, size: "A4" });
+    doc.pipe(res);
+
+    doc.save();
+    doc.roundedRect(40, 40, 515, 66, 10).fill("#1a237e");
+    doc.fillColor("#ffffff").fontSize(18).font("Helvetica-Bold").text(`${websiteName} Analytics`, 58, 58);
+    doc.fontSize(11).font("Helvetica").fillColor("#d8e4ff").text("Monthly Admin Report", 58, 80);
+    doc.restore();
+
+    doc.moveDown(4.6);
+    doc.fontSize(11).font("Helvetica-Bold").fillColor("#222").text("Website Details", { underline: true });
+    doc.moveDown(0.3);
+    doc.fontSize(10).font("Helvetica").fillColor("#444").text(`Website: ${websiteName}`);
+    doc.text(`URL: ${websiteUrl}`);
+    doc.text(`Support: ${supportEmail}`);
+    doc.text(`Report Period: ${reportPeriod}`);
+    doc.text(`Generated By: ${generatedBy}`);
+    doc.text(`Generated On: ${now.toLocaleString()}`);
+
+    doc.fillColor("#000");
+
+    doc.moveDown(1);
+    doc.fontSize(14).font("Helvetica-Bold").text("Website Summary");
+    doc.moveDown(0.4);
+    doc.fontSize(11).font("Helvetica").text(`Total Users: ${payload.summary.totalUsers}`);
+    doc.text(`Total Admins: ${payload.summary.totalAdmins}`);
+    doc.text(`Total Students: ${payload.summary.totalStudents}`);
+    doc.text(`Total Notes: ${payload.summary.totalNotes}`);
+    doc.text(`Total Comments: ${payload.summary.totalComments}`);
+    doc.text(`Total Downloads: ${payload.summary.totalDownloads}`);
+
+    doc.moveDown(1);
+    doc.fontSize(14).text("Monthly Trend (Last 12 Months)");
+    doc.moveDown(0.5);
+
+    const startX = 40;
+    let y = doc.y;
+
+    doc.fontSize(10).fillColor("#111");
+    doc.text("Month", startX, y, { width: 140 });
+    doc.text("New Users", startX + 150, y, { width: 100, align: "right" });
+    doc.text("New Notes", startX + 260, y, { width: 100, align: "right" });
+    doc.text("New Comments", startX + 370, y, { width: 110, align: "right" });
+    y += 18;
+
+    doc.moveTo(startX, y - 4).lineTo(555, y - 4).strokeColor("#ddd").stroke();
+
+    payload.monthly.forEach((row) => {
+      if (y > 760) {
+        doc.addPage();
+        y = 50;
+      }
+
+      doc.fillColor("#000").fontSize(10);
+      doc.text(row.monthLabel, startX, y, { width: 140 });
+      doc.text(String(row.users || 0), startX + 150, y, { width: 100, align: "right" });
+      doc.text(String(row.notes || 0), startX + 260, y, { width: 100, align: "right" });
+      doc.text(String(row.comments || 0), startX + 370, y, { width: 110, align: "right" });
+      y += 16;
+    });
+
+    doc.end();
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

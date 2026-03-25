@@ -155,7 +155,7 @@ function AdminDashboard() {
               <div className="db-card-title">Analytics</div>
               <div className="db-card-desc">View system statistics and analytics.</div>
             </div>
-            <button className="db-card-btn">
+            <button className="db-card-btn" onClick={() => navigate('/admin-analytics')}>
               View Analytics <span className="db-card-arrow">→</span>
             </button>
           </div>
@@ -184,17 +184,6 @@ function AdminDashboard() {
             </button>
           </div>
 
-          <div className="db-card c7">
-            <div className="db-card-glow" />
-            <div className="db-card-icon">🎓</div>
-            <div>
-              <div className="db-card-title">Student Support</div>
-              <div className="db-card-desc">Manage student inquiries and support requests.</div>
-            </div>
-            <button className="db-card-btn" onClick={() => navigate('/admin-student-support')}>
-              View Requests <span className="db-card-arrow">→</span>
-            </button>
-          </div>
         </div>
 
       </div>

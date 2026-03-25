@@ -1,0 +1,102 @@
+.admin-comments-page .ac-note-list {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-comments-page .ac-note-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.admin-comments-page .ac-note-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(124, 92, 252, 0.08);
+}
+
+.admin-comments-page .ac-note-head h3 {
+  margin: 0;
+  font-size: 1.03rem;
+}
+
+.admin-comments-page .ac-note-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.admin-comments-page .ac-note-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-comments-page .ac-note-meta span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-comments-page .ac-comment-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-comments-page .ac-comment-table {
+  width: 100%;
+}
+
+.admin-comments-page .ac-user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-comments-page .ac-user-cell small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.admin-comments-page .ac-rating {
+  letter-spacing: 1px;
+  color: #f5c842;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.admin-comments-page .ac-comment-text {
+  min-width: 260px;
+  line-height: 1.45;
+}
+
+.admin-comments-page .ac-action-cell {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.admin-comments-page .ac-empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+@media (max-width: 768px) {
+  .admin-comments-page .ac-note-head {
+    flex-direction: column;
+  }
+
+  .admin-comments-page .ac-comment-text {
+    min-width: 180px;
+  }
+}

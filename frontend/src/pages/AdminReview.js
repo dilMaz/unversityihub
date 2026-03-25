@@ -6,9 +6,12 @@ import '../styles/dashboard.css';
 const AdminReview = () => {
   const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
+  const [reviewedNotes, setReviewedNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
+  const [actionId, setActionId] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -31,43 +34,62 @@ const AdminReview = () => {
 
     fetchDashboard();
     fetchPendingNotes();
+    fetchReviewedNotes();
   }, [navigate]);
 
   const fetchPendingNotes = async () => {
     try {
-      // TODO: Backend endpoint for pending reviews
-      const res = await axios.get('http://localhost:5000/api/notes', {
+      const res = await axios.get('http://localhost:5000/api/notes/review/pending', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNotes(res.data);
     } catch (err) {
-      setError('Failed to fetch notes for review');
+      setError(err?.response?.data?.message || 'Failed to fetch notes for review');
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchReviewedNotes = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/notes/review/history', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setReviewedNotes(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to fetch reviewed notes');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   const approveNote = async (id) => {
     try {
-      // TODO: Backend approve endpoint
+      setActionId(id);
       await axios.put(`http://localhost:5000/api/notes/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      fetchPendingNotes();
+      setNotes((prev) => prev.filter((note) => note._id !== id));
+      fetchReviewedNotes();
     } catch (err) {
-      setError('Approve failed');
+      setError(err?.response?.data?.message || 'Approve failed');
+    } finally {
+      setActionId('');
     }
   };
 
   const rejectNote = async (id) => {
     try {
-      // TODO: Backend reject endpoint
+      setActionId(id);
       await axios.put(`http://localhost:5000/api/notes/${id}/reject`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      fetchPendingNotes();
+      setNotes((prev) => prev.filter((note) => note._id !== id));
+      fetchReviewedNotes();
     } catch (err) {
-      setError('Reject failed');
+      setError(err?.response?.data?.message || 'Reject failed');
+    } finally {
+      setActionId('');
     }
   };
 
@@ -76,6 +98,13 @@ const AdminReview = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('userRole');
     navigate('/');
+  };
+
+  const formatDate = (value) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleString();
   };
 
   return (
@@ -107,18 +136,74 @@ const AdminReview = () => {
                 <div className="db-card-icon">📄</div>
                 <div>
                   <div className="db-card-title">{note.title}</div>
-                  <div className="db-card-desc">{note.subject} - {note.downloads} downloads</div>
+                  <div className="db-card-desc">
+                    {note.subject} • Uploaded by {note.uploadedBy?.name || 'Unknown'}
+                  </div>
+                  <div className="db-card-desc">
+                    Status: {note.moderationStatus || 'pending'}
+                  </div>
                 </div>
                 <div>
-                  <button onClick={() => approveNote(note._id)} className="approve-btn">
-                    Approve ✅
+                  <button
+                    onClick={() => approveNote(note._id)}
+                    className="approve-btn"
+                    disabled={actionId === note._id}
+                  >
+                    {actionId === note._id ? 'Working...' : 'Approve ✅'}
                   </button>
-                  <button onClick={() => rejectNote(note._id)} className="reject-btn">
-                    Reject ❌
+                  <button
+                    onClick={() => rejectNote(note._id)}
+                    className="reject-btn"
+                    disabled={actionId === note._id}
+                  >
+                    {actionId === note._id ? 'Working...' : 'Reject ❌'}
                   </button>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        <div className="db-section-title">Approved & Rejected Notes ({reviewedNotes.length})</div>
+
+        {historyLoading ? (
+          <div>Loading review history...</div>
+        ) : (
+          <div className="user-table-wrap">
+            <table className="user-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Subject</th>
+                  <th>Uploaded By</th>
+                  <th>Status</th>
+                  <th>Reviewed By</th>
+                  <th>Reviewed At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviewedNotes.length === 0 ? (
+                  <tr>
+                    <td colSpan="6">No approved or rejected notes yet.</td>
+                  </tr>
+                ) : (
+                  reviewedNotes.map((note) => (
+                    <tr key={note._id}>
+                      <td>{note.title || '-'}</td>
+                      <td>{note.subject || '-'}</td>
+                      <td>{note.uploadedBy?.name || 'Unknown'}</td>
+                      <td>
+                        <span className={`review-status-chip ${note.moderationStatus || 'pending'}`}>
+                          {(note.moderationStatus || 'pending').toUpperCase()}
+                        </span>
+                      </td>
+                      <td>{note.reviewedBy?.name || '-'}</td>
+                      <td>{formatDate(note.reviewedAt)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         )}
 

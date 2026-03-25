@@ -38,11 +38,8 @@ function Login() {
       }
 
     } catch (err) {
-      if (err.response?.status === 401) {
-        setError("Invalid email or password.");
-      } else {
-        setError("Login failed. Please try again.");
-      }
+      console.error("Login error:", err);
+      setError(err.response?.data?.message || "Login failed. Check credentials.");
     } finally {
       setLoading(false);
     }
@@ -57,6 +54,11 @@ function Login() {
         <h2>Login to UniNotes</h2>
         <p className="auth-subtitle">Continue your study flow in seconds</p>
 
+        {error && (
+          <div className="error-msg" style={{color: 'red', marginBottom: '1rem', padding: '0.5rem'}}>
+            {error}
+          </div>
+        )}
         <form onSubmit={handleLogin}>
           <label className="auth-label">Email</label>
           <input
@@ -65,6 +67,7 @@ function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading}
           />
 
           <label className="auth-label">Password</label>
@@ -74,13 +77,12 @@ function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={loading}
           />
 
           <button type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Login"}
+            {loading ? "Logging in..." : "Login"}
           </button>
-
-          {error && <div className="auth-error">{error}</div>}
         </form>
 
         <div className="auth-link">

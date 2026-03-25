@@ -5,8 +5,11 @@ import "../styles/auth.css";
 
 function Register() {
   const [name, setName] = useState("");
+  const [nic, setNic] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [status, setStatus] = useState("undergraduate");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -26,15 +29,22 @@ function Register() {
     try {
       const res = await axios.post(
         "http://localhost:5000/api/auth/register",
-        { name, email, password }
+        { 
+          name, 
+          nic: nic || 'N/A', 
+          email, 
+          password, 
+          phone: phone || 'N/A', 
+          status 
+        }
       );
 
       console.log("REGISTER SUCCESS:", res.data);
 
-      // REDIRECT TO LOGIN
       navigate("/login");
 
     } catch (err) {
+      console.error("Register error:", err);
       setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
@@ -50,6 +60,12 @@ function Register() {
         <h2>Create Account</h2>
         <p className="auth-subtitle">Start sharing and discovering smarter notes</p>
 
+        {error && (
+          <div className="error-msg" style={{color: 'red', marginBottom: '1rem', padding: '0.5rem'}}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleRegister}>
           <label className="auth-label">Full Name</label>
           <input
@@ -62,6 +78,12 @@ function Register() {
 
           <label className="auth-label">Email</label>
           <input
+            type="text"
+            placeholder="NIC (optional)"
+            onChange={(e) => setNic(e.target.value)}
+          />
+
+          <input
             type="email"
             placeholder="Enter Email"
             value={email}
@@ -71,6 +93,17 @@ function Register() {
 
           <label className="auth-label">Password</label>
           <input
+            type="tel"
+            placeholder="Phone (optional)"
+            onChange={(e) => setPhone(e.target.value)}
+          />
+
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="undergraduate">Undergraduate</option>
+            <option value="graduate">Graduate</option>
+          </select>
+
+          <input
             type="password"
             placeholder="Enter Password"
             value={password}
@@ -79,10 +112,8 @@ function Register() {
           />
 
           <button type="submit" disabled={loading}>
-            {loading ? "Creating account..." : "Register"}
+            {loading ? "Registering..." : "Register"}
           </button>
-
-          {error && <div className="auth-error">{error}</div>}
         </form>
 
         <div className="auth-link">
