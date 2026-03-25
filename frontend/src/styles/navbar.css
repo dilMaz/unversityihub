@@ -141,29 +141,14 @@
   display: none;
   width: 42px;
   height: 36px;
-<<<<<<< HEAD
   border: 1px solid rgba(141, 195, 245, 0.35);
   border-radius: 10px;
   background: rgba(67, 219, 232, 0.08);
-=======
-  border: 1px solid rgba(192, 132, 252, 0.42);
-  border-radius: 10px;
-  background: rgba(167, 139, 250, 0.12);
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
   padding: 7px 8px;
   cursor: pointer;
   margin-left: auto;
   flex-direction: column;
   justify-content: space-between;
-<<<<<<< HEAD
-=======
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.hamburger:hover {
-  background: rgba(192, 132, 252, 0.2);
-  border-color: rgba(216, 180, 254, 0.65);
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
 }
 
 .hamburger span {

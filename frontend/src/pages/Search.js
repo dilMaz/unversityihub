@@ -611,58 +611,10 @@ function Search() {
         </div>
       </div>
     );
-        .search-clear-btn {
-          background: none;
-          border: none;
-          color: #999;
-          cursor: pointer;
-          font-size: 18px;
-          padding: 0 8px;
-          transition: color 0.2s;
-        }
+  }
+}
 
-        .search-clear-btn:hover {
-          color: #333;
-        }
-
-        .search-error {
-          background: #fee;
-          border: 1px solid #fcc;
-          color: #c33;
-          padding: 12px 16px;
-          border-radius: 8px;
-          margin-bottom: 16px;
-          font-size: 14px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .search-loading {
-          text-align: center;
-          padding: 40px 20px;
-        }
-
-        .note-actions {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 10px;
-        }
-
-        .note-view-btn,
-        .note-comments-btn {
-          border: none;
-          border-radius: 10px;
-          padding: 9px 12px;
-          font-size: 0.83rem;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        .note-view-btn {
-          background: rgba(124, 92, 252, 0.18);
-          color: #d6ccff;
-        }
+export default Search;
 
         .note-comments-btn {
           background: rgba(224, 95, 255, 0.16);

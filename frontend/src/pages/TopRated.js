@@ -469,25 +469,11 @@ function TopRated() {
         )}
 
       </div>
-<<<<<<< HEAD
-=======
+    );
+  }
+}
 
-      <style jsx>{`
-        .tr-note-actions {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 10px;
-          margin-top: 15px;
-        }
-
-        .tr-view-btn,
-        .tr-comments-btn {
-          padding: 10px 16px;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
+export default TopRated;
           transition: all 0.2s;
         }
 
