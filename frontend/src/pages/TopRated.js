@@ -108,8 +108,8 @@ function TopRated() {
         {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 10000,
-          );
         }
+      );
 
       setNotes((prev) =>
         prev.map((note) =>
