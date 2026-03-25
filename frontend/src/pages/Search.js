@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
+import { API_BASE_URL } from "../config/appConfig";
 import "../styles/Search.css";
 
 function Search() {
@@ -8,6 +9,8 @@ function Search() {
   const [notes, setNotes] = useState([]);
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedSemester, setSelectedSemester] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("newest");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [downloading, setDownloading] = useState(null);
@@ -15,7 +18,7 @@ function Search() {
   const [searchHistory, setSearchHistory] = useState([]);
 
   const debounceTimer = useRef(null);
-  const API_BASE_URL = "http://localhost:5000/api";
+  const API_ROOT = API_BASE_URL.replace(/\/+$/, "");
 
   const getPublicFileUrl = useCallback((fileUrl) => {
     if (!fileUrl) return null;
@@ -23,8 +26,8 @@ function Search() {
     if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
       return normalized;
     }
-    return `http://localhost:5000/${normalized}`;
-  }, []);
+    return `${API_ROOT}/${normalized}`;
+  }, [API_ROOT]);
 
   const forceBrowserDownload = useCallback(async (publicUrl, title) => {
     const response = await fetch(publicUrl);
@@ -47,28 +50,83 @@ function Search() {
   useEffect(() => {
     const saved = localStorage.getItem("searchHistory");
     if (saved) {
-      setSearchHistory(JSON.parse(saved));
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setSearchHistory(parsed.filter(Boolean).slice(0, 8));
+        }
+      } catch (_err) {
+        localStorage.removeItem("searchHistory");
+      }
     }
   }, []);
 
-  // Filter notes by year and semester
-  const filteredNotes = notes.filter((note) => {
-    let match = true;
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
 
-    if (selectedYear !== "All") {
-      match = match && note.academicYear === parseInt(selectedYear);
+  const availableYears = useMemo(() => {
+    const years = [...new Set(notes.map((n) => n.academicYear).filter(Boolean))];
+    return years.length ? years.sort((a, b) => a - b) : [1, 2, 3, 4];
+  }, [notes]);
+
+  const availableSemesters = useMemo(() => {
+    const semesters = [...new Set(notes.map((n) => n.semester).filter(Boolean))];
+    return semesters.length ? semesters.sort((a, b) => a - b) : [1, 2];
+  }, [notes]);
+
+  const availableCategories = useMemo(
+    () => [...new Set(notes.map((n) => n.category).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
+    [notes]
+  );
+
+  const filteredNotes = useMemo(() => {
+    const filtered = notes.filter((note) => {
+      let match = true;
+
+      if (selectedYear !== "All") {
+        match = match && note.academicYear === parseInt(selectedYear, 10);
+      }
+
+      if (selectedSemester !== "All") {
+        match = match && note.semester === parseInt(selectedSemester, 10);
+      }
+
+      if (selectedCategory !== "All") {
+        match = match && (note.category || "") === selectedCategory;
+      }
+
+      return match;
+    });
+
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case "downloads":
+        sorted.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+        break;
+      case "title":
+        sorted.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        break;
+      case "oldest":
+        sorted.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+        break;
+      case "newest":
+      default:
+        sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        break;
     }
 
-    if (selectedSemester !== "All") {
-      match = match && note.semester === parseInt(selectedSemester);
-    }
-
-    return match;
-  });
+    return sorted;
+  }, [notes, selectedYear, selectedSemester, selectedCategory, sortBy]);
 
   // 🔍 Optimized search with debouncing
   const performSearch = useCallback(async (searchQuery) => {
-    if (!searchQuery.trim()) {
+    const normalizedQuery = searchQuery.trim();
+    if (!normalizedQuery) {
       setNotes([]);
       setError("");
       return;
@@ -79,7 +137,7 @@ function Search() {
 
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/notes?search=${encodeURIComponent(searchQuery)}`,
+        `${API_ROOT}/api/notes?search=${encodeURIComponent(normalizedQuery)}`,
         { timeout: 10000 }
       );
 
@@ -87,12 +145,15 @@ function Search() {
         setNotes(response.data);
 
         // Add to search history
-        const newHistory = [
-          searchQuery,
-          ...searchHistory.filter((item) => item !== searchQuery),
-        ].slice(0, 5);
-        setSearchHistory(newHistory);
-        localStorage.setItem("searchHistory", JSON.stringify(newHistory));
+        setSearchHistory((prevHistory) => {
+          const newHistory = [
+            normalizedQuery,
+            ...prevHistory.filter((item) => item !== normalizedQuery),
+          ].slice(0, 8);
+
+          localStorage.setItem("searchHistory", JSON.stringify(newHistory));
+          return newHistory;
+        });
       } else {
         setError("Invalid response format from server");
         setNotes([]);
@@ -116,11 +177,12 @@ function Search() {
     } finally {
       setLoading(false);
     }
-  }, [searchHistory]);
+  }, [API_ROOT]);
 
   // Debounced search handler
   const handleSearch = useCallback((value) => {
     setQuery(value);
+    setError("");
 
     // Clear existing timer
     if (debounceTimer.current) {
@@ -136,6 +198,7 @@ function Search() {
   // Enter key support for immediate search
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
@@ -158,7 +221,7 @@ function Search() {
         }
 
         const response = await axios.put(
-          `${API_BASE_URL}/notes/${noteId}/download`,
+          `${API_ROOT}/api/notes/${noteId}/download`,
           {},
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -196,15 +259,47 @@ function Search() {
         setDownloading(null);
       }
     },
-    [forceBrowserDownload, getPublicFileUrl]
+    [API_ROOT, forceBrowserDownload, getPublicFileUrl]
   );
 
   // Clear search and results
   const handleClearSearch = useCallback(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
     setQuery("");
     setNotes([]);
     setError("");
   }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSelectedYear("All");
+    setSelectedSemester("All");
+    setSelectedCategory("All");
+    setSortBy("newest");
+  }, []);
+
+  const handleUseHistory = useCallback(
+    (historyItem) => {
+      setQuery(historyItem);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      performSearch(historyItem);
+    },
+    [performSearch]
+  );
+
+  const hasActiveFilters =
+    selectedYear !== "All" || selectedSemester !== "All" || selectedCategory !== "All" || sortBy !== "newest";
+
+  const filterSummary = [
+    selectedYear !== "All" ? `Year ${selectedYear}` : null,
+    selectedSemester !== "All" ? `Sem ${selectedSemester}` : null,
+    selectedCategory !== "All" ? selectedCategory : null,
+  ]
+    .filter(Boolean)
+    .join(" • ");
 
   return (
     <div className="search-root">
@@ -265,7 +360,7 @@ function Search() {
                 >
                   All
                 </button>
-                {[1, 2, 3, 4].map((year) => (
+                {availableYears.map((year) => (
                   <button
                     key={year}
                     className={`filter-btn ${selectedYear === year.toString() ? "active" : ""}`}
@@ -286,7 +381,7 @@ function Search() {
                 >
                   All
                 </button>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                {availableSemesters.map((sem) => (
                   <button
                     key={sem}
                     className={`filter-btn ${selectedSemester === sem.toString() ? "active" : ""}`}
@@ -297,6 +392,42 @@ function Search() {
                 ))}
               </div>
             </div>
+
+            <div className="filter-group">
+              <label className="filter-label">📂 Category:</label>
+              <select
+                className="filter-select"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="All">All Categories</option>
+                {availableCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label className="filter-label">↕ Sort:</label>
+              <select
+                className="filter-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="downloads">Most Downloaded</option>
+                <option value="title">Title A-Z</option>
+              </select>
+            </div>
+
+            {hasActiveFilters && (
+              <button type="button" className="filter-reset-btn" onClick={handleClearFilters}>
+                Reset Filters
+              </button>
+            )}
           </div>
         )}
 
@@ -311,6 +442,7 @@ function Search() {
         {filteredNotes.length > 0 && !loading && (
           <div className="search-results-label">
             Found <strong>{filteredNotes.length}</strong> result{filteredNotes.length !== 1 ? "s" : ""}
+            {filterSummary && <span className="search-filter-summary">({filterSummary})</span>}
           </div>
         )}
 
@@ -323,7 +455,7 @@ function Search() {
                 <button
                   key={idx}
                   className="search-history-btn"
-                  onClick={() => handleSearch(item)}
+                  onClick={() => handleUseHistory(item)}
                 >
                   🕐 {item}
                 </button>
@@ -418,202 +550,6 @@ function Search() {
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        .search-clear-btn {
-          background: none;
-          border: none;
-          color: #999;
-          cursor: pointer;
-          font-size: 18px;
-          padding: 0 8px;
-          transition: color 0.2s;
-        }
-
-        .search-clear-btn:hover {
-          color: #333;
-        }
-
-        .search-error {
-          background: #fee;
-          border: 1px solid #fcc;
-          color: #c33;
-          padding: 12px 16px;
-          border-radius: 8px;
-          margin-bottom: 16px;
-          font-size: 14px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .search-loading {
-          text-align: center;
-          padding: 40px 20px;
-        }
-
-        .search-spinner-large {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #eee;
-          border-top-color: #667eea;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .search-history {
-          background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-          border: 1px solid rgba(102, 126, 234, 0.2);
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 24px;
-          animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .search-history-title {
-          font-weight: 700;
-          color: #667eea;
-          margin-bottom: 16px;
-          font-size: 15px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .search-history-title::before {
-          content: "🕐";
-          font-size: 18px;
-        }
-
-        .search-history-items {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-
-        .search-history-btn {
-          background: white;
-          border: 1px solid #e0e0e0;
-          padding: 10px 14px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 500;
-          transition: all 0.3s ease;
-          color: #667eea;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .search-history-btn::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
-          transition: left 0.3s ease;
-          z-index: -1;
-        }
-
-        .search-history-btn:hover {
-          border-color: #667eea;
-          background: linear-gradient(135deg, white 0%, #f8f9ff 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
-          color: #667eea;
-          font-weight: 600;
-        }
-
-        .search-history-btn:active {
-          transform: translateY(0);
-        }
-
-        .note-module {
-          display: inline-block;
-          background: #f0f0f0;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          color: #666;
-          margin-top: 8px;
-        }
-
-        .search-note-wrapper {
-          margin-bottom: 20px;
-        }
-
-        .note-actions {
-          display: flex;
-          gap: 10px;
-          margin-top: 15px;
-        }
-
-        .note-quiz-btn {
-          flex: 1;
-          padding: 10px 16px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .note-quiz-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .note-quiz-container {
-          margin-top: -10px;
-          padding: 0 16px 16px 16px;
-        }
-
-        .search-btn {
-          padding: 10px 20px;
-          background: #667eea;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-          transition: all 0.2s;
-        }
-
-        .search-btn:hover:not(:disabled) {
-          background: #764ba2;
-          transform: translateY(-2px);
-        }
-
-        .search-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-      `}</style>
     </div>
   );
 }

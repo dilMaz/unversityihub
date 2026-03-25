@@ -88,7 +88,7 @@ function NavBar() {
   }
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${isLoggedIn ? "is-auth" : "is-guest"}`}>
       <div className="nav-container">
         <button
           className="nav-logo"
@@ -112,7 +112,12 @@ function NavBar() {
           <span></span>
         </button>
 
-        <ul id={navMenuId} className={`nav-menu ${mobileOpen ? "active" : ""}`}>
+        <ul
+          id={navMenuId}
+          className={`nav-menu ${mobileOpen ? "active" : ""} ${
+            isLoggedIn ? "menu-auth" : "menu-guest"
+          }`}
+        >
           {isLoggedIn ? (
             <>
               {renderNavItem("Dashboard", "/dashboard", "", 0)}
