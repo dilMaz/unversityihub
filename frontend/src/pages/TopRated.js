@@ -1,11 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
-<<<<<<< HEAD
 import { API_BASE_URL } from "../config/appConfig";
-=======
-import NoteComments from "../components/NoteComments";
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
 import "../styles/TopRated.css";
 
 function TopRated() {
@@ -14,7 +10,6 @@ function TopRated() {
   const [downloading, setDownloading] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [expandedNote, setExpandedNote] = useState(null);
-<<<<<<< HEAD
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState("All");
@@ -23,10 +18,6 @@ function TopRated() {
   const [sortBy, setSortBy] = useState("downloads");
 
   const API_ROOT = API_BASE_URL.replace(/\/+$/, "");
-=======
-  const [expandedCommentsNote, setExpandedCommentsNote] = useState(null);
-  const [error, setError]         = useState(null);
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
 
   const renderRating = useCallback((note) => {
     const avg = Number(note?.averageRating || 0);
@@ -408,13 +399,9 @@ function TopRated() {
                   <div className="tr-note-info">
                     <h3 className="tr-note-title">{note.title}</h3>
                     <span className="tr-note-subject">📚 {note.subject}</span>
-<<<<<<< HEAD
                     {note.academicYear ? <span className="tr-note-meta">📅 Year {note.academicYear}</span> : null}
                     {note.semester ? <span className="tr-note-meta">🔢 Sem {note.semester}</span> : null}
                     {note.category ? <span className="tr-note-meta">📂 {note.category}</span> : null}
-=======
-                    <span className="tr-note-rating">⭐ {renderRating(note)}</span>
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
                     <span className="tr-note-downloads">📥 {note.downloads} downloads</span>
                   </div>
 

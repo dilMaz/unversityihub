@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
-<<<<<<< HEAD
 import { API_BASE_URL } from "../config/appConfig";
-=======
-import NoteComments from "../components/NoteComments";
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
 import "../styles/Search.css";
 
 function Search() {
@@ -614,10 +610,7 @@ function Search() {
           ))}
         </div>
       </div>
-<<<<<<< HEAD
-=======
-
-      <style jsx>{`
+    );
         .search-clear-btn {
           background: none;
           border: none;
