@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
+import NoteComments from "../components/NoteComments";
 import { API_BASE_URL } from "../config/appConfig";
 import "../styles/TopRated.css";
 
@@ -10,6 +11,7 @@ function TopRated() {
   const [downloading, setDownloading] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [expandedNote, setExpandedNote] = useState(null);
+    const [expandedCommentsNote, setExpandedCommentsNote] = useState(null);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState("All");
@@ -106,15 +108,8 @@ function TopRated() {
         {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 10000,
+          );
         }
-      );
-
-      const publicUrl = getPublicFileUrl(response.data?.fileUrl);
-      if (publicUrl) {
-        await forceBrowserDownload(publicUrl, title);
-      } else {
-        setError("This note file is missing on server. Please re-upload it.");
-      }
 
       setNotes((prev) =>
         prev.map((note) =>
@@ -472,6 +467,6 @@ function TopRated() {
     </div>
     );
   }
-}
+
 
 export default TopRated;
