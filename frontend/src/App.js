@@ -9,6 +9,8 @@ import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
 import StudentSupport from "./pages/StudentSupport";
+import StudySupport from "./pages/StudySupport";
+import Profile from "./pages/Profile";
 import Search from "./pages/Search";
 import TopRated from "./pages/TopRated";
 import Recommended from "./pages/Recommended";
@@ -24,6 +26,8 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/study-support" element={<StudySupport />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin-users" element={<AdminUsers />} />
         <Route path="/admin-upload-notes" element={<AdminUploadNotes />} />

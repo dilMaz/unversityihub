@@ -50,6 +50,9 @@ yarn-error.log*
 ehthumbs.db
 Thumbs.db
 
+# User uploads (support attachments)
+/backend/uploads/
+
 # IDE
 .vscode/
 .idea/
@@ -66,3 +69,5 @@ pids
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+

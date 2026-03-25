@@ -28,6 +28,14 @@ const cards = [
     btn: "View Suggestions",
     route: "/recommend",
   },
+  {
+    cls: "c4",
+    icon: "🛟",
+    title: "Study Support",
+    desc: "Submit support requests, attach files, track status, and read admin replies.",
+    btn: "Open support",
+    route: "/study-support",
+  },
 ];
 
 const stats = [
@@ -82,6 +90,13 @@ function Dashboard() {
           <div className="db-topbar-actions">
             <button className="db-admin-btn" onClick={goToAdmin}>
               👨‍💼 Admin
+            </button>
+            <button
+              type="button"
+              className="db-profile-btn"
+              onClick={() => navigate("/profile")}
+            >
+              👤 Profile
             </button>
             <button className="db-logout" onClick={logout}>
               <span>↩</span> Sign out
