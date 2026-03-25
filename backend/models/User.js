@@ -2,6 +2,13 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
   name: String,
+  // Student details shown on the Profile page (optional for backward compatibility)
+  itNumber: String,
+  specialization: String,
+  year: Number,
+  semester: Number,
+  // Relative path under /uploads, e.g. "profile/avatar-123.png"
+  avatar: { type: String, default: "" },
   nic: String,
   email: String,
   phone: String,

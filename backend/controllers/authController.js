@@ -6,7 +6,16 @@ const getJwtSecret = () => process.env.JWT_SECRET || "unihub_dev_secret";
 
 // Register
 exports.register = async (req, res) => {
-  const { name, nic = 'N/A', email, password, phone = 'N/A', status = 'undergraduate', role = 'user' } = req.body;
+  const {
+    name,
+    email,
+    password,
+    itNumber,
+    phone,
+    specialization,
+    year,
+    semester,
+  } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -16,12 +25,14 @@ exports.register = async (req, res) => {
 
     const user = await User.create({
       name,
-      nic,
       email,
-      phone,
-      status,
+      itNumber: itNumber || "",
+      phone: phone || "",
+      specialization: specialization || "",
+      year: year === "" || year === undefined ? undefined : year,
+      semester: semester === "" || semester === undefined ? undefined : semester,
       password: hashedPassword,
-      role,
+      role: "user",
     });
 
     console.log('User registered:', user.email);

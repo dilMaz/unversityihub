@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -18,9 +19,39 @@ const multer = require('multer');
 // routes
 const authRoutes = require("./routes/authRoutes");
 const noteRoutes = require("./routes/noteRoutes");
+const supportRoutes = require("./routes/supportRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const Note = require("./models/Note");
+const bcrypt = require("bcryptjs");
+const fs = require("fs");
+
+// uploaded files (support attachments)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// uploaded profile pictures
+const avatarUploadsDir = path.join(__dirname, "uploads", "profile");
+fs.mkdirSync(avatarUploadsDir, { recursive: true });
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, avatarUploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || ".png";
+    const base = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, `avatar-${base}${ext}`);
+  },
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype && file.mimetype.startsWith("image/")) return cb(null, true);
+    cb(new Error("Only image uploads are allowed"));
+  },
+});
 
 const ensureAdmin = (req, res) => {
   if (req.user?.role !== "admin") {
@@ -162,7 +193,10 @@ app.use("/api/auth", authRoutes);
 // notes
 app.use("/api/notes", noteRoutes);
 
-// dashboard
+// study support (student + admin)
+app.use("/api/support", supportRoutes);
+
+// dashboard (protected)
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -179,7 +213,116 @@ app.get("/api/dashboard", authMiddleware, async (req, res) => {
   }
 });
 
-// ================= ADMIN USERS =================
+// profile (protected)
+app.get("/api/profile/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      userId: user._id,
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      itNumber: user.itNumber || "",
+      specialization: user.specialization || "",
+      year: user.year,
+      semester: user.semester,
+      avatar: user.avatar || "",
+      role: user.role,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// profile avatar upload (protected)
+app.patch(
+  "/api/profile/me/avatar",
+  authMiddleware,
+  avatarUpload.single("avatar"),
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Avatar file is required" });
+      }
+
+      // Relative path used by frontend: /uploads/<avatar>
+      user.avatar = `profile/${req.file.filename}`;
+      await user.save();
+
+      res.json({
+        userId: user._id,
+        avatar: user.avatar || "",
+      });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
+
+// profile update (protected)
+app.patch("/api/profile/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const {
+      name,
+      email,
+      itNumber,
+      phone,
+      specialization,
+      year,
+      semester,
+      password,
+    } = req.body;
+
+    // Only validate email when user is changing it
+    if (email !== undefined && email !== user.email) {
+      const emailTaken = await User.findOne({ email });
+      if (emailTaken) return res.status(400).json({ message: "Email already in use" });
+      user.email = email;
+    }
+
+    if (name !== undefined) user.name = String(name);
+    if (itNumber !== undefined) user.itNumber = String(itNumber);
+    if (phone !== undefined) user.phone = String(phone);
+    if (specialization !== undefined) user.specialization = String(specialization);
+
+    if (year !== undefined && year !== "" && year !== null) user.year = Number(year);
+    if (semester !== undefined && semester !== "" && semester !== null) user.semester = Number(semester);
+
+    if (password !== undefined && password !== "") {
+      user.password = await bcrypt.hash(String(password), 10);
+    }
+
+    await user.save();
+
+    res.json({
+      userId: user._id,
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      itNumber: user.itNumber || "",
+      specialization: user.specialization || "",
+      year: user.year,
+      semester: user.semester,
+      avatar: user.avatar || "",
+      role: user.role,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// admin users (protected)
 app.get("/api/admin/users", authMiddleware, async (req, res) => {
   try {
     if (!ensureAdmin(req, res)) return;

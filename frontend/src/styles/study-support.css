@@ -1,0 +1,222 @@
+/* Study support (student profile) — matches dashboard theme */
+
+.ss-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+}
+
+.ss-panel h2 {
+  font-family: "Syne", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.ss-form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.ss-field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.ss-field input,
+.ss-field select,
+.ss-field textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.ss-field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.ss-field input:focus,
+.ss-field select:focus,
+.ss-field textarea:focus {
+  outline: none;
+  border-color: rgba(124, 92, 252, 0.55);
+  box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.12);
+}
+
+.ss-file-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.ss-submit {
+  margin-top: 6px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-family: "Syne", sans-serif;
+}
+
+.ss-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ss-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.ss-meta strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ss-request-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+
+.ss-request-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ss-request-title {
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.ss-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.ss-badge.pending {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+}
+
+.ss-badge.in_progress {
+  background: rgba(124, 92, 252, 0.2);
+  color: #c4b5fd;
+}
+
+.ss-badge.resolved {
+  background: rgba(60, 255, 166, 0.12);
+  color: var(--green);
+}
+
+.ss-request-meta {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.ss-request-desc {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text);
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+}
+
+.ss-reply-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(124, 92, 252, 0.08);
+  border: 1px solid rgba(124, 92, 252, 0.25);
+}
+
+.ss-reply-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent2);
+  margin-bottom: 6px;
+}
+
+.ss-reply-text {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.ss-attach {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  margin-top: 8px;
+}
+
+.ss-attach a {
+  color: var(--accent2);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ss-attach a:hover {
+  text-decoration: underline;
+}
+
+.ss-error {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 80, 80, 0.12);
+  border: 1px solid rgba(255, 80, 80, 0.35);
+  color: #ff8a8a;
+  font-size: 0.88rem;
+  margin-bottom: 14px;
+}
+
+.ss-empty {
+  text-align: center;
+  padding: 28px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
