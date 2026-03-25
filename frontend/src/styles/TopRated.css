@@ -374,18 +374,17 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 16px;
+  justify-content: center;
+  padding: 9px 10px;
   border: none;
   border-radius: 10px;
   background: rgba(60, 255, 166, 0.12);
   color: #5fffc0;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s, transform 0.15s;
-  align-self: flex-start;
-  margin-top: 4px;
 }
 
 .tr-download-btn:hover:not(:disabled) {
@@ -398,19 +397,71 @@ body {
   cursor: not-allowed;
 }
 
+.tr-view-btn,
+.tr-comments-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.tr-view-btn {
+  border: 1px solid rgba(134, 201, 255, 0.38);
+  background: rgba(69, 154, 255, 0.12);
+  color: #bfe2ff;
+}
+
+.tr-view-btn:hover:not(:disabled) {
+  background: rgba(69, 154, 255, 0.22);
+  border-color: rgba(134, 201, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.tr-comments-btn {
+  border: 1px solid rgba(224, 95, 255, 0.45);
+  background: rgba(224, 95, 255, 0.14);
+  color: #efbcff;
+}
+
+.tr-comments-btn:hover:not(:disabled) {
+  background: rgba(224, 95, 255, 0.26);
+  border-color: rgba(224, 95, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.tr-view-btn:disabled,
+.tr-comments-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .tr-note-actions {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
   margin-top: 10px;
 }
 
+.tr-note-actions > button {
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .tr-quiz-btn {
-  flex: 1;
-  padding: 9px 14px;
+  padding: 9px 10px;
   background: rgba(124, 92, 252, 0.18);
   color: #d7ccff;
   border: 1px solid rgba(124, 92, 252, 0.45);
   border-radius: 10px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;

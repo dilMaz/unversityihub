@@ -568,6 +568,51 @@ body {
   cursor: not-allowed;
 }
 
+.note-view-btn,
+.note-comments-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.note-view-btn {
+  border: 1px solid rgba(134, 201, 255, 0.38);
+  background: rgba(69, 154, 255, 0.12);
+  color: #bfe2ff;
+}
+
+.note-view-btn:hover:not(:disabled) {
+  background: rgba(69, 154, 255, 0.22);
+  border-color: rgba(134, 201, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.note-comments-btn {
+  border: 1px solid rgba(224, 95, 255, 0.45);
+  background: rgba(224, 95, 255, 0.14);
+  color: #efbcff;
+}
+
+.note-comments-btn:hover:not(:disabled) {
+  background: rgba(224, 95, 255, 0.26);
+  border-color: rgba(224, 95, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.note-view-btn:disabled,
+.note-comments-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .note-quiz-btn {
   display: inline-flex;
   align-items: center;
@@ -611,7 +656,9 @@ body {
   }
 
   .note-download-btn,
-  .note-quiz-btn {
+  .note-quiz-btn,
+  .note-view-btn,
+  .note-comments-btn {
     width: 100%;
     justify-content: center;
   }

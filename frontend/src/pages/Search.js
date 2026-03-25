@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
+import NoteComments from "../components/NoteComments";
 import { API_BASE_URL } from "../config/appConfig";
 import "../styles/Search.css";
 
@@ -125,7 +126,7 @@ function Search() {
     return sorted;
   }, [notes, selectedYear, selectedSemester, selectedCategory, sortBy]);
 
-  // ðŸ” Optimized search with debouncing
+  // Optimized search with debouncing
   const performSearch = useCallback(async (searchQuery) => {
     const normalizedQuery = searchQuery.trim();
     if (!normalizedQuery) {
@@ -208,7 +209,7 @@ function Search() {
     }
   };
 
-  // ðŸ“¥ Download note with better error handling
+  // Download note with better error handling
   const handleDownload = useCallback(
     async (noteId, noteTitle) => {
       setDownloading(noteId);
@@ -330,7 +331,7 @@ function Search() {
     selectedCategory !== "All" ? selectedCategory : null,
   ]
     .filter(Boolean)
-    .join(" â€¢ ");
+    .join(" | ");
 
   return (
     <div className="search-root">
@@ -346,7 +347,7 @@ function Search() {
 
         {/* Search bar */}
         <div className="search-bar">
-          <span className="search-icon">ðŸ”</span>
+          <span className="search-icon">Search</span>
           <input
             type="text"
             placeholder="Search notes..."
@@ -362,7 +363,7 @@ function Search() {
               onClick={handleClearSearch}
               title="Clear search"
             >
-              âœ•
+              X
             </button>
           )}
           <button
@@ -383,7 +384,7 @@ function Search() {
         {notes.length > 0 && (
           <div className="search-filters">
             <div className="filter-group">
-              <label className="filter-label">ðŸ“… Year:</label>
+              <label className="filter-label">Year:</label>
               <div className="filter-buttons">
                 <button
                   className={`filter-btn ${selectedYear === "All" ? "active" : ""}`}
@@ -404,7 +405,7 @@ function Search() {
             </div>
 
             <div className="filter-group">
-              <label className="filter-label">ðŸ”¢ Semester:</label>
+              <label className="filter-label">Semester:</label>
               <div className="filter-buttons">
                 <button
                   className={`filter-btn ${selectedSemester === "All" ? "active" : ""}`}
@@ -425,7 +426,7 @@ function Search() {
             </div>
 
             <div className="filter-group">
-              <label className="filter-label">ðŸ“‚ Category:</label>
+              <label className="filter-label">Category:</label>
               <select
                 className="filter-select"
                 value={selectedCategory}
@@ -441,7 +442,7 @@ function Search() {
             </div>
 
             <div className="filter-group">
-              <label className="filter-label">â†• Sort:</label>
+              <label className="filter-label">Sort:</label>
               <select
                 className="filter-select"
                 value={sortBy}
@@ -465,7 +466,7 @@ function Search() {
         {/* Error message */}
         {error && (
           <div className="search-error">
-            <span>âš ï¸</span> {error}
+            <span>Warning:</span> {error}
           </div>
         )}
 
@@ -488,7 +489,7 @@ function Search() {
                   className="search-history-btn"
                   onClick={() => handleUseHistory(item)}
                 >
-                  ðŸ• {item}
+                  Recent: {item}
                 </button>
               ))}
             </div>
@@ -508,7 +509,7 @@ function Search() {
           {/* Empty state */}
           {filteredNotes.length === 0 && !loading && !error && (
             <div className="search-empty">
-              <span>ðŸ“­</span>
+              <span>No Results</span>
               <p>
                 {query
                   ? "No results found. Try different keywords."
@@ -524,13 +525,13 @@ function Search() {
                 <div className="note-card-glow" />
 
                 <div className="note-card-top">
-                  <div className="note-icon">ðŸ“„</div>
+                  <div className="note-icon">N</div>
                   <div className="note-meta">
                     <span className="note-subject">{note.subject}</span>
-                    <span className="note-year">ðŸ“… Year {note.academicYear}</span>
-                    <span className="note-semester">ðŸ”¢ Sem {note.semester}</span>
+                    <span className="note-year">Year {note.academicYear}</span>
+                    <span className="note-semester">Sem {note.semester}</span>
                     <span className="note-downloads">
-                      ðŸ“¥ {note.downloads || 0} downloads
+                      Downloads: {note.downloads || 0}
                     </span>
                   </div>
                 </div>
@@ -548,7 +549,7 @@ function Search() {
                     disabled={viewing === note._id}
                     aria-label={`View ${note.title} online`}
                   >
-                    {viewing === note._id ? "Opening..." : "View ðŸ‘€"}
+                    {viewing === note._id ? "Opening..." : "View"}
                   </button>
 
                   <button
@@ -562,7 +563,7 @@ function Search() {
                         <span className="search-spinner" /> Downloading...
                       </>
                     ) : (
-                      <>Download ðŸ“¥</>
+                      <>Download</>
                     )}
                   </button>
 
@@ -575,7 +576,7 @@ function Search() {
                       expandedNote === note._id ? "Hide" : "Show"
                     } quiz for ${note.title}`}
                   >
-                    {expandedNote === note._id ? "Hide Quiz â–¼" : "Quiz ðŸ“"}
+                    {expandedNote === note._id ? "Hide Quiz" : "Quiz"}
                   </button>
 
                   <button
@@ -589,7 +590,7 @@ function Search() {
                       expandedCommentsNote === note._id ? "Hide" : "Show"
                     } comments for ${note.title}`}
                   >
-                    {expandedCommentsNote === note._id ? "Hide Comments â–¼" : "Comments ðŸ’¬"}
+                    {expandedCommentsNote === note._id ? "Hide Comments" : "Comments"}
                   </button>
                 </div>
               </div>

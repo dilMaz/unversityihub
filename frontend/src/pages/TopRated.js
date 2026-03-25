@@ -11,7 +11,7 @@ function TopRated() {
   const [downloading, setDownloading] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [expandedNote, setExpandedNote] = useState(null);
-    const [expandedCommentsNote, setExpandedCommentsNote] = useState(null);
+  const [expandedCommentsNote, setExpandedCommentsNote] = useState(null);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState("All");
@@ -20,13 +20,6 @@ function TopRated() {
   const [sortBy, setSortBy] = useState("downloads");
 
   const API_ROOT = API_BASE_URL.replace(/\/+$/, "");
-
-  const renderRating = useCallback((note) => {
-    const avg = Number(note?.averageRating || 0);
-    const rounded = Math.round(avg);
-    const stars = `${"â˜…".repeat(rounded)}${"â˜†".repeat(5 - rounded)}`;
-    return `${stars} ${avg.toFixed(1)} (${note?.ratingCount || 0})`;
-  }, []);
 
   const getPublicFileUrl = useCallback((fileUrl) => {
     if (!fileUrl) return null;
@@ -54,7 +47,7 @@ function TopRated() {
     URL.revokeObjectURL(objectUrl);
   }, []);
 
-  // ðŸ”¥ Fetch Top Notes with Error Handling
+  // Fetch top notes with error handling
   const fetchTopNotes = useCallback(async () => {
     try {
       setError(null);
@@ -88,7 +81,7 @@ function TopRated() {
     fetchTopNotes();
   }, [fetchTopNotes]);
 
-  // ðŸ“¥ Download with Token Validation
+  // Download with token validation
   const handleDownload = useCallback(async (id, title) => {
     const token = localStorage.getItem("token");
 
@@ -277,7 +270,7 @@ function TopRated() {
         {!loading && !error && notes.length > 0 && (
           <div className="tr-controls">
             <div className="tr-search-bar">
-              <span>ðŸ”Ž</span>
+              <span>Search</span>
               <input
                 type="text"
                 placeholder="Search in top-rated notes..."
@@ -333,7 +326,7 @@ function TopRated() {
         {/* Error State */}
         {error && (
           <div className="tr-error-banner">
-            <span>âš ï¸</span>
+            <span>Warning</span>
             <div>
               <p>{error}</p>
               {error.includes("timed out") || error.includes("Network") ? (
@@ -362,7 +355,7 @@ function TopRated() {
         {/* Empty */}
         {!loading && filteredNotes.length === 0 && !error && (
           <div className="tr-empty">
-            <span>ðŸ“­</span>
+            <span>No Results</span>
             <p>No matching notes found.</p>
             <small>Try changing filters or search terms.</small>
           </div>
@@ -384,20 +377,20 @@ function TopRated() {
 
                   {/* Rank badge */}
                   <div className="tr-rank">
-                    {index === 0 ? "ðŸ¥‡" : index === 1 ? "ðŸ¥ˆ" : index === 2 ? "ðŸ¥‰" : `#${index + 1}`}
+                    {index === 0 ? "#1" : index === 1 ? "#2" : index === 2 ? "#3" : `#${index + 1}`}
                   </div>
 
                   {/* Icon */}
-                  <div className="tr-note-icon">ðŸ“„</div>
+                  <div className="tr-note-icon">N</div>
 
                   {/* Info */}
                   <div className="tr-note-info">
                     <h3 className="tr-note-title">{note.title}</h3>
-                    <span className="tr-note-subject">ðŸ“š {note.subject}</span>
-                    {note.academicYear ? <span className="tr-note-meta">ðŸ“… Year {note.academicYear}</span> : null}
-                    {note.semester ? <span className="tr-note-meta">ðŸ”¢ Sem {note.semester}</span> : null}
-                    {note.category ? <span className="tr-note-meta">ðŸ“‚ {note.category}</span> : null}
-                    <span className="tr-note-downloads">ðŸ“¥ {note.downloads} downloads</span>
+                    <span className="tr-note-subject">Subject: {note.subject}</span>
+                    {note.academicYear ? <span className="tr-note-meta">Year {note.academicYear}</span> : null}
+                    {note.semester ? <span className="tr-note-meta">Sem {note.semester}</span> : null}
+                    {note.category ? <span className="tr-note-meta">Category: {note.category}</span> : null}
+                    <span className="tr-note-downloads">Downloads: {note.downloads}</span>
                   </div>
 
                   {/* Download */}
@@ -408,7 +401,7 @@ function TopRated() {
                       disabled={viewing === note._id}
                       title={viewing === note._id ? "Opening..." : "View note online"}
                     >
-                      {viewing === note._id ? "Opening..." : "View ðŸ‘€"}
+                      {viewing === note._id ? "Opening..." : "View"}
                     </button>
 
                     <button
@@ -419,7 +412,7 @@ function TopRated() {
                     >
                       {downloading === note._id
                         ? <><span className="tr-spinner" /> Downloading...</>
-                        : <>Download ðŸ“¥</>
+                        : <>Download</>
                       }
                     </button>
 
@@ -428,7 +421,7 @@ function TopRated() {
                       onClick={() => setExpandedNote(expandedNote === note._id ? null : note._id)}
                       title={expandedNote === note._id ? "Hide quiz" : "Generate AI quiz"}
                     >
-                      {expandedNote === note._id ? "Hide â–¼" : "Quiz ðŸ“"}
+                      {expandedNote === note._id ? "Hide" : "Quiz"}
                     </button>
 
                     <button
@@ -440,7 +433,7 @@ function TopRated() {
                       }
                       title={expandedCommentsNote === note._id ? "Hide comments" : "Show comments"}
                     >
-                      {expandedCommentsNote === note._id ? "Hide ðŸ’¬" : "Comments ðŸ’¬"}
+                      {expandedCommentsNote === note._id ? "Hide Comments" : "Comments"}
                     </button>
                   </div>
                 </div>
@@ -467,6 +460,5 @@ function TopRated() {
     </div>
     );
   }
-
 
 export default TopRated;
