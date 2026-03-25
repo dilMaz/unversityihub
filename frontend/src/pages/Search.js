@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+﻿import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
 import { API_BASE_URL } from "../config/appConfig";
@@ -125,7 +125,7 @@ function Search() {
     return sorted;
   }, [notes, selectedYear, selectedSemester, selectedCategory, sortBy]);
 
-  // 🔍 Optimized search with debouncing
+  // ðŸ” Optimized search with debouncing
   const performSearch = useCallback(async (searchQuery) => {
     const normalizedQuery = searchQuery.trim();
     if (!normalizedQuery) {
@@ -208,7 +208,7 @@ function Search() {
     }
   };
 
-  // 📥 Download note with better error handling
+  // ðŸ“¥ Download note with better error handling
   const handleDownload = useCallback(
     async (noteId, noteTitle) => {
       setDownloading(noteId);
@@ -330,7 +330,7 @@ function Search() {
     selectedCategory !== "All" ? selectedCategory : null,
   ]
     .filter(Boolean)
-    .join(" • ");
+    .join(" â€¢ ");
 
   return (
     <div className="search-root">
@@ -346,7 +346,7 @@ function Search() {
 
         {/* Search bar */}
         <div className="search-bar">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon">ðŸ”</span>
           <input
             type="text"
             placeholder="Search notes..."
@@ -362,7 +362,7 @@ function Search() {
               onClick={handleClearSearch}
               title="Clear search"
             >
-              ✕
+              âœ•
             </button>
           )}
           <button
@@ -383,7 +383,7 @@ function Search() {
         {notes.length > 0 && (
           <div className="search-filters">
             <div className="filter-group">
-              <label className="filter-label">📅 Year:</label>
+              <label className="filter-label">ðŸ“… Year:</label>
               <div className="filter-buttons">
                 <button
                   className={`filter-btn ${selectedYear === "All" ? "active" : ""}`}
@@ -404,7 +404,7 @@ function Search() {
             </div>
 
             <div className="filter-group">
-              <label className="filter-label">🔢 Semester:</label>
+              <label className="filter-label">ðŸ”¢ Semester:</label>
               <div className="filter-buttons">
                 <button
                   className={`filter-btn ${selectedSemester === "All" ? "active" : ""}`}
@@ -425,7 +425,7 @@ function Search() {
             </div>
 
             <div className="filter-group">
-              <label className="filter-label">📂 Category:</label>
+              <label className="filter-label">ðŸ“‚ Category:</label>
               <select
                 className="filter-select"
                 value={selectedCategory}
@@ -441,7 +441,7 @@ function Search() {
             </div>
 
             <div className="filter-group">
-              <label className="filter-label">↕ Sort:</label>
+              <label className="filter-label">â†• Sort:</label>
               <select
                 className="filter-select"
                 value={sortBy}
@@ -465,7 +465,7 @@ function Search() {
         {/* Error message */}
         {error && (
           <div className="search-error">
-            <span>⚠️</span> {error}
+            <span>âš ï¸</span> {error}
           </div>
         )}
 
@@ -488,7 +488,7 @@ function Search() {
                   className="search-history-btn"
                   onClick={() => handleUseHistory(item)}
                 >
-                  🕐 {item}
+                  ðŸ• {item}
                 </button>
               ))}
             </div>
@@ -508,7 +508,7 @@ function Search() {
           {/* Empty state */}
           {filteredNotes.length === 0 && !loading && !error && (
             <div className="search-empty">
-              <span>📭</span>
+              <span>ðŸ“­</span>
               <p>
                 {query
                   ? "No results found. Try different keywords."
@@ -524,13 +524,13 @@ function Search() {
                 <div className="note-card-glow" />
 
                 <div className="note-card-top">
-                  <div className="note-icon">📄</div>
+                  <div className="note-icon">ðŸ“„</div>
                   <div className="note-meta">
                     <span className="note-subject">{note.subject}</span>
-                    <span className="note-year">📅 Year {note.academicYear}</span>
-                    <span className="note-semester">🔢 Sem {note.semester}</span>
+                    <span className="note-year">ðŸ“… Year {note.academicYear}</span>
+                    <span className="note-semester">ðŸ”¢ Sem {note.semester}</span>
                     <span className="note-downloads">
-                      📥 {note.downloads || 0} downloads
+                      ðŸ“¥ {note.downloads || 0} downloads
                     </span>
                   </div>
                 </div>
@@ -548,7 +548,7 @@ function Search() {
                     disabled={viewing === note._id}
                     aria-label={`View ${note.title} online`}
                   >
-                    {viewing === note._id ? "Opening..." : "View 👀"}
+                    {viewing === note._id ? "Opening..." : "View ðŸ‘€"}
                   </button>
 
                   <button
@@ -562,7 +562,7 @@ function Search() {
                         <span className="search-spinner" /> Downloading...
                       </>
                     ) : (
-                      <>Download 📥</>
+                      <>Download ðŸ“¥</>
                     )}
                   </button>
 
@@ -575,7 +575,7 @@ function Search() {
                       expandedNote === note._id ? "Hide" : "Show"
                     } quiz for ${note.title}`}
                   >
-                    {expandedNote === note._id ? "Hide Quiz ▼" : "Quiz 📝"}
+                    {expandedNote === note._id ? "Hide Quiz â–¼" : "Quiz ðŸ“"}
                   </button>
 
                   <button
@@ -589,7 +589,7 @@ function Search() {
                       expandedCommentsNote === note._id ? "Hide" : "Show"
                     } comments for ${note.title}`}
                   >
-                    {expandedCommentsNote === note._id ? "Hide Comments ▼" : "Comments 💬"}
+                    {expandedCommentsNote === note._id ? "Hide Comments â–¼" : "Comments ðŸ’¬"}
                   </button>
                 </div>
               </div>
@@ -612,197 +612,6 @@ function Search() {
       </div>
     );
   }
-}
-
-export default Search;
-
-        .note-comments-btn {
-          background: rgba(224, 95, 255, 0.16);
-          color: #efb2ff;
-        }
-
-        .note-view-btn:hover,
-        .note-comments-btn:hover {
-          transform: translateY(-1px);
-          opacity: 0.9;
-        }
-
-        .note-view-btn:disabled,
-        .note-comments-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .note-comments-container {
-          margin-top: 10px;
-          animation: slideDown 0.2s ease-out;
-        }
-
-        .search-spinner-large {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #eee;
-          border-top-color: #667eea;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .search-history {
-          background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-          border: 1px solid rgba(102, 126, 234, 0.2);
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 24px;
-          animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .search-history-title {
-          font-weight: 700;
-          color: #667eea;
-          margin-bottom: 16px;
-          font-size: 15px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .search-history-title::before {
-          content: "🕐";
-          font-size: 18px;
-        }
-
-        .search-history-items {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-
-        .search-history-btn {
-          background: white;
-          border: 1px solid #e0e0e0;
-          padding: 10px 14px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 500;
-          transition: all 0.3s ease;
-          color: #667eea;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .search-history-btn::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
-          transition: left 0.3s ease;
-          z-index: -1;
-        }
-
-        .search-history-btn:hover {
-          border-color: #667eea;
-          background: linear-gradient(135deg, white 0%, #f8f9ff 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
-          color: #667eea;
-          font-weight: 600;
-        }
-
-        .search-history-btn:active {
-          transform: translateY(0);
-        }
-
-        .note-module {
-          display: inline-block;
-          background: #f0f0f0;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          color: #666;
-          margin-top: 8px;
-        }
-
-        .search-note-wrapper {
-          margin-bottom: 20px;
-        }
-
-        .note-actions {
-          display: flex;
-          gap: 10px;
-          margin-top: 15px;
-        }
-
-        .note-quiz-btn {
-          flex: 1;
-          padding: 10px 16px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .note-quiz-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .note-quiz-container {
-          margin-top: -10px;
-          padding: 0 16px 16px 16px;
-        }
-
-        .search-btn {
-          padding: 10px 20px;
-          background: #667eea;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-          transition: all 0.2s;
-        }
-
-        .search-btn:hover:not(:disabled) {
-          background: #764ba2;
-          transform: translateY(-2px);
-        }
-
-        .search-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-      `}</style>
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
-    </div>
-  );
 }
 
 export default Search;

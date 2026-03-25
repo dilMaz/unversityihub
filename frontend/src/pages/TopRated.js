@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+﻿import { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
 import { API_BASE_URL } from "../config/appConfig";
@@ -22,7 +22,7 @@ function TopRated() {
   const renderRating = useCallback((note) => {
     const avg = Number(note?.averageRating || 0);
     const rounded = Math.round(avg);
-    const stars = `${"★".repeat(rounded)}${"☆".repeat(5 - rounded)}`;
+    const stars = `${"â˜…".repeat(rounded)}${"â˜†".repeat(5 - rounded)}`;
     return `${stars} ${avg.toFixed(1)} (${note?.ratingCount || 0})`;
   }, []);
 
@@ -52,7 +52,7 @@ function TopRated() {
     URL.revokeObjectURL(objectUrl);
   }, []);
 
-  // 🔥 Fetch Top Notes with Error Handling
+  // ðŸ”¥ Fetch Top Notes with Error Handling
   const fetchTopNotes = useCallback(async () => {
     try {
       setError(null);
@@ -86,7 +86,7 @@ function TopRated() {
     fetchTopNotes();
   }, [fetchTopNotes]);
 
-  // 📥 Download with Token Validation
+  // ðŸ“¥ Download with Token Validation
   const handleDownload = useCallback(async (id, title) => {
     const token = localStorage.getItem("token");
 
@@ -282,7 +282,7 @@ function TopRated() {
         {!loading && !error && notes.length > 0 && (
           <div className="tr-controls">
             <div className="tr-search-bar">
-              <span>🔎</span>
+              <span>ðŸ”Ž</span>
               <input
                 type="text"
                 placeholder="Search in top-rated notes..."
@@ -338,7 +338,7 @@ function TopRated() {
         {/* Error State */}
         {error && (
           <div className="tr-error-banner">
-            <span>⚠️</span>
+            <span>âš ï¸</span>
             <div>
               <p>{error}</p>
               {error.includes("timed out") || error.includes("Network") ? (
@@ -367,7 +367,7 @@ function TopRated() {
         {/* Empty */}
         {!loading && filteredNotes.length === 0 && !error && (
           <div className="tr-empty">
-            <span>📭</span>
+            <span>ðŸ“­</span>
             <p>No matching notes found.</p>
             <small>Try changing filters or search terms.</small>
           </div>
@@ -389,20 +389,20 @@ function TopRated() {
 
                   {/* Rank badge */}
                   <div className="tr-rank">
-                    {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`}
+                    {index === 0 ? "ðŸ¥‡" : index === 1 ? "ðŸ¥ˆ" : index === 2 ? "ðŸ¥‰" : `#${index + 1}`}
                   </div>
 
                   {/* Icon */}
-                  <div className="tr-note-icon">📄</div>
+                  <div className="tr-note-icon">ðŸ“„</div>
 
                   {/* Info */}
                   <div className="tr-note-info">
                     <h3 className="tr-note-title">{note.title}</h3>
-                    <span className="tr-note-subject">📚 {note.subject}</span>
-                    {note.academicYear ? <span className="tr-note-meta">📅 Year {note.academicYear}</span> : null}
-                    {note.semester ? <span className="tr-note-meta">🔢 Sem {note.semester}</span> : null}
-                    {note.category ? <span className="tr-note-meta">📂 {note.category}</span> : null}
-                    <span className="tr-note-downloads">📥 {note.downloads} downloads</span>
+                    <span className="tr-note-subject">ðŸ“š {note.subject}</span>
+                    {note.academicYear ? <span className="tr-note-meta">ðŸ“… Year {note.academicYear}</span> : null}
+                    {note.semester ? <span className="tr-note-meta">ðŸ”¢ Sem {note.semester}</span> : null}
+                    {note.category ? <span className="tr-note-meta">ðŸ“‚ {note.category}</span> : null}
+                    <span className="tr-note-downloads">ðŸ“¥ {note.downloads} downloads</span>
                   </div>
 
                   {/* Download */}
@@ -413,7 +413,7 @@ function TopRated() {
                       disabled={viewing === note._id}
                       title={viewing === note._id ? "Opening..." : "View note online"}
                     >
-                      {viewing === note._id ? "Opening..." : "View 👀"}
+                      {viewing === note._id ? "Opening..." : "View ðŸ‘€"}
                     </button>
 
                     <button
@@ -424,7 +424,7 @@ function TopRated() {
                     >
                       {downloading === note._id
                         ? <><span className="tr-spinner" /> Downloading...</>
-                        : <>Download 📥</>
+                        : <>Download ðŸ“¥</>
                       }
                     </button>
 
@@ -433,7 +433,7 @@ function TopRated() {
                       onClick={() => setExpandedNote(expandedNote === note._id ? null : note._id)}
                       title={expandedNote === note._id ? "Hide quiz" : "Generate AI quiz"}
                     >
-                      {expandedNote === note._id ? "Hide ▼" : "Quiz 📝"}
+                      {expandedNote === note._id ? "Hide â–¼" : "Quiz ðŸ“"}
                     </button>
 
                     <button
@@ -445,7 +445,7 @@ function TopRated() {
                       }
                       title={expandedCommentsNote === note._id ? "Hide comments" : "Show comments"}
                     >
-                      {expandedCommentsNote === note._id ? "Hide 💬" : "Comments 💬"}
+                      {expandedCommentsNote === note._id ? "Hide ðŸ’¬" : "Comments ðŸ’¬"}
                     </button>
                   </div>
                 </div>
@@ -471,61 +471,6 @@ function TopRated() {
       </div>
     );
   }
-}
-
-export default TopRated;
-          transition: all 0.2s;
-        }
-
-        .tr-view-btn {
-          background: linear-gradient(135deg, #6d5efc 0%, #8f7cff 100%);
-        }
-
-        .tr-comments-btn {
-          background: linear-gradient(135deg, #d86bff 0%, #f187ff 100%);
-        }
-
-        .tr-view-btn:hover,
-        .tr-comments-btn:hover {
-          transform: translateY(-2px);
-        }
-
-        .tr-view-btn:disabled,
-        .tr-comments-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .tr-quiz-btn {
-          flex: 1;
-          padding: 10px 16px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .tr-quiz-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .tr-quiz-container {
-          margin-top: -10px;
-          padding: 0 16px 16px 16px;
-        }
-
-        .tr-comments-container {
-          margin-top: -10px;
-          padding: 0 16px 16px 16px;
-        }
-      `}</style>
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
-    </div>
-  );
 }
 
 export default TopRated;

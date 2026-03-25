@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&display=swap");
+﻿@import url("https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&display=swap");
 
 .navbar {
   --ink-900: #041f3d;
@@ -155,14 +155,8 @@
   display: block;
   width: 100%;
   height: 2px;
-<<<<<<< HEAD
   border-radius: 3px;
-  background: #e1f3ff;
-=======
-  border-radius: 2px;
-  background: #f5f3ff;
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  background: #e1f3ff;  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .hamburger.active span:nth-child(1) {
@@ -200,14 +194,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
-<<<<<<< HEAD
-    padding: 10px;
-=======
-    padding: 14px;
-    background: linear-gradient(180deg, rgba(12, 7, 22, 0.98), rgba(22, 10, 34, 0.96));
-    border: 1px solid rgba(192, 132, 252, 0.32);
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
-    border-radius: 14px;
+    padding: 10px;    border-radius: 14px;
     border: 1px solid rgba(135, 198, 255, 0.3);
     background: linear-gradient(160deg, rgba(8, 39, 68, 0.98), rgba(6, 30, 54, 0.98));
     transform: translateY(-8px);
@@ -254,8 +241,6 @@
   .hamburger span {
     transition: none;
   }
-<<<<<<< HEAD
-=======
 }
 
 @keyframes nav-scan {
@@ -275,5 +260,4 @@
   50% {
     filter: drop-shadow(0 0 10px rgba(216, 180, 254, 0.45));
   }
->>>>>>> 370cddcee951b7ab2487f4f62b3e3738b577515c
 }
