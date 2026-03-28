@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/dashboard.css";
 import "../styles/adminAnalytics.css";
+import "../styles/adminDashboardUnique.css";
 
 function AdminAnalytics() {
   const navigate = useNavigate();
@@ -179,7 +180,7 @@ function AdminAnalytics() {
   };
 
   return (
-    <div className="db-root analytics-page">
+    <div className="db-root admin-theme analytics-page">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Admin Analytics</div>

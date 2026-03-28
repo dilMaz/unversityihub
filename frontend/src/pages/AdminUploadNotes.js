@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/dashboard.css"; // reuse dashboard styles
+import "../styles/adminDashboardUnique.css";
 
 const AdminUploadNotes = () => {
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ const AdminUploadNotes = () => {
   };
 
   return (
-    <div className="db-root">
+    <div className="db-root admin-theme">
       <div className="db-wrap">
         {/* Topbar */}
         <div className="db-topbar">

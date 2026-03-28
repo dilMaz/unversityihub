@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/dashboard.css';
+import '../styles/adminDashboardUnique.css';
 
 const AdminReview = () => {
   const navigate = useNavigate();
@@ -191,7 +192,7 @@ const AdminReview = () => {
   };
 
   return (
-    <div className="db-root">
+    <div className="db-root admin-theme">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Document Review</div>

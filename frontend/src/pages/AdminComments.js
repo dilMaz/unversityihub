@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/dashboard.css';
 import '../styles/adminComments.css';
+import '../styles/adminDashboardUnique.css';
 
 const renderStars = (value) => {
   const rating = Number(value) || 0;
@@ -84,7 +85,7 @@ const AdminComments = () => {
   const totalComments = notesWithComments.reduce((sum, note) => sum + (note.commentsCount || 0), 0);
 
   return (
-    <div className="db-root admin-comments-page">
+    <div className="db-root admin-theme admin-comments-page">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Admin Comments</div>

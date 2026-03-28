@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/dashboard.css';
 import '../styles/adminPanel.css';
+import '../styles/adminDashboardUnique.css';
 
 const normalizeNicInput = (value) => {
   const upper = (value || '').toUpperCase().replace(/\s+/g, '');
@@ -124,7 +125,7 @@ const AdminPanel = () => {
   };
 
   return (
-    <div className="db-root admin-panel-page">
+    <div className="db-root admin-theme admin-panel-page">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Admin Register</div>

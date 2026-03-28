@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import "../styles/dashboard.css";
+import "../styles/adminDashboardUnique.css";
 
 function AdminUsers() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ function AdminUsers() {
   };
 
   return (
-    <div className="db-root">
+    <div className="db-root admin-theme">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">{onlyAdmins ? "Admin - All Admins" : "Admin - Users"}</div>

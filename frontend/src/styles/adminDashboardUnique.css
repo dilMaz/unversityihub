@@ -335,6 +335,103 @@
 	border-color: rgba(143, 226, 255, 0.52);
 }
 
+/* Shared theme for admin pages using db-* layout */
+.db-root.admin-theme {
+	--bg: #0a1020;
+	--surface: rgba(14, 21, 39, 0.88);
+	--surface2: rgba(20, 30, 52, 0.86);
+	--border: rgba(131, 162, 240, 0.22);
+	--text: #eaf0ff;
+	--muted: rgba(182, 201, 239, 0.72);
+	--accent: #4cb1ff;
+	--accent2: #6f8dff;
+	background: radial-gradient(circle at 20% 0%, #1a2240 0%, #0b1020 48%, #060a16 100%);
+}
+
+.db-root.admin-theme .db-wrap {
+	max-width: 1200px;
+	border-radius: 18px;
+	background: rgba(12, 19, 35, 0.78);
+	border: 1px solid rgba(130, 155, 231, 0.2);
+	box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
+	padding: 28px 24px 36px;
+}
+
+.db-root.admin-theme .db-logo {
+	background: linear-gradient(90deg, #84ccff, #a4b7ff);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.db-root.admin-theme .db-topbar {
+	margin-bottom: 34px;
+}
+
+.db-root.admin-theme .db-admin-btn,
+.db-root.admin-theme .db-logout {
+	border-color: rgba(127, 168, 255, 0.34);
+	background: rgba(21, 33, 59, 0.84);
+	color: #d8e8ff;
+}
+
+.db-root.admin-theme .db-admin-btn:hover,
+.db-root.admin-theme .db-logout:hover {
+	background: rgba(38, 58, 98, 0.88);
+	border-color: rgba(145, 222, 255, 0.54);
+	color: #f3f8ff;
+}
+
+.db-root.admin-theme .db-hero h1,
+.db-root.admin-theme .db-hero p,
+.db-root.admin-theme .db-greeting,
+.db-root.admin-theme .db-section-title,
+.db-root.admin-theme .db-card-title,
+.db-root.admin-theme .db-card-desc,
+.db-root.admin-theme .db-empty,
+.db-root.admin-theme .user-table,
+.db-root.admin-theme .user-table th,
+.db-root.admin-theme .user-table td {
+	color: var(--text);
+}
+
+.db-root.admin-theme .db-hero h1 span {
+	background: linear-gradient(100deg, #81e7ff 0%, #88a7ff 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.db-root.admin-theme .db-card,
+.db-root.admin-theme .db-panel,
+.db-root.admin-theme .db-stat,
+.db-root.admin-theme .user-table-wrap,
+.db-root.admin-theme .ap-form-card,
+.db-root.admin-theme .ac-note-card,
+.db-root.admin-theme .analytics-chart-card,
+.db-root.admin-theme .analytics-summary-card {
+	background: linear-gradient(145deg, rgba(13, 20, 37, 0.9), rgba(20, 30, 52, 0.88));
+	border-color: rgba(126, 163, 245, 0.22);
+	box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+.db-root.admin-theme .user-table thead th {
+	border-bottom: 1px solid rgba(139, 173, 248, 0.34);
+}
+
+.db-root.admin-theme .user-table tbody tr:hover {
+	background: rgba(95, 145, 255, 0.13);
+}
+
+.db-root.admin-theme .db-error,
+.db-root.admin-theme .error-text {
+	color: #ffb0b0;
+}
+
+.db-root.admin-theme .db-success {
+	color: #9cf3cb;
+}
+
 @media (max-width: 1200px) {
 	.adm-shell {
 		grid-template-columns: 200px 1fr;
