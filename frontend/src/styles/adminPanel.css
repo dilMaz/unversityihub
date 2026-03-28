@@ -164,6 +164,31 @@
   gap: 8px;
 }
 
+.admin-panel-page .ap-delete-btn {
+  border: 1px solid rgba(255, 118, 118, 0.5);
+  background: rgba(239, 68, 68, 0.16);
+  color: #ff9a9a;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-panel-page .ap-delete-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.24);
+  border-color: rgba(255, 138, 138, 0.7);
+  color: #ffd0d0;
+  transform: translateY(-1px);
+}
+
+.admin-panel-page .ap-delete-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 1100px) {
   .admin-panel-page .ap-layout {
     grid-template-columns: 1fr;

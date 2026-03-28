@@ -45,6 +45,7 @@ const AdminPanel = () => {
     status: 'undergraduate',
   });
   const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingAdminId, setDeletingAdminId] = useState('');
 
   const fetchAdminUsers = async (showLoading = true) => {
     const token = localStorage.getItem('token');
@@ -131,6 +132,36 @@ const AdminPanel = () => {
       setMessage(err.response?.data?.message || 'Failed to update admin details');
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const deleteAdmin = async (adminId, adminName) => {
+    const confirmed = window.confirm(`Delete admin account ${adminName || ''}?`);
+    if (!confirmed) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setMessage('Missing auth token');
+      return;
+    }
+
+    try {
+      setDeletingAdminId(adminId);
+      setMessage('');
+
+      await axios.delete(`http://localhost:5000/api/admin/users/${adminId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setMessage('Admin account deleted successfully! ✅');
+      setAdminUsers((prev) => prev.filter((admin) => admin._id !== adminId));
+      if (editingAdminId === adminId) {
+        cancelEditAdmin();
+      }
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Failed to delete admin account');
+    } finally {
+      setDeletingAdminId('');
     }
   };
 
@@ -499,13 +530,24 @@ const AdminPanel = () => {
                               </button>
                             </div>
                           ) : (
-                            <button
-                              type="button"
-                              className="db-admin-btn"
-                              onClick={() => startEditAdmin(admin)}
-                            >
-                              Edit
-                            </button>
+                            <div className="ap-actions">
+                              <button
+                                type="button"
+                                className="db-admin-btn"
+                                onClick={() => startEditAdmin(admin)}
+                                disabled={deletingAdminId === admin._id}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className="ap-delete-btn"
+                                onClick={() => deleteAdmin(admin._id, admin.name)}
+                                disabled={deletingAdminId === admin._id}
+                              >
+                                {deletingAdminId === admin._id ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
