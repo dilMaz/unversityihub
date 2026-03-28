@@ -618,6 +618,12 @@ body {
   transform: translateX(4px);
 }
 
+.db-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* ── Admin Review Action Buttons ───────────────────────── */
 .view-btn,
 .view-doc-btn {
