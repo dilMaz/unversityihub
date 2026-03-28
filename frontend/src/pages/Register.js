@@ -167,13 +167,30 @@ function Register() {
             </div>
 
             <div className="reg-field">
-              <label className="reg-label">IT Number</label>
+              <label className="reg-label">Student Number</label>
               <input
                 className="reg-input"
                 type="text"
-                placeholder="e.g. IT2020"
-                value={itNumber}
-                onChange={(e) => setItNumber(e.target.value)}
+                placeholder="e.g. IT12345678"
+                value={studentNumber}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase();
+                  // Allow IT/EN/BM followed by numbers
+                  const validPrefix = ['IT', 'EN', 'BM'];
+                  const prefix = value.slice(0, 2);
+                  const numbers = value.slice(2);
+                  
+                  if (validPrefix.includes(prefix) && numbers.length <= 8) {
+                    setStudentNumber(prefix + numbers.replace(/[^0-9]/g, ''));
+                  } else if (prefix.length === 1 && validPrefix.some(p => p.startsWith(prefix))) {
+                    setStudentNumber(prefix);
+                  } else if (value.length < studentNumber.length) {
+                    // Allow backspace
+                    setStudentNumber(value);
+                  }
+                }}
+                maxLength={10}
+                required
               />
             </div>
 
