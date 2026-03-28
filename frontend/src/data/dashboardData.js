@@ -35,6 +35,24 @@ const baseQuickActions = [
     btn: "Upload Now",
     route: "/upload",
   },
+  {
+    id: "student-support",
+    cls: "c5",
+    icon: "🎓",
+    title: "Student Support",
+    desc: "Get help from administrators, submit support requests, and track your issues.",
+    btn: "Get Support",
+    route: "/student-support",
+  },
+  {
+    id: "categories",
+    cls: "c6",
+    icon: "📂",
+    title: "Categories",
+    desc: "Browse notes organized by subject tags and categories.",
+    btn: "Browse Categories",
+    route: "/categories",
+  },
 ];
 
 const adminQuickActions = [
