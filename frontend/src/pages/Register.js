@@ -13,7 +13,7 @@ function Register() {
   const [status, setStatus] = useState("undergraduate");
   
   // Additional student fields
-  const [itNumber, setItNumber] = useState("");
+  const [studentNumber, setStudentNumber] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [year, setYear] = useState("");
   const [semester, setSemester] = useState("");
@@ -44,7 +44,7 @@ function Register() {
         password,
         phone: phone || 'N/A',
         status,
-        itNumber: itNumber.trim(),
+        studentNumber: studentNumber.trim(),
         specialization: specialization.trim(),
         year: year !== "" ? Number(year) : null,
         semester: semester !== "" ? Number(semester) : null,
