@@ -63,8 +63,8 @@ function Register() {
   };
 
   const validateStrongPassword = (password) => {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 special character
-    const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 special character, and 1 digit
+    const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])(?=.*\d).{8,}$/;
     return strongPasswordPattern.test(password);
   };
 
@@ -103,7 +103,7 @@ function Register() {
     }
 
     if (!validateStrongPassword(password)) {
-      setError("Password must be at least 8 characters, 1 uppercase, 1 lowercase, 1 special character.");
+      setError("Password must be at least 8 characters, 1 uppercase, 1 lowercase, 1 special character, and 1 digit.");
       return;
     }
 
@@ -255,7 +255,7 @@ function Register() {
               <input
                 className="reg-input"
                 type="password"
-                placeholder="Min 6 characters"
+                placeholder="Min 8 chars: 1 uppercase, 1 lowercase, 1 special, 1 digit"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
