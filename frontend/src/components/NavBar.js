@@ -126,11 +126,12 @@ function NavBar() {
               {renderNavItem("Recommended", "/recommend", "", 3)}
               {renderNavItem("Upload", "/upload", "", 4)}
               {renderNavItem("Categories", "/categories", "", 5)}
+              {renderNavItem("Student Support", "/student-support", "", 6)}
 
               {userRole === "admin" && (
                 <>
                   <li className="nav-divider"></li>
-                  {renderNavItem("Admin", "/admin-dashboard", "admin", 6)}
+                  {renderNavItem("Admin", "/admin-dashboard", "admin", 7)}
                 </>
               )}
 
