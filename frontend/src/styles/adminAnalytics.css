@@ -5,10 +5,10 @@
   --analytics-muted: rgba(255, 255, 255, 0.72);
   --analytics-users: #000000;
   --analytics-users-soft: #78adff;
-  --analytics-notes: #67000e;
-  --analytics-notes-soft: #700213;
+  --analytics-notes: #04045b;
+  --analytics-notes-soft: #1d07a8;
   --analytics-comments: #000000;
-  --analytics-comments-soft: #5e97ff;
+  --analytics-comments-soft: #010f28;
 }
 
 .analytics-page .analytics-topbar-actions {
@@ -25,7 +25,7 @@
 }
 
 .analytics-page .analytics-summary-card {
-  background: linear-gradient(160deg, rgba(1, 45, 121, 0.897) 0%, rgba(10, 13, 24, 0.96) 58%, rgba(128, 4, 109, 0.979) 100%);
+  background: linear-gradient(160deg, rgba(1, 45, 121, 0.897) 0%, rgba(10, 13, 24, 0.96) 58%, rgba(8, 2, 88, 0.979) 100%);
   border: 1px solid var(--analytics-border);
   border-radius: 12px;
   padding: 16px;
@@ -56,9 +56,9 @@
 
 .analytics-page .colorful-card {
   background:
-    radial-gradient(circle at 10% 15%, rgba(255, 61, 87, 0.26), transparent 30%),
+    radial-gradient(circle at 10% 15%, rgba(14, 2, 57, 0.855), transparent 30%),
     radial-gradient(circle at 85% 0%, rgba(47, 123, 255, 0.24), transparent 34%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+    linear-gradient(145deg, rgb(0, 0, 0), rgba(255, 255, 255, 0.015));
 }
 
 .analytics-page .analytics-chart-title {
@@ -250,7 +250,7 @@
   min-width: 340px;
   height: 190px;
   border-radius: 10px;
-  background: linear-gradient(180deg, rgba(47, 123, 255, 0.12) 0%, rgba(11, 15, 26, 0.7) 68%, rgba(255, 61, 87, 0.07) 100%);
+  background: linear-gradient(180deg, rgba(47, 123, 255, 0.12) 0%, rgba(11, 15, 26, 0.7) 68%, rgba(14, 37, 171, 0.91) 100%);
   border: 1px solid rgba(91, 144, 255, 0.3);
 }
 
@@ -304,7 +304,7 @@
 .analytics-page .analytics-heat-box {
   height: 42px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #ff3d57 0%, #2f7bff 52%, #101722 100%);
+  background: linear-gradient(135deg, #080120 0%, #0e62f3 52%, #101722 100%);
   margin-bottom: 7px;
 }
 
