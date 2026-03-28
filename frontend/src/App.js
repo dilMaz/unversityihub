@@ -14,6 +14,7 @@ import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
 import StudentSupport from "./pages/StudentSupport";
+import StudentSupportForm from "./pages/StudentSupportForm";
 import StudySupport from "./pages/StudySupport";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
@@ -58,7 +59,8 @@ function App() {
 
             {/* PROTECTED ROUTES */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/student-support" element={<ProtectedRoute><StudentSupport /></ProtectedRoute>} />
+            <Route path="/student-support" element={<ProtectedRoute><StudentSupportForm /></ProtectedRoute>} />
+            <Route path="/student-support-admin" element={<ProtectedRoute><StudentSupport /></ProtectedRoute>} />
             <Route path="/study-support" element={<ProtectedRoute><StudySupport /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
