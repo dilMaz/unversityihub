@@ -194,11 +194,45 @@
 	margin-bottom: 10px;
 }
 
+.adm-chart-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+
+.adm-chart-head.compact {
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.adm-card-subtitle {
+	font-size: 0.74rem;
+	color: #8ea4d3;
+	margin-top: -3px;
+}
+
+.adm-chart-stat {
+	font-size: 0.78rem;
+	font-weight: 700;
+	padding: 5px 8px;
+	border-radius: 8px;
+	color: #d7ebff;
+	background: rgba(45, 68, 125, 0.55);
+	border: 1px solid rgba(132, 177, 255, 0.32);
+}
+
 .adm-trend-svg {
 	width: 100%;
 	height: 170px;
 	border-radius: 10px;
 	background: linear-gradient(180deg, rgba(78, 113, 246, 0.12), rgba(11, 18, 37, 0.75));
+}
+
+.adm-trend-grid {
+	stroke: rgba(168, 192, 255, 0.22);
+	stroke-width: 1;
 }
 
 .adm-trend-path {
@@ -207,6 +241,34 @@
 	stroke-width: 3;
 	stroke-linejoin: round;
 	stroke-linecap: round;
+}
+
+.adm-trend-point {
+	fill: #9af8e8;
+	stroke: rgba(0, 0, 0, 0.45);
+	stroke-width: 1;
+}
+
+.adm-trend-value {
+	fill: #d4e9ff;
+	font-size: 10px;
+	font-weight: 700;
+}
+
+.adm-trend-month {
+	fill: #8ea5d4;
+	font-size: 9px;
+	font-weight: 700;
+}
+
+.adm-chart-footer {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	margin-top: 9px;
+	font-size: 0.73rem;
+	color: #98afd9;
+	font-weight: 600;
 }
 
 .adm-mini-grid {
@@ -220,15 +282,46 @@
 }
 
 .adm-bars {
-	height: 74px;
+	height: 116px;
 	display: flex;
 	align-items: flex-end;
 	gap: 6px;
 }
 
-.adm-bar {
+.adm-bar-stack {
 	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 3px;
+	min-width: 0;
+}
+
+.adm-bar-value {
+	font-size: 0.67rem;
+	line-height: 1;
+	color: #b8c9ef;
+	font-weight: 700;
+}
+
+.adm-bar {
+	width: 100%;
 	border-radius: 4px 4px 0 0;
+}
+
+.adm-bar-label {
+	font-size: 0.63rem;
+	line-height: 1;
+	color: #8ea5d4;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.adm-mini-total {
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: #9ec5ff;
 }
 
 .adm-bar.amber { background: linear-gradient(180deg, #ffc96f, #ad6f1f); }
@@ -333,6 +426,17 @@
 
 .adm-quick-btn:hover {
 	border-color: rgba(143, 226, 255, 0.52);
+}
+
+@media (max-width: 980px) {
+	.adm-chart-footer {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.adm-bars {
+		height: 110px;
+	}
 }
 
 /* Shared theme for admin pages using db-* layout */

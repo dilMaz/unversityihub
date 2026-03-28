@@ -3,6 +3,52 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/adminDashboardUnique.css";
 
+const normalizeSeries = (series, minHeight = 22, maxHeight = 88) => {
+  if (!Array.isArray(series) || series.length === 0) return [];
+
+  const maxValue = Math.max(1, ...series);
+  return series.map((value) => {
+    const ratio = (value || 0) / maxValue;
+    return Math.round(minHeight + ratio * (maxHeight - minHeight));
+  });
+};
+
+const buildTrendCoordinates = (series) => {
+  if (!Array.isArray(series) || series.length === 0) {
+    const fallback = [26, 32, 28, 50, 41, 58];
+    const left = 28;
+    const right = 732;
+    const top = 30;
+    const bottom = 142;
+    const maxValue = Math.max(1, ...fallback);
+    const step = (right - left) / Math.max(1, fallback.length - 1);
+
+    return fallback.map((value, index) => ({
+      x: left + index * step,
+      y: bottom - (value / maxValue) * (bottom - top),
+      value,
+    }));
+  }
+
+  const left = 28;
+  const right = 732;
+  const top = 30;
+  const bottom = 142;
+  const maxValue = Math.max(1, ...series);
+  const step = (right - left) / Math.max(1, series.length - 1);
+
+  return series.map((value, index) => ({
+    x: left + index * step,
+    y: bottom - ((value || 0) / maxValue) * (bottom - top),
+    value: value || 0,
+  }));
+};
+
+const buildTrendPath = (points) => {
+  if (!Array.isArray(points) || points.length === 0) return "";
+  return points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+};
+
 function AdminDashboard() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -10,6 +56,10 @@ function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [usersError, setUsersError] = useState("");
+  const [analyticsSummary, setAnalyticsSummary] = useState(null);
+  const [analyticsMonthly, setAnalyticsMonthly] = useState([]);
+  const [pendingCount, setPendingCount] = useState(null);
+  const [liveError, setLiveError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -60,8 +110,28 @@ function AdminDashboard() {
       }
     };
 
+    const fetchLiveDiagrams = async () => {
+      try {
+        const [analyticsRes, pendingRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/admin/analytics/summary", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("http://localhost:5000/api/notes/review/pending", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        setAnalyticsSummary(analyticsRes.data?.summary || null);
+        setAnalyticsMonthly(Array.isArray(analyticsRes.data?.monthly) ? analyticsRes.data.monthly : []);
+        setPendingCount(Array.isArray(pendingRes.data) ? pendingRes.data.length : 0);
+      } catch (err) {
+        setLiveError(err?.response?.data?.message || "Unable to fetch live chart data");
+      }
+    };
+
     fetchDashboard();
     fetchUsers();
+    fetchLiveDiagrams();
   }, [navigate]);
 
   const logout = () => {
@@ -71,26 +141,47 @@ function AdminDashboard() {
     navigate("/");
   };
 
-  const adminCount = usersLoading
+  const fallbackAdminCount = usersLoading
     ? "..."
     : users.filter((u) => (u.role || "").toLowerCase() === "admin").length;
 
-  const studentCount = usersLoading
+  const fallbackStudentCount = usersLoading
     ? "..."
     : users.filter((u) => (u.role || "").toLowerCase() !== "admin").length;
 
-  const totalUsers = usersLoading ? "..." : users.length;
+  const fallbackTotalUsers = usersLoading ? "..." : users.length;
+
+  const adminCount = analyticsSummary?.totalAdmins ?? fallbackAdminCount;
+  const studentCount = analyticsSummary?.totalStudents ?? fallbackStudentCount;
+  const totalUsers = analyticsSummary?.totalUsers ?? fallbackTotalUsers;
+
+  const recentMonths = analyticsMonthly.slice(-7);
+  const activityRaw = recentMonths.map((m) => (m.users || 0) + (m.notes || 0) + (m.comments || 0));
+  const moderationRaw = recentMonths.map((m) => m.notes || 0);
+  const engagementRaw = recentMonths.map((m) => m.comments || 0);
+  const monthLabels = recentMonths.map((m, index) => {
+    const label = (m?.monthLabel || "").split(" ")[0];
+    return label || `M${index + 1}`;
+  });
+
+  const activityBars = normalizeSeries(activityRaw.length ? activityRaw : [72, 54, 39, 48, 67, 80, 58]);
+  const moderationBars = normalizeSeries(moderationRaw.length ? moderationRaw : [20, 26, 18, 22, 31, 28, 36]);
+  const engagementBars = normalizeSeries(engagementRaw.length ? engagementRaw : [44, 30, 53, 35, 22, 29, 41]);
+  const trendCoordinates = buildTrendCoordinates(activityRaw);
+  const trendPath = buildTrendPath(trendCoordinates);
+
+  const activityTotal = activityRaw.reduce((sum, value) => sum + value, 0);
+  const moderationTotal = moderationRaw.reduce((sum, value) => sum + value, 0);
+  const engagementTotal = engagementRaw.reduce((sum, value) => sum + value, 0);
+  const latestMonth = recentMonths[recentMonths.length - 1]?.monthLabel || "Current month";
+  const latestActivity = activityRaw[activityRaw.length - 1] ?? 0;
 
   const summaryCards = [
     { id: "users", label: "Total Users", value: totalUsers, tone: "teal" },
     { id: "admins", label: "Admin Accounts", value: adminCount, tone: "violet" },
     { id: "students", label: "Student Accounts", value: studentCount, tone: "pink" },
-    { id: "reviews", label: "Pending Review", value: "Live", tone: "cyan" },
+    { id: "reviews", label: "Pending Review", value: pendingCount ?? "...", tone: "cyan" },
   ];
-
-  const activityBars = [72, 54, 39, 48, 67, 80, 58];
-  const moderationBars = [20, 26, 18, 22, 31, 28, 36];
-  const engagementBars = [44, 30, 53, 35, 22, 29, 41];
 
   const navItems = [
     { id: "overview", label: "Overview", action: () => navigate("/admin-dashboard") },
@@ -145,40 +236,92 @@ function AdminDashboard() {
             ))}
           </div>
 
-          {usersError && <div className="adm-inline-error">{usersError}</div>}
+          {(usersError || liveError) && <div className="adm-inline-error">{usersError || liveError}</div>}
 
           <div className="adm-graph-card">
-            <div className="adm-card-title">Steps Overview</div>
+            <div className="adm-chart-head">
+              <div>
+                <div className="adm-card-title">Steps Overview</div>
+                <div className="adm-card-subtitle">Total monthly platform actions (users + notes + comments)</div>
+              </div>
+              <div className="adm-chart-stat">{latestMonth}: {latestActivity}</div>
+            </div>
             <svg viewBox="0 0 760 180" className="adm-trend-svg" role="img" aria-label="Activity trend line">
+              {[38, 74, 110, 146].map((yLine) => (
+                <line
+                  key={yLine}
+                  x1="24"
+                  y1={yLine}
+                  x2="736"
+                  y2={yLine}
+                  className="adm-trend-grid"
+                />
+              ))}
               <polyline
-                points="0,130 40,120 80,126 120,94 160,108 200,84 240,88 280,64 320,72 360,60 400,78 440,57 480,63 520,58 560,69 600,96 640,84 680,92 720,76 760,82"
+                points={trendPath}
                 className="adm-trend-path"
               />
+              {trendCoordinates.map((point, index) => (
+                <g key={`trend-point-${index}`}>
+                  <circle cx={point.x} cy={point.y} r="3.6" className="adm-trend-point" />
+                  <text x={point.x} y={point.y - 8} textAnchor="middle" className="adm-trend-value">
+                    {point.value}
+                  </text>
+                  <text x={point.x} y="166" textAnchor="middle" className="adm-trend-month">
+                    {monthLabels[index] || `M${index + 1}`}
+                  </text>
+                </g>
+              ))}
             </svg>
+            <div className="adm-chart-footer">
+              <div>Period: {monthLabels.join(" | ") || "Live"}</div>
+              <div>Total Actions: {activityTotal}</div>
+            </div>
           </div>
 
           <div className="adm-mini-grid">
             <div className="adm-mini-card">
-              <div className="adm-card-title">User Activity</div>
+              <div className="adm-chart-head compact">
+                <div className="adm-card-title">User Activity</div>
+                <div className="adm-mini-total">Total: {activityTotal}</div>
+              </div>
               <div className="adm-bars">
                 {activityBars.map((value, index) => (
-                  <div key={`ua-${index}`} className="adm-bar amber" style={{ height: `${value}%` }} />
+                  <div key={`ua-${index}`} className="adm-bar-stack" title={`${monthLabels[index] || `M${index + 1}`}: ${activityRaw[index] || 0}`}>
+                    <span className="adm-bar-value">{activityRaw[index] || 0}</span>
+                    <div className="adm-bar amber" style={{ height: `${value}px` }} />
+                    <span className="adm-bar-label">{monthLabels[index] || `M${index + 1}`}</span>
+                  </div>
                 ))}
               </div>
             </div>
             <div className="adm-mini-card">
-              <div className="adm-card-title">Moderation Load</div>
+              <div className="adm-chart-head compact">
+                <div className="adm-card-title">Moderation Load</div>
+                <div className="adm-mini-total">Notes: {moderationTotal}</div>
+              </div>
               <div className="adm-bars">
                 {moderationBars.map((value, index) => (
-                  <div key={`ml-${index}`} className="adm-bar pink" style={{ height: `${value + 25}%` }} />
+                  <div key={`ml-${index}`} className="adm-bar-stack" title={`${monthLabels[index] || `M${index + 1}`}: ${moderationRaw[index] || 0}`}>
+                    <span className="adm-bar-value">{moderationRaw[index] || 0}</span>
+                    <div className="adm-bar pink" style={{ height: `${value}px` }} />
+                    <span className="adm-bar-label">{monthLabels[index] || `M${index + 1}`}</span>
+                  </div>
                 ))}
               </div>
             </div>
             <div className="adm-mini-card">
-              <div className="adm-card-title">Engagement</div>
+              <div className="adm-chart-head compact">
+                <div className="adm-card-title">Engagement</div>
+                <div className="adm-mini-total">Comments: {engagementTotal}</div>
+              </div>
               <div className="adm-bars">
                 {engagementBars.map((value, index) => (
-                  <div key={`eg-${index}`} className="adm-bar blue" style={{ height: `${value}%` }} />
+                  <div key={`eg-${index}`} className="adm-bar-stack" title={`${monthLabels[index] || `M${index + 1}`}: ${engagementRaw[index] || 0}`}>
+                    <span className="adm-bar-value">{engagementRaw[index] || 0}</span>
+                    <div className="adm-bar blue" style={{ height: `${value}px` }} />
+                    <span className="adm-bar-label">{monthLabels[index] || `M${index + 1}`}</span>
+                  </div>
                 ))}
               </div>
             </div>
