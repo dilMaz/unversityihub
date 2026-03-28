@@ -166,6 +166,30 @@ body {
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
 }
 
+.db-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(124, 92, 252, 0.12);
+  color: #c4b5fd;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.db-profile-btn:hover {
+  border-color: rgba(124, 92, 252, 0.65);
+  background: rgba(124, 92, 252, 0.2);
+  color: #b09fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 92, 252, 0.22);
+}
+
 /* ── Hero ──────────────────────────────────────────────── */
 .db-hero {
   margin-bottom: 48px;

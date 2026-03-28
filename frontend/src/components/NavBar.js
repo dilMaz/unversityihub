@@ -121,20 +121,21 @@ function NavBar() {
           {isLoggedIn ? (
             <>
               {renderNavItem("Dashboard", "/dashboard", "", 0)}
-              {renderNavItem("Search", "/search", "", 1)}
-              {renderNavItem("Top Rated", "/top-rated", "", 2)}
-              {renderNavItem("Recommended", "/recommend", "", 3)}
-              {renderNavItem("Upload", "/upload", "", 4)}
-              {renderNavItem("Categories", "/categories", "", 5)}
+              {renderNavItem("Student Support", "/student-support", "", 1)}
+              {renderNavItem("Search", "/search", "", 2)}
+              {renderNavItem("Top Rated", "/top-rated", "", 3)}
+              {renderNavItem("Recommended", "/recommend", "", 4)}
+              {renderNavItem("Upload", "/upload", "", 5)}
+              {renderNavItem("Categories", "/categories", "", 6)}
 
               {userRole === "admin" && (
                 <>
                   <li className="nav-divider"></li>
-                  {renderNavItem("Admin", "/admin-dashboard", "admin", 6)}
+                  {renderNavItem("Admin", "/admin-dashboard", "admin", 7)}
                 </>
               )}
 
-              <li className="nav-item" style={{ "--item-delay": 7 }}>
+              <li className="nav-item" style={{ "--item-delay": 8 }}>
                 <button className="nav-link logout" onClick={handleLogout}>
                   Logout
                 </button>

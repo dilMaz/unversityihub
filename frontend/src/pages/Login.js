@@ -6,14 +6,14 @@ import "../styles/auth.css";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
+    setError("");
 
     try {
       const res = await axios.post(
@@ -26,7 +26,7 @@ function Login() {
 
       console.log("LOGIN DATA:", res.data);
 
-      // 🔥 SAVE TOKEN + USER
+      // SAVE TOKEN + USER
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       localStorage.setItem("userRole", res.data.user?.role || "user");
@@ -39,7 +39,7 @@ function Login() {
 
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.response?.data?.message || "Login failed. Check credentials.");
+      setError(err?.response?.data?.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }
@@ -49,44 +49,64 @@ function Login() {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-brand">
-          <div className="auth-brand-name">UniHub</div>
-        </div>
-        <h2>Login to UniNotes</h2>
-        <p className="auth-subtitle">Continue your study flow in seconds</p>
-
-        {error && (
-          <div className="error-msg" style={{color: 'red', marginBottom: '1rem', padding: '0.5rem'}}>
-            {error}
+          <div className="auth-brand-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z"></path>
+              <path d="M2 17L12 22L22 17"></path>
+              <path d="M2 12L12 17L22 12"></path>
+            </svg>
           </div>
-        )}
+          <div className="auth-brand-name">UniNotes</div>
+        </div>
+
+        <h2>Welcome Back</h2>
+        <p className="auth-subtitle">Sign in to access your university notes</p>
+
+        {error && <div className="auth-error">{error}</div>}
+        
         <form onSubmit={handleLogin}>
-          <label className="auth-label">Email</label>
-          <input
-            type="email"
-            placeholder="Enter Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={loading}
-          />
+          <div className="auth-field">
+            <label className="auth-label" htmlFor="email">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
 
-          <label className="auth-label">Password</label>
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={loading}
-          />
+          <div className="auth-field">
+            <label className="auth-label" htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+          <button type="submit" disabled={loading} className="auth-submit-btn">
+            {loading ? (
+              <span className="auth-loading">
+                <span className="auth-spinner"></span>
+                Signing in...
+              </span>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
 
+        <div className="auth-divider">or</div>
+
         <div className="auth-link">
-          Don’t have an account? <Link to="/register">Register</Link>
+          Don't have an account? <Link to="/register">Create Account</Link>
         </div>
       </div>
     </div>

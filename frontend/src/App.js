@@ -12,7 +12,10 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
-import AdminAnalytics from "./pages/AdminAnalytics";
+import StudentSupport from "./pages/StudentSupport";
+import AdminStudentSupport from "./pages/AdminStudentSupport";
+import StudySupport from "./pages/StudySupport";
+import Profile from "./pages/Profile";
 import Search from "./pages/Search";
 import TopRated from "./pages/TopRated";
 import Recommended from "./pages/Recommended";
@@ -48,12 +51,15 @@ function App() {
             {/* HOME */}
             <Route path="/" element={<Home />} />
 
-            {/* EXISTING */}
+            {/* AUTH */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
             {/* PROTECTED ROUTES */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/student-support" element={<ProtectedRoute><StudentSupport /></ProtectedRoute>} />
+            <Route path="/study-support" element={<ProtectedRoute><StudySupport /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
@@ -66,7 +72,7 @@ function App() {
             <Route path="/admin-upload-notes" element={<AdminRoute><AdminUploadNotes /></AdminRoute>} />
             <Route path="/admin-comments" element={<AdminRoute><AdminComments /></AdminRoute>} />
             <Route path="/admin-panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
-            <Route path="/admin-analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
+            <Route path="/admin-student-support" element={<AdminRoute><AdminStudentSupport /></AdminRoute>} />
             <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
 
             {/* PROGRAM FLOW */}

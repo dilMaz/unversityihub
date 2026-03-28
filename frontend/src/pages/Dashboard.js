@@ -20,6 +20,17 @@ function Dashboard() {
   const [stats, setStats] = useState(getDefaultStats());
   const [notes, setNotes] = useState([]);
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    navigate("/login");
+  };
+
+  const goToAdmin = () => {
+    navigate("/admin-dashboard");
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -39,7 +50,6 @@ function Dashboard() {
 
     if (storedUser?.name) {
       setName(storedUser.name);
-      setLoading(false);
     }
 
     const fetchDashboard = async () => {
@@ -55,17 +65,12 @@ function Dashboard() {
       } catch (err) {
         console.error("Dashboard fetch error:", err);
         if (err.response?.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          localStorage.removeItem("userRole");
-          navigate("/login");
+          logout();
         }
       } finally {
         setLoading(false);
       }
     };
-
-    fetchDashboard();
 
     const fetchStats = async () => {
       try {
@@ -79,6 +84,7 @@ function Dashboard() {
       }
     };
 
+    fetchDashboard();
     fetchStats();
   }, [navigate]);
 
@@ -94,6 +100,23 @@ function Dashboard() {
         {/* Topbar */}
         <div className="db-topbar">
           <div className="db-logo">UniHub</div>
+          <div className="db-topbar-actions">
+            {userRole === "admin" && (
+              <button className="db-admin-btn" onClick={goToAdmin}>
+                👨‍💼 Admin
+              </button>
+            )}
+            <button
+              type="button"
+              className="db-profile-btn"
+              onClick={() => navigate("/profile")}
+            >
+              👤 Profile
+            </button>
+            <button className="db-logout" onClick={logout}>
+              <span>↩</span> Sign out
+            </button>
+          </div>
         </div>
 
         {/* Hero */}
@@ -199,7 +222,6 @@ function Dashboard() {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -4,12 +4,21 @@ import axios from "axios";
 import "../styles/auth.css";
 
 function Register() {
+  // Core user state
   const [name, setName] = useState("");
   const [nic, setNic] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [status, setStatus] = useState("undergraduate");
+  
+  // Additional student fields
+  const [itNumber, setItNumber] = useState("");
+  const [specialization, setSpecialization] = useState("");
+  const [year, setYear] = useState("");
+  const [semester, setSemester] = useState("");
+
+  // UI state
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,20 +36,26 @@ function Register() {
     setLoading(true);
 
     try {
+      // Build the payload with all available fields
+      const payload = {
+        name,
+        nic: nic || 'N/A',
+        email,
+        password,
+        phone: phone || 'N/A',
+        status,
+        itNumber: itNumber.trim(),
+        specialization: specialization.trim(),
+        year: year !== "" ? Number(year) : null,
+        semester: semester !== "" ? Number(semester) : null,
+      };
+
       const res = await axios.post(
         "http://localhost:5000/api/auth/register",
-        { 
-          name, 
-          nic: nic || 'N/A', 
-          email, 
-          password, 
-          phone: phone || 'N/A', 
-          status 
-        }
+        payload
       );
 
       console.log("REGISTER SUCCESS:", res.data);
-
       navigate("/login");
 
     } catch (err) {
@@ -61,57 +76,131 @@ function Register() {
         <p className="auth-subtitle">Start sharing and discovering smarter notes</p>
 
         {error && (
-          <div className="error-msg" style={{color: 'red', marginBottom: '1rem', padding: '0.5rem'}}>
+          <div className="error-msg" style={{ color: 'red', marginBottom: '1rem', padding: '0.5rem', border: '1px solid red', borderRadius: '4px' }}>
             {error}
           </div>
         )}
 
         <form onSubmit={handleRegister}>
-          <label className="auth-label">Full Name</label>
-          <input
-            type="text"
-            placeholder="Enter Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <div className="reg-grid">
+            {/* Basic Info */}
+            <div className="reg-field">
+              <label className="reg-label">Full Name</label>
+              <input
+                className="reg-input"
+                type="text"
+                placeholder="Enter Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
 
-          <label className="auth-label">Email</label>
-          <input
-            type="text"
-            placeholder="NIC (optional)"
-            onChange={(e) => setNic(e.target.value)}
-          />
+            <div className="reg-field">
+              <label className="reg-label">Email</label>
+              <input
+                className="reg-input"
+                type="email"
+                placeholder="Enter Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          <input
-            type="email"
-            placeholder="Enter Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+            <div className="reg-field">
+              <label className="reg-label">NIC (optional)</label>
+              <input
+                className="reg-input"
+                type="text"
+                placeholder="Enter NIC"
+                value={nic}
+                onChange={(e) => setNic(e.target.value)}
+              />
+            </div>
 
-          <label className="auth-label">Password</label>
-          <input
-            type="tel"
-            placeholder="Phone (optional)"
-            onChange={(e) => setPhone(e.target.value)}
-          />
+            <div className="reg-field">
+              <label className="reg-label">Phone (optional)</label>
+              <input
+                className="reg-input"
+                type="tel"
+                placeholder="e.g. 0771234567"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
 
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="undergraduate">Undergraduate</option>
-            <option value="graduate">Graduate</option>
-          </select>
+            <div className="reg-field reg-span-2">
+              <label className="reg-label">Password</label>
+              <input
+                className="reg-input"
+                type="password"
+                placeholder="Min 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+            {/* Academic Info */}
+            <div className="reg-field">
+              <label className="reg-label">Status</label>
+              <select 
+                className="reg-input" 
+                value={status} 
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="undergraduate">Undergraduate</option>
+                <option value="graduate">Graduate</option>
+              </select>
+            </div>
 
-          <button type="submit" disabled={loading}>
+            <div className="reg-field">
+              <label className="reg-label">IT Number</label>
+              <input
+                className="reg-input"
+                type="text"
+                placeholder="e.g. IT2020"
+                value={itNumber}
+                onChange={(e) => setItNumber(e.target.value)}
+              />
+            </div>
+
+            <div className="reg-field reg-span-2">
+              <label className="reg-label">Specialization</label>
+              <input
+                className="reg-input"
+                type="text"
+                placeholder="e.g. Software Engineering"
+                value={specialization}
+                onChange={(e) => setSpecialization(e.target.value)}
+              />
+            </div>
+
+            <div className="reg-field">
+              <label className="reg-label">Year</label>
+              <input
+                className="reg-input"
+                type="number"
+                placeholder="Year"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              />
+            </div>
+
+            <div className="reg-field">
+              <label className="reg-label">Semester</label>
+              <input
+                className="reg-input"
+                type="number"
+                placeholder="Semester"
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button className="reg-submit" type="submit" disabled={loading}>
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
