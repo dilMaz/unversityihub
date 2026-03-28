@@ -69,8 +69,19 @@ function Register() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <div className="auth-brand">
-          <div className="auth-brand-name">UniHub</div>
+        <div className="auth-header">
+          <span 
+            className="auth-back-btn" 
+            onClick={() => navigate("/login")}
+            aria-label="Go back to login"
+            role="button"
+            tabIndex="0"
+          >
+            ←
+          </span>
+          <div className="auth-brand">
+            <div className="auth-brand-name">UniHub</div>
+          </div>
         </div>
         <h2>Create Account</h2>
         <p className="auth-subtitle">Start sharing and discovering smarter notes</p>
