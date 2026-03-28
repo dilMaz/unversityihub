@@ -6,7 +6,6 @@ import NavBar from "./components/NavBar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import VerifyOTP from "./pages/VerifyOTP"; // Ensure this file exists in src/pages/
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
@@ -14,7 +13,7 @@ import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
 import StudentSupport from "./pages/StudentSupport";
-import StudentSupportForm from "./pages/StudentSupportForm";
+import AdminStudentSupport from "./pages/AdminStudentSupport";
 import StudySupport from "./pages/StudySupport";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
@@ -55,12 +54,10 @@ function App() {
             {/* AUTH */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/verify-otp" element={<VerifyOTP />} />
 
             {/* PROTECTED ROUTES */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/student-support" element={<ProtectedRoute><StudentSupportForm /></ProtectedRoute>} />
-            <Route path="/student-support-admin" element={<ProtectedRoute><StudentSupport /></ProtectedRoute>} />
+            <Route path="/student-support" element={<ProtectedRoute><StudentSupport /></ProtectedRoute>} />
             <Route path="/study-support" element={<ProtectedRoute><StudySupport /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
@@ -75,7 +72,7 @@ function App() {
             <Route path="/admin-upload-notes" element={<AdminRoute><AdminUploadNotes /></AdminRoute>} />
             <Route path="/admin-comments" element={<AdminRoute><AdminComments /></AdminRoute>} />
             <Route path="/admin-panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
-            <Route path="/admin-student-support" element={<AdminRoute><StudentSupport /></AdminRoute>} />
+            <Route path="/admin-student-support" element={<AdminRoute><AdminStudentSupport /></AdminRoute>} />
             <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
 
             {/* PROGRAM FLOW */}

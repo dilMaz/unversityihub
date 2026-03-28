@@ -38,9 +38,9 @@ const baseQuickActions = [
   {
     id: "student-support",
     cls: "c5",
-    icon: "🎓",
+    icon: "�",
     title: "Student Support",
-    desc: "Get help from administrators, submit support requests, and track your issues.",
+    desc: "Facing issues? Get help from our support team for any problems you encounter.",
     btn: "Get Support",
     route: "/student-support",
   },
@@ -58,7 +58,7 @@ const baseQuickActions = [
 const adminQuickActions = [
   {
     id: "admin-panel",
-    cls: "c5",
+    cls: "c6",
     icon: "🛡️",
     title: "Admin Panel",
     desc: "Moderate users, review submissions, and keep quality standards high.",

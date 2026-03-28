@@ -196,6 +196,11 @@ app.use("/api/notes", noteRoutes);
 // study support (student + admin)
 app.use("/api/support", supportRoutes);
 
+// Test endpoint
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Server is working!", timestamp: new Date().toISOString() });
+});
+
 // dashboard (protected)
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
   try {
