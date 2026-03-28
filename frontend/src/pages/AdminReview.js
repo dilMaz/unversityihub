@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/dashboard.css';
@@ -13,6 +13,21 @@ const AdminReview = () => {
   const [name, setName] = useState('');
   const [actionId, setActionId] = useState('');
   const [viewingId, setViewingId] = useState('');
+  const [topNotice, setTopNotice] = useState({ type: '', text: '' });
+  const noticeTimerRef = useRef(null);
+
+  const showTopNotice = (type, text) => {
+    if (noticeTimerRef.current) {
+      clearTimeout(noticeTimerRef.current);
+    }
+
+    setTopNotice({ type, text });
+
+    noticeTimerRef.current = setTimeout(() => {
+      setTopNotice({ type: '', text: '' });
+      noticeTimerRef.current = null;
+    }, 3000);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -36,6 +51,12 @@ const AdminReview = () => {
     fetchDashboard();
     fetchPendingNotes();
     fetchReviewedNotes();
+
+    return () => {
+      if (noticeTimerRef.current) {
+        clearTimeout(noticeTimerRef.current);
+      }
+    };
   }, [navigate]);
 
   const fetchPendingNotes = async () => {
@@ -67,10 +88,12 @@ const AdminReview = () => {
   const approveNote = async (id) => {
     try {
       setActionId(id);
+      setError('');
       await axios.put(`http://localhost:5000/api/notes/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNotes((prev) => prev.filter((note) => note._id !== id));
+      showTopNotice('success', 'Document approved successfully');
       fetchReviewedNotes();
     } catch (err) {
       setError(err?.response?.data?.message || 'Approve failed');
@@ -82,10 +105,12 @@ const AdminReview = () => {
   const rejectNote = async (id) => {
     try {
       setActionId(id);
+      setError('');
       await axios.put(`http://localhost:5000/api/notes/${id}/reject`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNotes((prev) => prev.filter((note) => note._id !== id));
+      showTopNotice('reject', 'Document rejected successfully');
       fetchReviewedNotes();
     } catch (err) {
       setError(err?.response?.data?.message || 'Reject failed');
@@ -161,12 +186,16 @@ const AdminReview = () => {
           <p>Approve or reject uploaded documents.</p>
         </div>
 
+        {(topNotice.text || error) && (
+          <div className={`review-alert ${error ? 'error' : topNotice.type}`}>
+            {error || topNotice.text}
+          </div>
+        )}
+
         <div className="db-section-title">Pending Reviews ({notes.length})</div>
 
         {loading ? (
           <div>Loading...</div>
-        ) : error ? (
-          <div className="error">{error}</div>
         ) : (
           <div className="db-cards">
             {notes.map((note) => (
