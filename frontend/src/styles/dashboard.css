@@ -589,6 +589,58 @@ body {
   transform: translateX(4px);
 }
 
+/* ── Admin Review Action Buttons ───────────────────────── */
+.approve-btn,
+.reject-btn {
+  min-width: 128px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.approve-btn {
+  color: #dcfff0;
+  background: linear-gradient(135deg, rgba(60, 255, 166, 0.22), rgba(28, 198, 120, 0.18));
+  border-color: rgba(60, 255, 166, 0.45);
+  box-shadow: 0 8px 20px rgba(16, 122, 76, 0.25);
+}
+
+.approve-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(80, 255, 181, 0.3), rgba(40, 212, 133, 0.24));
+  border-color: rgba(113, 255, 200, 0.85);
+  box-shadow: 0 10px 24px rgba(26, 180, 112, 0.32);
+}
+
+.reject-btn {
+  color: #ffe8e8;
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.22), rgba(213, 64, 64, 0.18));
+  border-color: rgba(255, 107, 107, 0.45);
+  box-shadow: 0 8px 20px rgba(117, 32, 32, 0.24);
+  margin-top: 10px;
+}
+
+.reject-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(255, 124, 124, 0.3), rgba(228, 80, 80, 0.24));
+  border-color: rgba(255, 151, 151, 0.82);
+  box-shadow: 0 10px 24px rgba(168, 48, 48, 0.3);
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ── Study Pulse Panels ───────────────────────────────── */
 .db-grid {
   display: grid;
