@@ -12,6 +12,7 @@ const AdminReview = () => {
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [actionId, setActionId] = useState('');
+  const [viewingId, setViewingId] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -93,6 +94,43 @@ const AdminReview = () => {
     }
   };
 
+  const getPublicFileUrl = (fileUrl) => {
+    if (!fileUrl) return null;
+    const normalized = fileUrl.replace(/\\/g, '/').replace(/^\/+/, '');
+    if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+      return normalized;
+    }
+    return `http://localhost:5000/${normalized}`;
+  };
+
+  const viewDocument = async (id) => {
+    try {
+      setViewingId(id);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Please login again');
+        navigate('/login');
+        return;
+      }
+
+      const res = await axios.get(`http://localhost:5000/api/notes/${id}/view`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const publicUrl = getPublicFileUrl(res.data?.fileUrl);
+      if (!publicUrl) {
+        setError('This note has no viewable file');
+        return;
+      }
+
+      window.open(publicUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to open document');
+    } finally {
+      setViewingId('');
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -143,18 +181,25 @@ const AdminReview = () => {
                     Status: {note.moderationStatus || 'pending'}
                   </div>
                 </div>
-                <div>
+                <div className="pending-actions">
+                  <button
+                    onClick={() => viewDocument(note._id)}
+                    className="view-btn pending-view-btn"
+                    disabled={viewingId === note._id || actionId === note._id}
+                  >
+                    {viewingId === note._id ? 'Opening...' : 'View 📄'}
+                  </button>
                   <button
                     onClick={() => approveNote(note._id)}
                     className="approve-btn"
-                    disabled={actionId === note._id}
+                    disabled={actionId === note._id || viewingId === note._id}
                   >
                     {actionId === note._id ? 'Working...' : 'Approve ✅'}
                   </button>
                   <button
                     onClick={() => rejectNote(note._id)}
                     className="reject-btn"
-                    disabled={actionId === note._id}
+                    disabled={actionId === note._id || viewingId === note._id}
                   >
                     {actionId === note._id ? 'Working...' : 'Reject ❌'}
                   </button>
@@ -179,12 +224,13 @@ const AdminReview = () => {
                   <th>Status</th>
                   <th>Reviewed By</th>
                   <th>Reviewed At</th>
+                  <th>View</th>
                 </tr>
               </thead>
               <tbody>
                 {reviewedNotes.length === 0 ? (
                   <tr>
-                    <td colSpan="6">No approved or rejected notes yet.</td>
+                    <td colSpan="7">No approved or rejected notes yet.</td>
                   </tr>
                 ) : (
                   reviewedNotes.map((note) => (
@@ -199,6 +245,16 @@ const AdminReview = () => {
                       </td>
                       <td>{note.reviewedBy?.name || '-'}</td>
                       <td>{formatDate(note.reviewedAt)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="view-doc-btn"
+                          onClick={() => viewDocument(note._id)}
+                          disabled={viewingId === note._id}
+                        >
+                          {viewingId === note._id ? 'Opening...' : 'View'}
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}

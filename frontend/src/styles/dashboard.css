@@ -590,6 +590,31 @@ body {
 }
 
 /* ── Admin Review Action Buttons ───────────────────────── */
+.view-btn,
+.view-doc-btn {
+  border: 1px solid rgba(90, 216, 255, 0.45);
+  border-radius: 10px;
+  padding: 9px 14px;
+  min-width: 128px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #dff7ff;
+  background: linear-gradient(135deg, rgba(72, 166, 255, 0.22), rgba(33, 109, 182, 0.18));
+  box-shadow: 0 8px 20px rgba(25, 90, 150, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.view-btn:hover:not(:disabled),
+.view-doc-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(95, 181, 255, 0.3), rgba(45, 126, 205, 0.24));
+  border-color: rgba(149, 220, 255, 0.85);
+  box-shadow: 0 10px 24px rgba(31, 110, 181, 0.32);
+}
+
 .approve-btn,
 .reject-btn {
   min-width: 128px;
@@ -634,11 +659,42 @@ body {
 }
 
 .approve-btn:disabled,
-.reject-btn:disabled {
+.reject-btn:disabled,
+.view-btn:disabled,
+.view-doc-btn:disabled {
   opacity: 0.58;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.view-doc-btn {
+  min-width: 84px;
+  padding: 6px 11px;
+  font-size: 0.76rem;
+}
+
+.review-card {
+  position: relative;
+}
+
+.pending-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pending-view-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  min-width: 108px;
+}
+
+.pending-actions .reject-btn {
+  margin-top: 0;
 }
 
 /* ── Study Pulse Panels ───────────────────────────────── */
