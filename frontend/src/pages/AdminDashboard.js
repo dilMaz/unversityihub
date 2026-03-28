@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import "../styles/dashboard.css";
+import "../styles/adminDashboardUnique.css";
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -71,126 +71,165 @@ function AdminDashboard() {
     navigate("/");
   };
 
+  const adminCount = usersLoading
+    ? "..."
+    : users.filter((u) => (u.role || "").toLowerCase() === "admin").length;
+
+  const studentCount = usersLoading
+    ? "..."
+    : users.filter((u) => (u.role || "").toLowerCase() !== "admin").length;
+
+  const totalUsers = usersLoading ? "..." : users.length;
+
+  const summaryCards = [
+    { id: "users", label: "Total Users", value: totalUsers, tone: "teal" },
+    { id: "admins", label: "Admin Accounts", value: adminCount, tone: "violet" },
+    { id: "students", label: "Student Accounts", value: studentCount, tone: "pink" },
+    { id: "reviews", label: "Pending Review", value: "Live", tone: "cyan" },
+  ];
+
+  const activityBars = [72, 54, 39, 48, 67, 80, 58];
+  const moderationBars = [20, 26, 18, 22, 31, 28, 36];
+  const engagementBars = [44, 30, 53, 35, 22, 29, 41];
+
+  const navItems = [
+    { id: "overview", label: "Overview", action: () => navigate("/admin-dashboard") },
+    { id: "users", label: "Users", action: () => navigate("/admin-users") },
+    { id: "review", label: "Review", action: () => navigate("/admin-review") },
+    { id: "analytics", label: "Analytics", action: () => navigate("/admin-analytics") },
+    { id: "comments", label: "Comments", action: () => navigate("/admin-comments") },
+    { id: "register", label: "Register Admin", action: () => navigate("/admin-panel") },
+    { id: "all-admin", label: "All Admin", action: () => navigate("/admin-users?role=admin") },
+  ];
+
   return (
-    <div className="db-root">
-      <div className="db-wrap">
-
-        {/* Topbar */}
-        <div className="db-topbar">
-          <div className="db-logo">Admin Panel</div>
-          <div className="db-topbar-actions">
-            <button className="db-logout" onClick={logout}>
-              <span>↩</span> Sign out
-            </button>
-          </div>
-        </div>
-
-        {/* Hero */}
-        <div className="db-hero">
-          <div className="db-greeting">Admin Dashboard</div>
-          <h1>
-            {loading
-              ? <span className="db-skeleton" />
-              : <>Welcome Admin, <span>{name}</span></>
-            }
-          </h1>
-          <p>Manage your application and user data.</p>
-        </div>
-
-        <div className="db-stats">
-          <div className="db-stat">
-            <div className="db-stat-label">Registered Users</div>
-            <div className="db-stat-value">{usersLoading ? "..." : users.length}</div>
-            <span className="db-stat-accent">👥</span>
-          </div>
-          <div className="db-stat">
-            <div className="db-stat-label">Admin Accounts</div>
-            <div className="db-stat-value">
-              {usersLoading ? "..." : users.filter((u) => (u.role || "").toLowerCase() === "admin").length}
-            </div>
-            <span className="db-stat-accent">🛡️</span>
-          </div>
-          <div className="db-stat">
-            <div className="db-stat-label">Student Accounts</div>
-            <div className="db-stat-value">
-              {usersLoading ? "..." : users.filter((u) => (u.role || "").toLowerCase() !== "admin").length}
-            </div>
-            <span className="db-stat-accent">🎓</span>
-          </div>
-        </div>
-
-        {usersError && <div className="error-text">{usersError}</div>}
-
-        {/* Admin Features */}
-        <div className="db-section-title">Admin Features</div>
-        <div className="db-cards">
-          <div className="db-card c1">
-            <div className="db-card-glow" />
-            <div className="db-card-icon">📊</div>
-            <div>
-              <div className="db-card-title">User Management</div>
-              <div className="db-card-desc">View and manage all users in the system.</div>
-            </div>
-            <button className="db-card-btn" onClick={() => navigate('/admin-users')}>
-              View Users <span className="db-card-arrow">→</span>
-            </button>
-          </div>
-
-          <div className="db-card c2">
-            <div className="db-card-glow" />
-            <div className="db-card-icon">📝</div>
-            <div>
-              <div className="db-card-title">Document Review</div>
-              <div className="db-card-desc">Review and approve pending documents.</div>
-            </div>
-            <button className="db-card-btn" onClick={() => navigate('/admin-review')}>
-              Review Docs <span className="db-card-arrow">→</span>
-            </button>
-          </div>
-
-          <div className="db-card c3">
-            <div className="db-card-glow" />
-            <div className="db-card-icon">📈</div>
-            <div>
-              <div className="db-card-title">Analytics</div>
-              <div className="db-card-desc">View system statistics and analytics.</div>
-            </div>
-            <button className="db-card-btn" onClick={() => navigate('/admin-analytics')}>
-              View Analytics <span className="db-card-arrow">→</span>
-            </button>
-          </div>
-
-          <div className="db-card c5">
-            <div className="db-card-glow" />
-            <div className="db-card-icon">💬</div>
-            <div>
-              <div className="db-card-title">Comment Management</div>
-              <div className="db-card-desc">Review and moderate comments on notes.</div>
-            </div>
-            <button className="db-card-btn" onClick={() => navigate('/admin-comments')}>
-              Review Comments <span className="db-card-arrow">→</span>
-            </button>
-          </div>
-
-          <div className="db-card c6">
-            <div className="db-card-glow" />
-            <div className="db-card-icon">👨‍💼</div>
-            <div>
-              <div className="db-card-title">Admin Registration</div>
-              <div className="db-card-desc">Register new admin users for the system.</div>
-            </div>
-            <div className="db-card-actions">
-              <button className="db-card-btn" onClick={() => navigate('/admin-panel')}>
-                Register Admin <span className="db-card-arrow">→</span>
+    <div className="adm-root">
+      <div className="adm-shell">
+        <aside className="adm-sidebar">
+          <div className="adm-brand">Admin Console</div>
+          <div className="adm-nav-list">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`adm-nav-btn ${item.id === "overview" ? "active" : ""}`}
+                onClick={item.action}
+              >
+                {item.label}
               </button>
-              <button className="db-card-btn" onClick={() => navigate('/admin-users?role=admin')}>
-                All Admin <span className="db-card-arrow">→</span>
-              </button>
+            ))}
+          </div>
+          <button type="button" className="adm-signout" onClick={logout}>
+            Sign Out
+          </button>
+        </aside>
+
+        <main className="adm-main">
+          <div className="adm-top">
+            <div>
+              <div className="adm-kicker">Admin Dashboard</div>
+              <h1>{loading ? "Welcome..." : `Welcome, ${name}`}</h1>
+              <p>Monitor users, moderation, and platform health from one place.</p>
+            </div>
+            <button type="button" className="adm-primary" onClick={() => navigate('/admin-review')}>
+              Open Reviews
+            </button>
+          </div>
+
+          <div className="adm-summary-grid">
+            {summaryCards.map((card) => (
+              <div key={card.id} className={`adm-summary-card ${card.tone}`}>
+                <span>{card.label}</span>
+                <strong>{card.value}</strong>
+              </div>
+            ))}
+          </div>
+
+          {usersError && <div className="adm-inline-error">{usersError}</div>}
+
+          <div className="adm-graph-card">
+            <div className="adm-card-title">Steps Overview</div>
+            <svg viewBox="0 0 760 180" className="adm-trend-svg" role="img" aria-label="Activity trend line">
+              <polyline
+                points="0,130 40,120 80,126 120,94 160,108 200,84 240,88 280,64 320,72 360,60 400,78 440,57 480,63 520,58 560,69 600,96 640,84 680,92 720,76 760,82"
+                className="adm-trend-path"
+              />
+            </svg>
+          </div>
+
+          <div className="adm-mini-grid">
+            <div className="adm-mini-card">
+              <div className="adm-card-title">User Activity</div>
+              <div className="adm-bars">
+                {activityBars.map((value, index) => (
+                  <div key={`ua-${index}`} className="adm-bar amber" style={{ height: `${value}%` }} />
+                ))}
+              </div>
+            </div>
+            <div className="adm-mini-card">
+              <div className="adm-card-title">Moderation Load</div>
+              <div className="adm-bars">
+                {moderationBars.map((value, index) => (
+                  <div key={`ml-${index}`} className="adm-bar pink" style={{ height: `${value + 25}%` }} />
+                ))}
+              </div>
+            </div>
+            <div className="adm-mini-card">
+              <div className="adm-card-title">Engagement</div>
+              <div className="adm-bars">
+                {engagementBars.map((value, index) => (
+                  <div key={`eg-${index}`} className="adm-bar blue" style={{ height: `${value}%` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <aside className="adm-right">
+          <div className="adm-profile-card">
+            <div className="adm-avatar">{(name || "A").charAt(0).toUpperCase()}</div>
+            <h3>{loading ? "Admin" : name}</h3>
+            <p>System Administrator</p>
+            <div className="adm-profile-stats">
+              <div>
+                <span>Users</span>
+                <strong>{totalUsers}</strong>
+              </div>
+              <div>
+                <span>Admins</span>
+                <strong>{adminCount}</strong>
+              </div>
+              <div>
+                <span>Students</span>
+                <strong>{studentCount}</strong>
+              </div>
             </div>
           </div>
 
-        </div>
+          <div className="adm-schedule-card">
+            <div className="adm-card-title">Scheduled</div>
+            <div className="adm-schedule-item">
+              <strong>Document Review</strong>
+              <span>Today, 11:00 AM</span>
+            </div>
+            <div className="adm-schedule-item">
+              <strong>Admin Audit</strong>
+              <span>Tomorrow, 09:30 AM</span>
+            </div>
+            <div className="adm-schedule-item">
+              <strong>Analytics Export</strong>
+              <span>Friday, 03:00 PM</span>
+            </div>
+          </div>
 
+          <div className="adm-quick-card">
+            <div className="adm-card-title">Quick Actions</div>
+            <button className="adm-quick-btn" onClick={() => navigate('/admin-panel')}>Register Admin</button>
+            <button className="adm-quick-btn" onClick={() => navigate('/admin-users?role=admin')}>All Admin</button>
+            <button className="adm-quick-btn" onClick={() => navigate('/admin-comments')}>Review Comments</button>
+            <button className="adm-quick-btn" onClick={() => navigate('/admin-analytics')}>Open Analytics</button>
+          </div>
+        </aside>
       </div>
     </div>
   );
