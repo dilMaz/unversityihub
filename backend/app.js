@@ -398,18 +398,14 @@ app.delete("/api/admin/users/:id", authMiddleware, async (req, res) => {
     if (!ensureAdmin(req, res)) return;
 
     if (String(req.user?.id) === String(req.params.id)) {
-      return res.status(400).json({ message: "You cannot delete your own admin account" });
+      return res.status(400).json({ message: "You cannot delete your own account" });
     }
 
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    if ((user.role || "").toLowerCase() !== "admin") {
-      return res.status(400).json({ message: "Only admin accounts can be deleted here" });
-    }
-
     await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "Admin deleted" });
+    res.json({ message: "User deleted", deletedUserId: req.params.id });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
