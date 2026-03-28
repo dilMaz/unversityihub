@@ -16,6 +16,7 @@ const {
   getReviewedNotes,
   approveNote,
   rejectNote,
+  deleteReviewedNote,
   getAllCommentsByNoteForAdmin,
   deleteNoteCommentByAdmin,
   getNoteComments,
@@ -83,6 +84,7 @@ router.get("/review/pending", authMiddleware, getPendingReviewNotes);
 router.get("/review/history", authMiddleware, getReviewedNotes);
 router.put("/:id/approve", authMiddleware, approveNote);
 router.put("/:id/reject", authMiddleware, rejectNote);
+router.delete("/:id", authMiddleware, deleteReviewedNote);
 
 // 💬 Admin comments management
 router.get("/comments/admin/all", authMiddleware, getAllCommentsByNoteForAdmin);

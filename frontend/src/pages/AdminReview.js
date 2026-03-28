@@ -119,6 +119,26 @@ const AdminReview = () => {
     }
   };
 
+  const deleteReviewedNote = async (id) => {
+    const confirmed = window.confirm('Delete this document permanently?');
+    if (!confirmed) return;
+
+    try {
+      setActionId(id);
+      setError('');
+      await axios.delete(`http://localhost:5000/api/notes/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+
+      setReviewedNotes((prev) => prev.filter((note) => note._id !== id));
+      showTopNotice('success', 'Document deleted successfully');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Delete failed');
+    } finally {
+      setActionId('');
+    }
+  };
+
   const getPublicFileUrl = (fileUrl) => {
     if (!fileUrl) return null;
     const normalized = fileUrl.replace(/\\/g, '/').replace(/^\/+/, '');
@@ -254,12 +274,13 @@ const AdminReview = () => {
                   <th>Reviewed By</th>
                   <th>Reviewed At</th>
                   <th>View</th>
+                  <th>Delete</th>
                 </tr>
               </thead>
               <tbody>
                 {reviewedNotes.length === 0 ? (
                   <tr>
-                    <td colSpan="7">No approved or rejected notes yet.</td>
+                    <td colSpan="8">No approved or rejected notes yet.</td>
                   </tr>
                 ) : (
                   reviewedNotes.map((note) => (
@@ -279,9 +300,19 @@ const AdminReview = () => {
                           type="button"
                           className="view-doc-btn"
                           onClick={() => viewDocument(note._id)}
-                          disabled={viewingId === note._id}
+                          disabled={viewingId === note._id || actionId === note._id}
                         >
                           {viewingId === note._id ? 'Opening...' : 'View'}
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="delete-doc-btn"
+                          onClick={() => deleteReviewedNote(note._id)}
+                          disabled={actionId === note._id || viewingId === note._id}
+                        >
+                          {actionId === note._id ? 'Deleting...' : 'Delete'}
                         </button>
                       </td>
                     </tr>

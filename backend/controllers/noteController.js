@@ -306,6 +306,28 @@ exports.rejectNote = async (req, res) => {
   }
 };
 
+exports.deleteReviewedNote = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    if (!["approved", "rejected"].includes(note.moderationStatus)) {
+      return res.status(400).json({ message: "Only approved or rejected notes can be deleted" });
+    }
+
+    if (note.filePath && note.filePath !== "seed" && fs.existsSync(note.filePath)) {
+      fs.unlinkSync(note.filePath);
+    }
+
+    await note.deleteOne();
+    res.json({ message: "Document deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // 💬 Comments
 exports.getNoteComments = async (req, res) => {
   try {
