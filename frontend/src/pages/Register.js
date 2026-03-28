@@ -24,9 +24,88 @@ function Register() {
 
   const navigate = useNavigate();
 
+  // Validation functions
+  const validateName = (name) => {
+    // Only letters and spaces allowed
+    const namePattern = /^[A-Za-z\s]+$/;
+    return namePattern.test(name.trim());
+  };
+
+  const validateNIC = (nic) => {
+    // 12 letters OR 9 numbers + 'v' or 'V'
+    const oldNICPattern = /^\d{9}[vV]$/;
+    const newNICPattern = /^[A-Za-z]{12}$/;
+    return oldNICPattern.test(nic) || newNICPattern.test(nic);
+  };
+
+  const validatePhone = (phone) => {
+    // Must start with 0 and be exactly 10 digits
+    const phonePattern = /^0\d{9}$/;
+    return phonePattern.test(phone);
+  };
+
+  const validateYear = (year) => {
+    // Must be a number from 1-4
+    const yearNum = Number(year);
+    return !isNaN(yearNum) && yearNum >= 1 && yearNum <= 4;
+  };
+
+  const validateSemester = (semester) => {
+    // Must be 1 or 2
+    const semesterNum = Number(semester);
+    return !isNaN(semesterNum) && (semesterNum === 1 || semesterNum === 2);
+  };
+
+  const validateStudentNumber = (studentNumber) => {
+    // Must be IT/EN/BM with 8 digits
+    const studentNumberPattern = /^(IT|EN|BM)\d{8}$/;
+    return studentNumberPattern.test(studentNumber);
+  };
+
+  const validateStrongPassword = (password) => {
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 special character
+    const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
+    return strongPasswordPattern.test(password);
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!validateName(name)) {
+      setError("Invalid name. Only letters and spaces allowed.");
+      return;
+    }
+
+    if (!validateNIC(nic)) {
+      setError("Invalid NIC. Must be 12 letters or 9 numbers + 'v' or 'V'.");
+      return;
+    }
+
+    if (!validatePhone(phone)) {
+      setError("Invalid phone number. Must start with 0 and be exactly 10 digits.");
+      return;
+    }
+
+    if (!validateYear(year)) {
+      setError("Invalid year. Must be a number from 1-4.");
+      return;
+    }
+
+    if (!validateSemester(semester)) {
+      setError("Invalid semester. Must be 1 or 2.");
+      return;
+    }
+
+    if (!validateStudentNumber(studentNumber)) {
+      setError("Invalid student number. Must be IT/EN/BM with 8 digits.");
+      return;
+    }
+
+    if (!validateStrongPassword(password)) {
+      setError("Password must be at least 8 characters, 1 uppercase, 1 lowercase, 1 special character.");
+      return;
+    }
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
@@ -100,9 +179,9 @@ function Register() {
               <input
                 className="reg-input"
                 type="text"
-                placeholder="Enter Name"
+                placeholder="John Doe (letters only)"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value.replace(/[^A-Za-z\s]/g, ''))}
                 required
               />
             </div>
@@ -124,9 +203,32 @@ function Register() {
               <input
                 className="reg-input"
                 type="text"
-                placeholder="Enter NIC"
+                placeholder="e.g. 123456789V or ABCDEF123456"
                 value={nic}
-                onChange={(e) => setNic(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow only 12 letters OR 9 numbers + V/v
+                  const lettersOnly = value.replace(/[^A-Za-z]/g, '');
+                  const numbersAndV = value.replace(/[^0-9Vv]/g, '');
+                  
+                  if (lettersOnly.length <= 12 && value === lettersOnly) {
+                    setNic(lettersOnly);
+                  } else if (numbersAndV.length <= 10 && value === numbersAndV) {
+                    // For old NIC format, ensure V is only at the end
+                    if (numbersAndV.length === 10) {
+                      const lastChar = numbersAndV[9];
+                      if (lastChar === 'V' || lastChar === 'v') {
+                        setNic(numbersAndV);
+                      }
+                    } else if (numbersAndV.length <= 9) {
+                      setNic(numbersAndV);
+                    }
+                  } else if (value.length < nic.length) {
+                    // Allow backspace
+                    setNic(value);
+                  }
+                }}
+                maxLength={12}
               />
             </div>
 
@@ -137,7 +239,14 @@ function Register() {
                 type="tel"
                 placeholder="e.g. 0771234567"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  // Only allow up to 10 digits
+                  if (value.length <= 10) {
+                    setPhone(value);
+                  }
+                }}
+                maxLength={10}
               />
             </div>
 
@@ -210,9 +319,18 @@ function Register() {
               <input
                 className="reg-input"
                 type="number"
-                placeholder="Year"
+                placeholder="Year (1-4)"
                 value={year}
-                onChange={(e) => setYear(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^1-4]/g, '');
+                  // Only allow single digit 1-4
+                  if (value.length <= 1) {
+                    setYear(value);
+                  }
+                }}
+                min="1"
+                max="4"
+                maxLength={1}
               />
             </div>
 
@@ -221,9 +339,18 @@ function Register() {
               <input
                 className="reg-input"
                 type="number"
-                placeholder="Semester"
+                placeholder="Semester (1-2)"
                 value={semester}
-                onChange={(e) => setSemester(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^1-2]/g, '');
+                  // Only allow single digit 1-2
+                  if (value.length <= 1) {
+                    setSemester(value);
+                  }
+                }}
+                min="1"
+                max="2"
+                maxLength={1}
               />
             </div>
           </div>
