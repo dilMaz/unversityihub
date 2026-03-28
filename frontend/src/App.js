@@ -22,6 +22,7 @@ import Recommended from "./pages/Recommended";
 import Upload from "./pages/Upload";
 import Categories from "./pages/Categories";
 import AdminReview from "./pages/AdminReview";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import Programs from "./pages/features/programs/Programs";
 import ProgramDetail from "./pages/features/programs/ProgramDetail";
 import ModuleNotes from "./pages/ModuleNotes";
@@ -74,6 +75,7 @@ function App() {
             <Route path="/admin-panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
             <Route path="/admin-student-support" element={<AdminRoute><StudentSupport /></AdminRoute>} />
             <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
+            <Route path="/admin-analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
 
             {/* PROGRAM FLOW */}
             <Route path="/programs" element={<Programs />} />

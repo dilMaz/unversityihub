@@ -1,3 +1,16 @@
+.analytics-page {
+  --analytics-surface: #0b0f1a;
+  --analytics-surface-soft: #12192a;
+  --analytics-border: rgba(15, 82, 226, 0.956);
+  --analytics-muted: rgba(255, 255, 255, 0.72);
+  --analytics-users: #000000;
+  --analytics-users-soft: #78adff;
+  --analytics-notes: #67000e;
+  --analytics-notes-soft: #700213;
+  --analytics-comments: #000000;
+  --analytics-comments-soft: #5e97ff;
+}
+
 .analytics-page .analytics-topbar-actions {
   display: flex;
   align-items: center;
@@ -12,15 +25,16 @@
 }
 
 .analytics-page .analytics-summary-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(1, 45, 121, 0.897) 0%, rgba(10, 13, 24, 0.96) 58%, rgba(128, 4, 109, 0.979) 100%);
+  border: 1px solid var(--analytics-border);
   border-radius: 12px;
   padding: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.908);
 }
 
 .analytics-page .analytics-summary-label {
   font-size: 0.78rem;
-  color: var(--muted);
+  color: var(--analytics-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -33,18 +47,18 @@
 }
 
 .analytics-page .analytics-chart-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: linear-gradient(145deg, var(--analytics-surface) 0%, var(--analytics-surface-soft) 100%);
+  border: 1px solid var(--analytics-border);
   border-radius: 14px;
   padding: 16px;
-  box-shadow: 0 14px 40px rgba(9, 8, 18, 0.35);
+  box-shadow: 0 14px 40px rgba(7, 20, 39, 0.5);
 }
 
 .analytics-page .colorful-card {
   background:
-    radial-gradient(circle at 10% 15%, rgba(255, 112, 184, 0.14), transparent 28%),
-    radial-gradient(circle at 85% 0%, rgba(122, 238, 255, 0.14), transparent 32%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    radial-gradient(circle at 10% 15%, rgba(255, 61, 87, 0.26), transparent 30%),
+    radial-gradient(circle at 85% 0%, rgba(47, 123, 255, 0.24), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
 }
 
 .analytics-page .analytics-chart-title {
@@ -54,7 +68,7 @@
 }
 
 .analytics-page .analytics-chart-subtitle {
-  color: var(--muted);
+  color: var(--analytics-muted);
   font-size: 0.82rem;
   margin-bottom: 14px;
 }
@@ -64,7 +78,7 @@
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 16px;
-  color: var(--muted);
+  color: var(--analytics-muted);
   font-size: 0.83rem;
 }
 
@@ -82,15 +96,15 @@
 }
 
 .analytics-page .dot.users {
-  background: #5b8cff;
+  background: var(--analytics-users);
 }
 
 .analytics-page .dot.notes {
-  background: #8a6bff;
+  background: var(--analytics-notes);
 }
 
 .analytics-page .dot.comments {
-  background: #34d399;
+  background: var(--analytics-comments);
 }
 
 .analytics-page .analytics-bars-wrap {
@@ -111,7 +125,7 @@
   align-items: flex-end;
   justify-content: center;
   gap: 4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--analytics-border);
   padding-bottom: 6px;
 }
 
@@ -126,31 +140,31 @@
 }
 
 .analytics-page .bar.users {
-  background: linear-gradient(180deg, #7ea5ff 0%, #4b70ff 100%);
+  background: linear-gradient(180deg, var(--analytics-users-soft) 0%, var(--analytics-users) 100%);
 }
 
 .analytics-page .bar.notes {
-  background: linear-gradient(180deg, #a487ff 0%, #7c5cfc 100%);
+  background: linear-gradient(180deg, var(--analytics-notes-soft) 0%, var(--analytics-notes) 100%);
 }
 
 .analytics-page .bar.comments {
-  background: linear-gradient(180deg, #5ff3c1 0%, #22c55e 100%);
+  background: linear-gradient(180deg, var(--analytics-comments-soft) 0%, var(--analytics-comments) 100%);
 }
 
 .analytics-page .analytics-month-label {
   margin-top: 7px;
   text-align: center;
   font-size: 0.74rem;
-  color: var(--muted);
+  color: var(--analytics-muted);
 }
 
 .analytics-page .analytics-empty {
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--analytics-border);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.02);
+  color: var(--analytics-muted);
+  background: rgba(27, 44, 67, 0.55);
 }
 
 .analytics-page .analytics-diagram-grid {
@@ -173,8 +187,8 @@
   gap: 7px;
   padding: 8px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(16, 22, 38, 0.72);
+  border: 1px solid rgba(91, 144, 255, 0.28);
 }
 
 .analytics-page .analytics-ring {
@@ -196,8 +210,8 @@
   position: absolute;
   inset: 9px;
   border-radius: 50%;
-  background: #121218;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #0a1020;
+  border: 1px solid rgba(91, 144, 255, 0.35);
 }
 
 .analytics-page .analytics-ring span {
@@ -206,20 +220,20 @@
 }
 
 .analytics-page .analytics-ring.users {
-  background: conic-gradient(#4b70ff var(--ring-percent), rgba(255, 255, 255, 0.08) 0);
+  background: conic-gradient(var(--analytics-users) var(--ring-percent), rgba(255, 255, 255, 0.09) 0);
 }
 
 .analytics-page .analytics-ring.notes {
-  background: conic-gradient(#d95dff var(--ring-percent), rgba(255, 255, 255, 0.08) 0);
+  background: conic-gradient(var(--analytics-notes) var(--ring-percent), rgba(255, 255, 255, 0.09) 0);
 }
 
 .analytics-page .analytics-ring.comments {
-  background: conic-gradient(#23d5ab var(--ring-percent), rgba(255, 255, 255, 0.08) 0);
+  background: conic-gradient(var(--analytics-comments) var(--ring-percent), rgba(255, 255, 255, 0.09) 0);
 }
 
 .analytics-page .analytics-ring-label {
   font-size: 0.8rem;
-  color: var(--muted);
+  color: var(--analytics-muted);
 }
 
 .analytics-page .analytics-ring-value {
@@ -236,8 +250,8 @@
   min-width: 340px;
   height: 190px;
   border-radius: 10px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(47, 123, 255, 0.12) 0%, rgba(11, 15, 26, 0.7) 68%, rgba(255, 61, 87, 0.07) 100%);
+  border: 1px solid rgba(91, 144, 255, 0.3);
 }
 
 .analytics-page .trend-line {
@@ -248,15 +262,15 @@
 }
 
 .analytics-page .trend-line.users {
-  stroke: #5c82ff;
+  stroke: var(--analytics-users);
 }
 
 .analytics-page .trend-line.notes {
-  stroke: #db67ff;
+  stroke: var(--analytics-notes);
 }
 
 .analytics-page .trend-line.comments {
-  stroke: #31d6ad;
+  stroke: var(--analytics-comments);
 }
 
 .analytics-page .analytics-month-ticks {
@@ -265,7 +279,7 @@
   gap: 6px;
   margin-top: 8px;
   font-size: 0.7rem;
-  color: var(--muted);
+  color: var(--analytics-muted);
   text-align: center;
 }
 
@@ -282,15 +296,15 @@
 .analytics-page .analytics-heat-cell {
   padding: 8px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(91, 144, 255, 0.28);
+  background: rgba(10, 16, 30, 0.84);
   text-align: center;
 }
 
 .analytics-page .analytics-heat-box {
   height: 42px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #2ad2ff 0%, #b15dff 45%, #ff6f8d 100%);
+  background: linear-gradient(135deg, #ff3d57 0%, #2f7bff 52%, #101722 100%);
   margin-bottom: 7px;
 }
 
@@ -301,7 +315,7 @@
 }
 
 .analytics-page .analytics-heat-label {
-  color: var(--muted);
+  color: var(--analytics-muted);
   font-size: 0.72rem;
 }
 
