@@ -61,6 +61,8 @@ const ensureAdmin = (req, res) => {
   return true;
 };
 
+const isValidSriLankanNic = (nic) => /^(?:\d{12}|\d{9}V)$/i.test((nic || "").trim());
+
 const monthKey = (year, month) => `${year}-${String(month).padStart(2, "0")}`;
 
 const buildMonthSlots = (monthCount = 6) => {
@@ -357,9 +359,18 @@ app.put("/api/admin/users/:id", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Invalid status" });
     }
 
+    if (typeof nic === "string") {
+      const nicValue = nic.trim();
+      if (nicValue && !isValidSriLankanNic(nicValue)) {
+        return res.status(400).json({
+          message: "NIC must be 12 digits or 9 digits followed by V",
+        });
+      }
+    }
+
     if (typeof name === "string") user.name = name.trim();
     if (typeof email === "string") user.email = email.trim();
-    if (typeof nic === "string") user.nic = nic.trim();
+    if (typeof nic === "string") user.nic = nic.trim().toUpperCase();
     if (typeof phone === "string") user.phone = phone.trim();
     if (typeof status === "string") user.status = status;
 

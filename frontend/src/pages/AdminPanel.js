@@ -4,6 +4,20 @@ import axios from 'axios';
 import '../styles/dashboard.css';
 import '../styles/adminPanel.css';
 
+const normalizeNicInput = (value) => {
+  const upper = (value || '').toUpperCase().replace(/\s+/g, '');
+  const filtered = upper.replace(/[^0-9V]/g, '');
+  const digits = filtered.replace(/V/g, '');
+
+  if (filtered.includes('V')) {
+    return `${digits.slice(0, 9)}V`;
+  }
+
+  return digits.slice(0, 12);
+};
+
+const isValidSriLankanNic = (value) => /^(?:\d{12}|\d{9}V)$/.test((value || '').toUpperCase());
+
 const AdminPanel = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -128,7 +142,9 @@ const AdminPanel = () => {
         if (!/^[a-zA-Z\s]+$/.test(value)) error = 'Name must contain only letters';
         break;
       case 'nic':
-        if (!/^[0-9]{12}$/.test(value)) error = 'NIC must have exactly 12 numbers';
+        if (!isValidSriLankanNic(value)) {
+          error = 'NIC must be 12 digits or 9 digits followed by V';
+        }
         break;
       case 'email':
         if (!/.+@.+\..+/.test(value)) error = 'Email must include @ and domain';
@@ -256,14 +272,20 @@ const AdminPanel = () => {
                   maxLength="12"
                   value={formData.nic}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    const value = normalizeNicInput(e.target.value);
                     setFormData({
                       ...formData,
                       nic: value
                     });
+
+                    const error = validateField('nic', value);
+                    setErrors((prev) => ({
+                      ...prev,
+                      nic: error,
+                    }));
                   }}
                   required
-                  placeholder="200123456789"
+                  placeholder="200123456789 or 123456789V"
                   className={`ap-input ${errors.nic ? 'ap-input-error' : ''}`}
                 />
                 {errors.nic && <div className="ap-error">{errors.nic}</div>}
