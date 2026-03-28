@@ -202,12 +202,11 @@ const AdminPanel = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/auth/register', {
+      await axios.post('http://localhost:5000/api/auth/register-admin', {
         name: formData.name,
         nic: formData.nic,
         email: formData.email,
         password: formData.password,
-        role: 'admin',
         status: formData.status,
         phone: formData.phone
       }, {
