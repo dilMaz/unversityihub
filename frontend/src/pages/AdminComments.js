@@ -165,7 +165,7 @@ const AdminComments = () => {
                           <td className="ac-action-cell">
                             <button
                               type="button"
-                              className="db-admin-btn"
+                              className="db-danger-btn"
                               onClick={() => handleDeleteComment(note._id, comment._id)}
                               disabled={deletingCommentId === comment._id}
                             >

@@ -624,6 +624,31 @@ body {
   flex-wrap: wrap;
 }
 
+.db-danger-btn {
+  border: 1px solid rgba(255, 118, 118, 0.55);
+  background: rgba(195, 50, 50, 0.26);
+  color: #ffd2d2;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.db-danger-btn:hover:not(:disabled) {
+  background: rgba(226, 67, 67, 0.34);
+  border-color: rgba(255, 160, 160, 0.76);
+  color: #fff0f0;
+  transform: translateY(-1px);
+}
+
+.db-danger-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ── Admin Review Action Buttons ───────────────────────── */
 .view-btn,
 .view-doc-btn {

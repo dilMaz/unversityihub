@@ -97,7 +97,7 @@ function AdminUsers() {
                       <td>{user.email}</td>
                       <td>{user.role}</td>
                       <td>
-                        <button className="db-admin-btn" onClick={() => deleteUser(user._id)}>
+                        <button className="db-danger-btn" onClick={() => deleteUser(user._id)}>
                           Delete
                         </button>
                       </td>
