@@ -122,7 +122,7 @@ function NavBar() {
             <>
               {renderNavItem("Dashboard", "/dashboard", "", 0)}
               {renderNavItem("Search", "/search", "", 1)}
-              {renderNavItem("Top Rated", "/top-rated", "", 2)}
+              {renderNavItem("Top", "/top-rated", "", 2)}
               {renderNavItem("Recommended", "/recommend", "", 3)}
               {renderNavItem("Upload", "/upload", "", 4)}
               {renderNavItem("Categories", "/categories", "", 5)}
