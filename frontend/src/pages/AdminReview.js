@@ -178,13 +178,6 @@ const AdminReview = () => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userRole');
-    navigate('/');
-  };
-
   const formatDate = (value) => {
     if (!value) return '-';
     const date = new Date(value);
@@ -197,9 +190,6 @@ const AdminReview = () => {
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Document Review</div>
-          <button className="db-logout" onClick={logout}>
-            <span>↩</span> Sign out
-          </button>
         </div>
 
         <div className="db-hero">
