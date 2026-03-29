@@ -28,6 +28,11 @@
   font-weight: 700;
 }
 
+.admin-videos-page .av-help-text {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
 .admin-videos-page .av-field input,
 .admin-videos-page .av-field select,
 .admin-videos-page .av-field textarea {

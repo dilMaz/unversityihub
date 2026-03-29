@@ -8,6 +8,18 @@ import "../styles/adminVideos.css";
 const API = "http://localhost:5000/api";
 
 const VIDEO_CATEGORIES = ["Lecture Video", "Paper Discussion", "Kuppi"];
+const VALID_YEARS = ["1", "2", "3", "4"];
+const VALID_SEMESTERS = ["1", "2"];
+const MODULE_NAME_REGEX = /^[A-Za-z\s]+$/;
+const MAX_VIDEO_SIZE_BYTES = 250 * 1024 * 1024;
+const ALLOWED_VIDEO_MIME = [
+  "video/mp4",
+  "video/x-matroska",
+  "video/webm",
+  "video/quicktime",
+  "video/x-msvideo",
+];
+const ALLOWED_VIDEO_EXT = [".mp4", ".mkv", ".webm", ".mov", ".avi"];
 
 const AdminVideos = () => {
   const navigate = useNavigate();
@@ -26,6 +38,63 @@ const AdminVideos = () => {
   const [moduleName, setModuleName] = useState("");
   const [description, setDescription] = useState("");
   const [videoFile, setVideoFile] = useState(null);
+
+  const validateUploadForm = () => {
+    const cleanedTitle = title.trim();
+    const cleanedModuleCode = moduleCode.trim().toUpperCase();
+    const cleanedModuleName = moduleName.trim();
+    const cleanedDescription = description.trim();
+
+    if (cleanedTitle.length < 3 || cleanedTitle.length > 200) {
+      return "Title must be between 3 and 200 characters";
+    }
+
+    if (!VIDEO_CATEGORIES.includes(category)) {
+      return "Invalid category selected";
+    }
+
+    if (!VALID_YEARS.includes(academicYear)) {
+      return "Academic year must be between 1 and 4";
+    }
+
+    if (!VALID_SEMESTERS.includes(semester)) {
+      return "Semester must be 1 or 2";
+    }
+
+    if (!/^[A-Z0-9-]{2,40}$/.test(cleanedModuleCode)) {
+      return "Module code must be 2-40 characters (A-Z, 0-9, -)";
+    }
+
+    if (cleanedModuleName.length > 120) {
+      return "Module name cannot exceed 120 characters";
+    }
+
+    if (cleanedModuleName && !MODULE_NAME_REGEX.test(cleanedModuleName)) {
+      return "Module name must contain letters only";
+    }
+
+    if (cleanedDescription.length > 500) {
+      return "Description cannot exceed 500 characters";
+    }
+
+    if (!videoFile) {
+      return "Video file is required";
+    }
+
+    if (videoFile.size > MAX_VIDEO_SIZE_BYTES) {
+      return "Video size must be 250 MB or less";
+    }
+
+    const lowerName = (videoFile.name || "").toLowerCase();
+    const hasAllowedExt = ALLOWED_VIDEO_EXT.some((ext) => lowerName.endsWith(ext));
+    const hasAllowedMime = ALLOWED_VIDEO_MIME.includes(videoFile.type);
+
+    if (!hasAllowedMime && !hasAllowedExt) {
+      return "Only MP4, MKV, WEBM, MOV, or AVI video files are allowed";
+    }
+
+    return "";
+  };
 
   const authHeaders = () => {
     const token = localStorage.getItem("token");
@@ -72,8 +141,9 @@ const AdminVideos = () => {
     setError("");
     setSuccess("");
 
-    if (!title || !moduleCode || !videoFile) {
-      setError("Title, module code, and video file are required");
+    const validationError = validateUploadForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -82,7 +152,7 @@ const AdminVideos = () => {
     fd.append("category", category);
     fd.append("academicYear", academicYear);
     fd.append("semester", semester);
-    fd.append("moduleCode", moduleCode.trim());
+    fd.append("moduleCode", moduleCode.trim().toUpperCase());
     fd.append("moduleName", moduleName.trim());
     fd.append("description", description.trim());
     fd.append("videoFile", videoFile);
@@ -159,6 +229,8 @@ const AdminVideos = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter video title"
+                minLength={3}
+                maxLength={200}
                 required
               />
             </div>
@@ -195,8 +267,11 @@ const AdminVideos = () => {
               <input
                 type="text"
                 value={moduleCode}
-                onChange={(e) => setModuleCode(e.target.value)}
+                onChange={(e) => setModuleCode(e.target.value.toUpperCase())}
                 placeholder="e.g. CS301"
+                pattern="[A-Z0-9-]{2,40}"
+                title="Use 2-40 characters: A-Z, 0-9, and -"
+                maxLength={40}
                 required
               />
             </div>
@@ -208,6 +283,9 @@ const AdminVideos = () => {
                 value={moduleName}
                 onChange={(e) => setModuleName(e.target.value)}
                 placeholder="e.g. Operating Systems"
+                pattern="[A-Za-z ]+"
+                title="Module name must contain letters only"
+                maxLength={120}
               />
             </div>
 
@@ -218,6 +296,7 @@ const AdminVideos = () => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add short summary"
+                maxLength={500}
               />
             </div>
 
@@ -225,10 +304,11 @@ const AdminVideos = () => {
               <label>Video File</label>
               <input
                 type="file"
-                accept="video/*"
+                accept=".mp4,.mkv,.webm,.mov,.avi,video/mp4,video/x-matroska,video/webm,video/quicktime,video/x-msvideo"
                 onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
                 required
               />
+              <small className="av-help-text">Allowed: MP4, MKV, WEBM, MOV, AVI. Max size: 250 MB.</small>
             </div>
           </div>
 

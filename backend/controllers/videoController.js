@@ -3,6 +3,7 @@ const { VIDEO_CATEGORIES } = require("../models/VideoResource");
 
 const VALID_YEARS = [1, 2, 3, 4];
 const VALID_SEMESTERS = [1, 2];
+const MODULE_NAME_REGEX = /^[A-Za-z\s]+$/;
 
 exports.createAdminVideo = async (req, res) => {
   try {
@@ -37,6 +38,11 @@ exports.createAdminVideo = async (req, res) => {
       return res.status(400).json({ message: "Semester must be 1 or 2" });
     }
 
+    const moduleNameValue = moduleName ? String(moduleName).trim() : "";
+    if (moduleNameValue && !MODULE_NAME_REGEX.test(moduleNameValue)) {
+      return res.status(400).json({ message: "Module name must contain letters only" });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: "Video file is required" });
     }
@@ -47,7 +53,7 @@ exports.createAdminVideo = async (req, res) => {
       academicYear: year,
       semester: sem,
       moduleCode: String(moduleCode).trim().toUpperCase(),
-      moduleName: moduleName ? String(moduleName).trim() : "",
+      moduleName: moduleNameValue,
       description: description ? String(description).trim() : "",
       videoPath: req.file.path.replace(/\\/g, "/"),
       uploadedBy: req.user.id,
