@@ -115,7 +115,8 @@ const AdminPanel = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setMessage('New Admin registered successfully! ✅');
+      setMessage('');
+      window.alert('New Admin registered successfully!');
       setFormData({ name: '', nic: '', email: '', status: 'undergraduate', phone: '', password: '', confirmPassword: '' });
     } catch (err) {
       setMessage(err.response?.data?.message || 'Registration failed');
