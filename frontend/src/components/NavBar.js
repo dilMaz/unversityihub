@@ -66,6 +66,18 @@ function NavBar() {
 
   const isActive = (path) => location.pathname === path;
   const navMenuId = "primary-navigation";
+  const isAdminArea = location.pathname.startsWith("/admin");
+
+  const adminNavItems = [
+    { label: "Overview", path: "/admin-dashboard" },
+    { label: "Users", path: "/admin-users" },
+    { label: "Videos", path: "/admin-videos" },
+    { label: "Support", path: "/admin-student-support" },
+    { label: "Review", path: "/admin-review" },
+    { label: "Analytics", path: "/admin-analytics" },
+    { label: "Comments", path: "/admin-comments" },
+    { label: "Register Admin", path: "/admin-panel" },
+  ];
 
   const renderNavItem = (label, path, extraClass = "", index = 0) => {
     const activeClass = isActive(path) ? "active" : "";
@@ -120,25 +132,33 @@ function NavBar() {
         >
           {isLoggedIn ? (
             <>
-              {renderNavItem("Dashboard", "/dashboard", "", 0)}
-              {renderNavItem("Search", "/search", "", 1)}
-              {renderNavItem("Top", "/top-rated", "", 2)}
-              {renderNavItem("Recommended", "/recommend", "", 3)}
-              {renderNavItem("Upload", "/upload", "", 4)}
-              {renderNavItem("Categories", "/categories", "", 5)}
-
-              {userRole === "admin" && (
+              {userRole === "admin" && isAdminArea ? (
+                adminNavItems.map((item, index) =>
+                  renderNavItem(item.label, item.path, "admin", index)
+                )
+              ) : (
                 <>
-                  <li className="nav-divider"></li>
-                  {renderNavItem("Admin", "/admin-dashboard", "admin", 6)}
+                  {renderNavItem("Dashboard", "/dashboard", "", 0)}
+                  {renderNavItem("Search", "/search", "", 1)}
+                  {renderNavItem("Top", "/top-rated", "", 2)}
+                  {renderNavItem("Recommended", "/recommend", "", 3)}
+                  {renderNavItem("Upload", "/upload", "", 4)}
+                  {renderNavItem("Categories", "/categories", "", 5)}
+
+                  {userRole === "admin" && (
+                    <>
+                      <li className="nav-divider"></li>
+                      {renderNavItem("Admin", "/admin-dashboard", "admin", 6)}
+                    </>
+                  )}
+
+                  <li className="nav-item" style={{ "--item-delay": 7 }}>
+                    <button className="nav-link logout" onClick={handleLogout}>
+                      Logout
+                    </button>
+                  </li>
                 </>
               )}
-
-              <li className="nav-item" style={{ "--item-delay": 7 }}>
-                <button className="nav-link logout" onClick={handleLogout}>
-                  Logout
-                </button>
-              </li>
             </>
           ) : (
             <>
