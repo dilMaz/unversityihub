@@ -186,6 +186,7 @@ function AdminDashboard() {
   const navItems = [
     { id: "overview", label: "Overview", action: () => navigate("/admin-dashboard") },
     { id: "users", label: "Users", action: () => navigate("/admin-users") },
+    { id: "support", label: "Support Tickets", action: () => navigate("/admin-student-support") },
     { id: "review", label: "Review", action: () => navigate("/admin-review") },
     { id: "analytics", label: "Analytics", action: () => navigate("/admin-analytics") },
     { id: "comments", label: "Comments", action: () => navigate("/admin-comments") },

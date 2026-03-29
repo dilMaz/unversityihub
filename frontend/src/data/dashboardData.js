@@ -35,6 +35,15 @@ const baseQuickActions = [
     btn: "Upload Now",
     route: "/upload",
   },
+  {
+    id: "study-support",
+    cls: "c6",
+    icon: "🎫",
+    title: "Study Support",
+    desc: "Raise a ticket for any problem or requirement and track admin replies.",
+    btn: "Raise Ticket",
+    route: "/study-support",
+  },
 ];
 
 const adminQuickActions = [
