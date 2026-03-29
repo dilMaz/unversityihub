@@ -13,7 +13,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
-import StudentSupport from "./pages/StudentSupport";
+import AdminSupport from "./pages/AdminSupport";
 import StudySupport from "./pages/StudySupport";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
@@ -73,7 +73,7 @@ function App() {
             <Route path="/admin-upload-notes" element={<AdminRoute><AdminUploadNotes /></AdminRoute>} />
             <Route path="/admin-comments" element={<AdminRoute><AdminComments /></AdminRoute>} />
             <Route path="/admin-panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
-            <Route path="/admin-student-support" element={<AdminRoute><StudentSupport /></AdminRoute>} />
+            <Route path="/admin-student-support" element={<AdminRoute><AdminSupport /></AdminRoute>} />
             <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
             <Route path="/admin-analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
 
