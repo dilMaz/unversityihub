@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/dashboard.css";
@@ -6,6 +6,16 @@ import "../styles/adminDashboardUnique.css";
 import "../styles/adminSupport.css";
 
 const API = "http://localhost:5000/api";
+
+const CATEGORY_LABELS = {
+  "Account issue": "Account Issue",
+  "Wrong note / low quality note": "Wrong/Low Quality Note",
+  "Upload problem": "Upload Problem",
+  "Download problem": "Download Problem",
+  "Report fake user": "Report Fake User",
+  "Technical bug": "Technical Issue",
+  "Other academic support": "Other Academic Support",
+};
 
 function statusLabel(status) {
   if (status === "in_progress") return "In progress";
@@ -20,6 +30,7 @@ const AdminSupport = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [savingId, setSavingId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   const authHeaders = () => {
     const token = localStorage.getItem("token");
@@ -94,6 +105,33 @@ const AdminSupport = () => {
   const inProgressCount = supportRequests.filter((r) => r.status === "in_progress").length;
   const resolvedCount = supportRequests.filter((r) => r.status === "resolved").length;
 
+  const categoryCounts = useMemo(() => {
+    return supportRequests.reduce((acc, req) => {
+      const category = req.category || "Other academic support";
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {});
+  }, [supportRequests]);
+
+  const categoryOptions = useMemo(() => {
+    const dynamicCategories = Object.keys(categoryCounts).sort((a, b) => a.localeCompare(b));
+    return ["all", ...dynamicCategories];
+  }, [categoryCounts]);
+
+  const filteredRequests = useMemo(() => {
+    if (selectedCategory === "all") return supportRequests;
+    return supportRequests.filter((req) => req.category === selectedCategory);
+  }, [selectedCategory, supportRequests]);
+
+  const groupedRequests = useMemo(() => {
+    return filteredRequests.reduce((acc, req) => {
+      const category = req.category || "Other academic support";
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(req);
+      return acc;
+    }, {});
+  }, [filteredRequests]);
+
   return (
     <div className="db-root admin-theme admin-support-page">
       <div className="db-wrap">
@@ -141,84 +179,126 @@ const AdminSupport = () => {
 
         <div className="db-section-title">All support tickets</div>
 
+        <div className="as-filter-wrap">
+          <span className="as-filter-label">Filter by category</span>
+          <select
+            className="as-filter-select"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category === "all"
+                  ? `All Categories (${totalRequests})`
+                  : `${CATEGORY_LABELS[category] || category} (${categoryCounts[category] || 0})`}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="as-category-chips">
+          {categoryOptions.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className={`as-chip ${selectedCategory === category ? "active" : ""}`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category === "all" ? "All" : CATEGORY_LABELS[category] || category}
+              <span>{category === "all" ? totalRequests : categoryCounts[category] || 0}</span>
+            </button>
+          ))}
+        </div>
+
         {error ? <div className="as-alert as-error">{error}</div> : null}
         {successMessage ? <div className="as-alert as-success">{successMessage}</div> : null}
 
         {loading ? (
           <div className="as-empty">Loading tickets...</div>
-        ) : supportRequests.length === 0 ? (
+        ) : filteredRequests.length === 0 ? (
           <div className="as-empty">No support tickets yet.</div>
         ) : (
           <div className="as-ticket-list">
-            {supportRequests.map((req) => (
-              <div key={req._id} className="as-ticket-card">
-                <div className="as-ticket-head">
-                  <div>
-                    <h3>{req.title}</h3>
-                    <p>
-                      {req.student?.name || "Student"}
-                      {req.student?.email ? ` · ${req.student.email}` : ""}
-                    </p>
+            {Object.keys(groupedRequests)
+              .sort((a, b) => a.localeCompare(b))
+              .map((category) => (
+                <section key={category} className="as-category-group">
+                  <div className="as-category-title">
+                    {CATEGORY_LABELS[category] || category}
+                    <span>{groupedRequests[category].length}</span>
                   </div>
-                  <span className={`as-status ${req.status}`}>{statusLabel(req.status)}</span>
-                </div>
 
-                <div className="as-ticket-meta">
-                  <span><strong>Category:</strong> {req.category}</span>
-                  <span><strong>Priority:</strong> {req.priority}</span>
-                  <span>
-                    <strong>Created:</strong>{" "}
-                    {req.createdAt ? new Date(req.createdAt).toLocaleString() : "-"}
-                  </span>
-                </div>
+                  {groupedRequests[category].map((req) => (
+                    <div key={req._id} className="as-ticket-card">
+                      <div className="as-ticket-head">
+                        <div>
+                          <h3>{req.title}</h3>
+                          <p>
+                            {req.student?.name || "Student"}
+                            {req.student?.email ? ` · ${req.student.email}` : ""}
+                          </p>
+                        </div>
+                        <span className={`as-status ${req.status}`}>{statusLabel(req.status)}</span>
+                      </div>
 
-                <div className="as-ticket-desc">{req.description}</div>
+                      <div className="as-ticket-meta">
+                        <span><strong>Category:</strong> {CATEGORY_LABELS[req.category] || req.category}</span>
+                        <span><strong>Priority:</strong> {req.priority}</span>
+                        <span>
+                          <strong>Created:</strong>{" "}
+                          {req.createdAt ? new Date(req.createdAt).toLocaleString() : "-"}
+                        </span>
+                      </div>
 
-                {req.attachment ? (
-                  <a
-                    className="as-attach-link"
-                    href={attachmentUrl(req.attachment)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View attachment
-                  </a>
-                ) : null}
+                      <div className="as-ticket-desc">{req.description}</div>
 
-                <div className="as-form-row">
-                  <label htmlFor={`status-${req._id}`}>Status</label>
-                  <select
-                    id={`status-${req._id}`}
-                    value={req.status}
-                    onChange={(e) => updateDraft(req._id, "status", e.target.value)}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="in_progress">In progress</option>
-                    <option value="resolved">Resolved</option>
-                  </select>
-                </div>
+                      {req.attachment ? (
+                        <a
+                          className="as-attach-link"
+                          href={attachmentUrl(req.attachment)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View attachment
+                        </a>
+                      ) : null}
 
-                <div className="as-form-row">
-                  <label htmlFor={`reply-${req._id}`}>Admin reply</label>
-                  <textarea
-                    id={`reply-${req._id}`}
-                    rows={4}
-                    value={req.adminReply || ""}
-                    onChange={(e) => updateDraft(req._id, "adminReply", e.target.value)}
-                    placeholder="Type your reply to the student..."
-                  />
-                </div>
+                      <div className="as-form-row">
+                        <label htmlFor={`status-${req._id}`}>Status</label>
+                        <select
+                          id={`status-${req._id}`}
+                          value={req.status}
+                          onChange={(e) => updateDraft(req._id, "status", e.target.value)}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="in_progress">In progress</option>
+                          <option value="resolved">Resolved</option>
+                        </select>
+                      </div>
 
-                <button
-                  type="button"
-                  className="as-save-btn"
-                  onClick={() => handleSave(req._id)}
-                  disabled={savingId === req._id}
-                >
-                  {savingId === req._id ? "Saving..." : "Save reply & status"}
-                </button>
-              </div>
-            ))}
+                      <div className="as-form-row">
+                        <label htmlFor={`reply-${req._id}`}>Admin reply</label>
+                        <textarea
+                          id={`reply-${req._id}`}
+                          rows={4}
+                          value={req.adminReply || ""}
+                          onChange={(e) => updateDraft(req._id, "adminReply", e.target.value)}
+                          placeholder="Type your reply to the student..."
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        className="as-save-btn"
+                        onClick={() => handleSave(req._id)}
+                        disabled={savingId === req._id}
+                      >
+                        {savingId === req._id ? "Saving..." : "Save reply & status"}
+                      </button>
+                    </div>
+                  ))}
+                </section>
+              ))}
           </div>
         )}
       </div>
