@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const getJwtSecret = () => process.env.JWT_SECRET || "unihub_dev_secret";
 const isValidSriLankanNic = (nic) => /^(?:\d{12}|\d{9}V)$/i.test((nic || "").trim());
+const isValidPhoneStartingZero = (phone) => /^0\d{9}$/.test(String(phone || "").replace(/[\s\-()]/g, ""));
 
 // Register
 exports.register = async (req, res) => {
@@ -68,6 +69,10 @@ exports.registerAdmin = async (req, res) => {
 
     if (status && !["graduate", "undergraduate"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
+    }
+
+    if (!isValidPhoneStartingZero(phone)) {
+      return res.status(400).json({ message: "Phone must start with 0 and have exactly 10 numbers" });
     }
 
     const userExists = await User.findOne({ email: String(email).trim() });

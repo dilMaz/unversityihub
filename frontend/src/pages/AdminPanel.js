@@ -52,7 +52,7 @@ const AdminPanel = () => {
         if (!/.+@.+\..+/.test(value)) error = 'Email must include @ and domain';
         break;
       case 'phone':
-        if (!/^[0-9]{10}$/.test(value.replace(/[\s\-()]/g, ''))) error = 'Phone must have exactly 10 numbers';
+        if (!/^0[0-9]{9}$/.test(value.replace(/[\s\-()]/g, ''))) error = 'Phone must start with 0 and have exactly 10 numbers';
         break;
       case 'password':
         if (value.length < 8 || value.length > 12) {
