@@ -421,7 +421,7 @@ exports.getAllCommentsByNoteForAdmin = async (req, res) => {
 
     const notes = await Note.find({ "comments.0": { $exists: true } })
       .populate("comments.user", "name email")
-      .select("title subject moduleCode comments averageRating ratingCount")
+      .select("title subject moduleCode academicYear semester comments averageRating ratingCount")
       .sort({ updatedAt: -1 });
 
     const payload = notes.map((note) => ({
@@ -429,6 +429,8 @@ exports.getAllCommentsByNoteForAdmin = async (req, res) => {
       title: note.title,
       subject: note.subject,
       moduleCode: note.moduleCode,
+      academicYear: note.academicYear,
+      semester: note.semester,
       averageRating: note.averageRating || 0,
       ratingCount: note.ratingCount || (note.comments || []).length,
       commentsCount: (note.comments || []).length,
