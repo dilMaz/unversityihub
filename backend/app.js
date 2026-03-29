@@ -20,6 +20,7 @@ const multer = require('multer');
 const authRoutes = require("./routes/authRoutes");
 const noteRoutes = require("./routes/noteRoutes");
 const supportRoutes = require("./routes/supportRoutes");
+const videoRoutes = require("./routes/videoRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const Note = require("./models/Note");
@@ -197,6 +198,9 @@ app.use("/api/notes", noteRoutes);
 
 // study support (student + admin)
 app.use("/api/support", supportRoutes);
+
+// admin videos
+app.use("/api/videos", videoRoutes);
 
 // dashboard (protected)
 app.get("/api/dashboard", authMiddleware, async (req, res) => {

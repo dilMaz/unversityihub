@@ -14,6 +14,7 @@ import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
 import AdminSupport from "./pages/AdminSupport";
+import AdminVideos from "./pages/AdminVideos";
 import StudySupport from "./pages/StudySupport";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
@@ -72,6 +73,7 @@ function App() {
             <Route path="/admin-users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
             <Route path="/admin-upload-notes" element={<AdminRoute><AdminUploadNotes /></AdminRoute>} />
             <Route path="/admin-comments" element={<AdminRoute><AdminComments /></AdminRoute>} />
+            <Route path="/admin-videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
             <Route path="/admin-panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
             <Route path="/admin-student-support" element={<AdminRoute><AdminSupport /></AdminRoute>} />
             <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
