@@ -15,6 +15,7 @@ const StudentSupport = () => {
   const [supportRequests, setSupportRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [savingId, setSavingId] = useState(null);
 
   const authHeaders = () => {
@@ -60,6 +61,7 @@ const StudentSupport = () => {
     const req = supportRequests.find((r) => r._id === id);
     if (!req) return;
     setSavingId(id);
+    setSuccessMessage("");
     try {
       await axios.patch(
         `${API}/support/admin/${id}`,
@@ -70,6 +72,7 @@ const StudentSupport = () => {
         { headers: { ...authHeaders(), "Content-Type": "application/json" } }
       );
       await fetchRequests();
+      setSuccessMessage("Response sent successfully.");
     } catch (e) {
       alert(e?.response?.data?.message || "Save failed");
     } finally {
@@ -119,6 +122,22 @@ const StudentSupport = () => {
               }}
             >
               {error}
+            </div>
+          ) : null}
+
+          {successMessage ? (
+            <div
+              style={{
+                padding: "14px",
+                borderRadius: "12px",
+                background: "rgba(76, 175, 80, 0.14)",
+                border: "1px solid rgba(76, 175, 80, 0.45)",
+                color: "#b7f5c4",
+                marginBottom: "16px",
+                fontWeight: 600,
+              }}
+            >
+              {successMessage}
             </div>
           ) : null}
 
