@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdminFooter from '../components/AdminFooter';
 import '../styles/dashboard.css';
 import '../styles/adminDashboardUnique.css';
 
@@ -328,6 +329,7 @@ const AdminReview = () => {
           ← Back to Dashboard
         </button>
       </div>
+      <AdminFooter />
     </div>
   );
 };

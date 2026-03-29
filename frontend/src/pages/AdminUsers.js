@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import AdminFooter from "../components/AdminFooter";
 import "../styles/dashboard.css";
 import "../styles/adminDashboardUnique.css";
 
@@ -108,6 +109,7 @@ function AdminUsers() {
           )}
         </div>
       </div>
+      <AdminFooter />
     </div>
   );
 }

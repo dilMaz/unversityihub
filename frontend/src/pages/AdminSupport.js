@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import AdminFooter from "../components/AdminFooter";
 import "../styles/dashboard.css";
 import "../styles/adminDashboardUnique.css";
 import "../styles/adminSupport.css";
@@ -302,6 +303,7 @@ const AdminSupport = () => {
           </div>
         )}
       </div>
+      <AdminFooter />
     </div>
   );
 };

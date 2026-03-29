@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import AdminFooter from "../components/AdminFooter";
 import "../styles/adminDashboardUnique.css";
 
 const normalizeSeries = (series, minHeight = 22, maxHeight = 88) => {
@@ -376,6 +377,8 @@ function AdminDashboard() {
           </div>
         </aside>
       </div>
+
+      <AdminFooter />
     </div>
   );
 }

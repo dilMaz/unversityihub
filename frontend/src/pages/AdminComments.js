@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdminFooter from '../components/AdminFooter';
 import '../styles/dashboard.css';
 import '../styles/adminComments.css';
 import '../styles/adminDashboardUnique.css';
@@ -266,6 +267,7 @@ const AdminComments = () => {
           </div>
         )}
       </div>
+      <AdminFooter />
     </div>
   );
 };

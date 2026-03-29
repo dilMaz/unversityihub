@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import AdminFooter from "../components/AdminFooter";
 import "../styles/dashboard.css";
 import "../styles/adminDashboardUnique.css";
 import "../styles/adminVideos.css";
@@ -354,6 +355,7 @@ const AdminVideos = () => {
           </div>
         )}
       </div>
+      <AdminFooter />
     </div>
   );
 };

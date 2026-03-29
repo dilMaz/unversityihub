@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import AdminFooter from '../components/AdminFooter';
 import "../styles/dashboard.css"; // reuse dashboard styles
 import "../styles/adminDashboardUnique.css";
 
@@ -145,6 +146,7 @@ const AdminUploadNotes = () => {
           .db-card-btn-full { width: 100%; }
         `}</style>
       </div>
+      <AdminFooter />
     </div>
   );
 };
