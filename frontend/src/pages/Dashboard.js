@@ -104,9 +104,6 @@ function Dashboard() {
             >
               👤 Profile
             </button>
-            <button className="db-logout" onClick={logout}>
-              <span>↩</span> Sign out
-            </button>
           </div>
         </div>
 
