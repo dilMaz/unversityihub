@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import AdminFooter from "../components/AdminFooter";
 import "../styles/adminDashboardUnique.css";
@@ -61,6 +61,15 @@ function AdminDashboard() {
   const [analyticsMonthly, setAnalyticsMonthly] = useState([]);
   const [pendingCount, setPendingCount] = useState(null);
   const [liveError, setLiveError] = useState("");
+  const [avatar, setAvatar] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [profileNotice, setProfileNotice] = useState("");
+  const avatarInputRef = useRef(null);
+
+  const avatarUrl = (rel) => {
+    if (!rel) return "";
+    return `http://localhost:5000/uploads/${String(rel).replace(/^\/+/, "")}`;
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -98,6 +107,21 @@ function AdminDashboard() {
       }
     };
 
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/profile/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.data?.name) {
+          setName(res.data.name);
+        }
+        setAvatar(res.data?.avatar || "");
+      } catch (_err) {
+        // Keep dashboard usable even if profile request fails.
+      }
+    };
+
     const fetchUsers = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/admin/users", {
@@ -131,9 +155,60 @@ function AdminDashboard() {
     };
 
     fetchDashboard();
+    fetchProfile();
     fetchUsers();
     fetchLiveDiagrams();
   }, [navigate]);
+
+  const openAvatarPicker = () => {
+    if (avatarUploading) return;
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type?.startsWith("image/")) {
+      setProfileNotice("Please select an image file.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      setProfileNotice("Profile image must be 3MB or less.");
+      e.target.value = "";
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    setAvatarUploading(true);
+    setProfileNotice("");
+    try {
+      const fd = new FormData();
+      fd.append("avatar", file);
+
+      const res = await axios.patch("http://localhost:5000/api/profile/me/avatar", fd, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setAvatar(res.data?.avatar || "");
+      setProfileNotice("Profile picture updated successfully.");
+    } catch (err) {
+      setProfileNotice(err?.response?.data?.message || "Failed to update profile picture.");
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -333,9 +408,29 @@ function AdminDashboard() {
 
         <aside className="adm-right">
           <div className="adm-profile-card">
-            <div className="adm-avatar">{(name || "A").charAt(0).toUpperCase()}</div>
+            <button
+              type="button"
+              className="adm-avatar"
+              onClick={openAvatarPicker}
+              title="Click to upload profile picture"
+            >
+              {avatar ? (
+                <img src={avatarUrl(avatar)} alt="Admin profile" className="adm-avatar-image" />
+              ) : (
+                (name || "A").charAt(0).toUpperCase()
+              )}
+              <span className="adm-avatar-upload-tag">{avatarUploading ? "Uploading..." : "Change"}</span>
+            </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="adm-avatar-input"
+              onChange={handleAvatarChange}
+            />
             <h3>{loading ? "Admin" : name}</h3>
             <p>System Administrator</p>
+            {profileNotice ? <div className="adm-profile-notice">{profileNotice}</div> : null}
             <div className="adm-profile-stats">
               <div>
                 <span>Users</span>
@@ -350,6 +445,9 @@ function AdminDashboard() {
                 <strong>{studentCount}</strong>
               </div>
             </div>
+            <button type="button" className="adm-edit-profile-btn" onClick={() => navigate('/profile')}>
+              Edit Profile Details
+            </button>
           </div>
 
           <div className="adm-schedule-card">
