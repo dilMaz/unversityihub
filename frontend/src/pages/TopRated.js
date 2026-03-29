@@ -444,7 +444,7 @@ function TopRated() {
                       }
                       title={expandedCommentsNote === note._id ? "Hide comments" : "Show comments"}
                     >
-                      {expandedCommentsNote === note._id ? "Hide Comments" : "Comments"}
+                      {expandedCommentsNote === note._id ? "Hide" : "Comments"}
                     </button>
                   </div>
                 </div>
