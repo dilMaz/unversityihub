@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AdminFooter from "../components/AdminFooter";
@@ -35,6 +35,10 @@ const AdminVideos = () => {
   const [deletingId, setDeletingId] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedSemester, setSelectedSemester] = useState("all");
+  const [selectedModule, setSelectedModule] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(VIDEO_CATEGORIES[0]);
@@ -220,21 +224,15 @@ const AdminVideos = () => {
     };
   };
 
-  const organizeVideos = () => {
-    const organized = {};
-    videos.forEach((video) => {
-      const year = `Year ${video.academicYear}`;
-      const semester = `Semester ${video.semester}`;
-      const moduleKey = `${video.moduleCode} - ${video.moduleName}`;
-
-      if (!organized[year]) organized[year] = {};
-      if (!organized[year][semester]) organized[year][semester] = {};
-      if (!organized[year][semester][moduleKey]) organized[year][semester][moduleKey] = [];
-
-      organized[year][semester][moduleKey].push(video);
+  const filteredVideos = useMemo(() => {
+    return videos.filter((video) => {
+      const matchYear = selectedYear === "all" || String(video.academicYear) === selectedYear;
+      const matchSemester = selectedSemester === "all" || String(video.semester) === selectedSemester;
+      const matchModule = selectedModule === "all" || String(video.moduleCode || "").toUpperCase() === selectedModule;
+      const matchCategory = selectedCategory === "all" || String(video.category || "") === selectedCategory;
+      return matchYear && matchSemester && matchModule && matchCategory;
     });
-    return organized;
-  };
+  }, [videos, selectedYear, selectedSemester, selectedModule, selectedCategory]);
 
   return (
     <div className="db-root admin-theme admin-videos-page">
@@ -359,80 +357,108 @@ const AdminVideos = () => {
         </form>
 
         <div className="db-section-title">Uploaded Videos</div>
+        {!loading && !error && videos.length > 0 ? (
+          <div className="av-form-card av-filter-card">
+            <div className="av-grid">
+              <div className="av-field">
+                <label>Filter by Year</label>
+                <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+                  <option value="all">All Years</option>
+                  <option value="1">1st Year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">4th Year</option>
+                </select>
+              </div>
+
+              <div className="av-field">
+                <label>Filter by Semester</label>
+                <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)}>
+                  <option value="all">All Semesters</option>
+                  <option value="1">1st Semester</option>
+                  <option value="2">2nd Semester</option>
+                </select>
+              </div>
+
+              <div className="av-field">
+                <label>Filter by Module</label>
+                <select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
+                  <option value="all">All Modules</option>
+                  {MODULE_CODES.map((module) => (
+                    <option key={module} value={module}>{module}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="av-field">
+                <label>Filter by Video Type</label>
+                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                  <option value="all">All Video Types</option>
+                  {VIDEO_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {loading ? (
           <div className="av-empty">Loading videos...</div>
         ) : videos.length === 0 ? (
           <div className="av-empty">No videos uploaded yet.</div>
+        ) : filteredVideos.length === 0 ? (
+          <div className="av-empty">No videos match the selected filters.</div>
         ) : (
-          <div className="av-organized">
-            {Object.entries(organizeVideos()).map(([year, semesters]) => (
-              <div key={year} className="av-year-section">
-                <h2 className="av-year-title">{year}</h2>
-                
-                {Object.entries(semesters).map(([semester, modules]) => (
-                  <div key={semester} className="av-semester-section">
-                    <h3 className="av-semester-title">{semester}</h3>
-                    
-                    {Object.entries(modules).map(([moduleKey, moduleVideos]) => (
-                      <div key={moduleKey} className="av-module-section">
-                        <h4 className="av-module-title">{moduleKey}</h4>
-                        
-                        <div className="av-list">
-                          {moduleVideos.map((video) => {
-                            const reactionSummary = getReactionSummary(video);
-                            return (
-                              <div key={video._id} className="av-card">
-                                <div className="av-head">
-                                  <h5>{video.title}</h5>
-                                  <span className="av-category">{video.category}</span>
-                                </div>
-                                <div className="av-meta">
-                                  <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
-                                  <span>{video.moduleCode}</span>
-                                  {video.moduleName ? <span>{video.moduleName}</span> : null}
-                                </div>
-                                {video.description ? <p className="av-desc">{video.description}</p> : null}
-
-                                <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
-
-                                <div className="av-admin-reactions">
-                                  <div className="av-admin-reactions-summary">
-                                    <span>{`👍 ${reactionSummary.good}`}</span>
-                                    <span>{`👎 ${reactionSummary.bad}`}</span>
-                                  </div>
-                                  {reactionSummary.list.length > 0 ? (
-                                    <div className="av-admin-reactions-list">
-                                      {reactionSummary.list.map((reaction, idx) => (
-                                        <span key={`${video._id}-${reaction?.user?._id || idx}-${reaction?.type || "none"}`} className="av-admin-reaction-chip">
-                                          {(reaction?.user?.name || reaction?.user?.email || "Unknown User") + ": " + (REACTION_BADGES[reaction?.type] || reaction?.type || "-")}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="av-help-text">No user reactions yet.</div>
-                                  )}
-                                </div>
-
-                                <div className="av-actions">
-                                  <button
-                                    type="button"
-                                    className="db-danger-btn"
-                                    onClick={() => handleDelete(video._id)}
-                                    disabled={deletingId === video._id}
-                                  >
-                                    {deletingId === video._id ? "Deleting..." : "Delete"}
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
+          <div className="av-list">
+            {filteredVideos.map((video) => {
+              const reactionSummary = getReactionSummary(video);
+              return (
+                <div key={video._id} className="av-card">
+                  <div className="av-head">
+                    <h3>{video.title}</h3>
+                    <span className="av-category">{video.category}</span>
                   </div>
-                ))}
-              </div>
-            ))}
+                  <div className="av-meta">
+                    <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
+                    <span>{[video.moduleCode, video.moduleName].filter(Boolean).join(" - ") || "General Module"}</span>
+                    <span>{`Category: ${video.category || "General"}`}</span>
+                  </div>
+                  {video.description ? <p className="av-desc">{video.description}</p> : null}
+
+                  <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
+
+                  <div className="av-admin-reactions">
+                    <div className="av-admin-reactions-summary">
+                      <span>{`👍 ${reactionSummary.good}`}</span>
+                      <span>{`👎 ${reactionSummary.bad}`}</span>
+                    </div>
+                    {reactionSummary.list.length > 0 ? (
+                      <div className="av-admin-reactions-list">
+                        {reactionSummary.list.map((reaction, idx) => (
+                          <span key={`${video._id}-${reaction?.user?._id || idx}-${reaction?.type || "none"}`} className="av-admin-reaction-chip">
+                            {(reaction?.user?.name || reaction?.user?.email || "Unknown User") + ": " + (REACTION_BADGES[reaction?.type] || reaction?.type || "-")}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="av-help-text">No user reactions yet.</div>
+                    )}
+                  </div>
+
+                  <div className="av-actions">
+                    <button
+                      type="button"
+                      className="db-danger-btn"
+                      onClick={() => handleDelete(video._id)}
+                      disabled={deletingId === video._id}
+                    >
+                      {deletingId === video._id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
