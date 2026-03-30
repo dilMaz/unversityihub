@@ -12,7 +12,6 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminUploadNotes from "./pages/AdminUploadNotes";
 import AdminComments from "./pages/AdminComments";
 import AdminPanel from "./pages/AdminPanel";
-import StudentSupport from "./pages/StudentSupport";
 import AdminSupport from "./pages/AdminSupport";
 import AdminVideos from "./pages/AdminVideos";
 import StudySupport from "./pages/StudySupport";
@@ -60,7 +59,6 @@ function App() {
 
             {/* PROTECTED ROUTES */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/student-support" element={<ProtectedRoute><StudentSupport /></ProtectedRoute>} />
             <Route path="/study-support" element={<ProtectedRoute><StudySupport /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />

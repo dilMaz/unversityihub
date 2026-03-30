@@ -146,8 +146,7 @@ function NavBar() {
               ) : (
                 <>
                   {renderNavItem("Dashboard", "/dashboard", "", 0)}
-                  {renderNavItem("Student Support", "/student-support", "", 1)}
-                  {renderNavItem("Study Support", "/study-support", "", 2)}
+                  {renderNavItem("Support", "/study-support", "", 1)}
                   {renderNavItem("Videos", "/videos", "", 3)}
                   {renderNavItem("Search", "/search", "", 4)}
                   {renderNavItem("Top Rated", "/top-rated", "", 5)}
