@@ -1,0 +1,470 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import AdminFooter from "../components/AdminFooter";
+import "../styles/dashboard.css";
+import "../styles/adminDashboardUnique.css";
+import "../styles/adminVideos.css";
+
+const API = "http://localhost:5000/api";
+
+const VIDEO_CATEGORIES = ["Lecture Video", "Paper Discussion", "Kuppi"];
+const VALID_YEARS = ["1", "2", "3", "4"];
+const VALID_SEMESTERS = ["1", "2"];
+const MODULE_CODES = ["IT2010", "IT2020", "IT2040", "IT2050", "IT2060"];
+const MODULE_NAMES = ["DS", "ITPM", "NDM", "OSSA", "OOP", "PAF"];
+const REACTION_BADGES = {
+  good: "👍 Good",
+  bad: "👎 Bad",
+};
+const MAX_VIDEO_SIZE_BYTES = 250 * 1024 * 1024;
+const ALLOWED_VIDEO_MIME = [
+  "video/mp4",
+  "video/x-matroska",
+  "video/webm",
+  "video/quicktime",
+  "video/x-msvideo",
+];
+const ALLOWED_VIDEO_EXT = [".mp4", ".mkv", ".webm", ".mov", ".avi"];
+
+const AdminVideos = () => {
+  const navigate = useNavigate();
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedSemester, setSelectedSemester] = useState("all");
+  const [selectedModule, setSelectedModule] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState(VIDEO_CATEGORIES[0]);
+  const [academicYear, setAcademicYear] = useState("1");
+  const [semester, setSemester] = useState("1");
+  const [moduleCode, setModuleCode] = useState("");
+  const [moduleName, setModuleName] = useState("");
+  const [description, setDescription] = useState("");
+  const [videoFile, setVideoFile] = useState(null);
+
+  const validateUploadForm = () => {
+    const cleanedTitle = title.trim();
+    const cleanedModuleCode = moduleCode.trim();
+    const cleanedModuleName = moduleName.trim();
+    const cleanedDescription = description.trim();
+
+    if (cleanedTitle.length < 3 || cleanedTitle.length > 200) {
+      return "Title must be between 3 and 200 characters";
+    }
+
+    if (!VIDEO_CATEGORIES.includes(category)) {
+      return "Invalid category selected";
+    }
+
+    if (!VALID_YEARS.includes(academicYear)) {
+      return "Academic year must be between 1 and 4";
+    }
+
+    if (!VALID_SEMESTERS.includes(semester)) {
+      return "Semester must be 1 or 2";
+    }
+
+    if (!MODULE_CODES.includes(cleanedModuleCode)) {
+      return "Please select a valid module code";
+    }
+
+    if (!MODULE_NAMES.includes(cleanedModuleName)) {
+      return "Please select a valid module name";
+    }
+
+    if (cleanedDescription.length > 500) {
+      return "Description cannot exceed 500 characters";
+    }
+
+    if (!videoFile) {
+      return "Video file is required";
+    }
+
+    if (videoFile.size > MAX_VIDEO_SIZE_BYTES) {
+      return "Video size must be 250 MB or less";
+    }
+
+    const lowerName = (videoFile.name || "").toLowerCase();
+    const hasAllowedExt = ALLOWED_VIDEO_EXT.some((ext) => lowerName.endsWith(ext));
+    const hasAllowedMime = ALLOWED_VIDEO_MIME.includes(videoFile.type);
+
+    if (!hasAllowedMime && !hasAllowedExt) {
+      return "Only MP4, MKV, WEBM, MOV, or AVI video files are allowed";
+    }
+
+    return "";
+  };
+
+  const authHeaders = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const fetchVideos = useCallback(async () => {
+    setError("");
+    try {
+      const res = await axios.get(`${API}/videos/admin/all`, {
+        headers: authHeaders(),
+      });
+      setVideos(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setError(err?.response?.data?.message || "Unable to load videos");
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetchVideos();
+  }, [navigate, fetchVideos]);
+
+  const resetForm = () => {
+    setTitle("");
+    setCategory(VIDEO_CATEGORIES[0]);
+    setAcademicYear("1");
+    setSemester("1");
+    setModuleCode("");
+    setModuleName("");
+    setDescription("");
+    setVideoFile(null);
+  };
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    const validationError = validateUploadForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append("title", title.trim());
+    fd.append("category", category);
+    fd.append("academicYear", academicYear);
+    fd.append("semester", semester);
+    fd.append("moduleCode", moduleCode.trim());
+    fd.append("moduleName", moduleName.trim());
+    fd.append("description", description.trim());
+    fd.append("videoFile", videoFile);
+
+    setSaving(true);
+    try {
+      const res = await axios.post(`${API}/videos/admin/upload`, fd, {
+        headers: {
+          ...authHeaders(),
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setSuccess(res?.data?.message || "Video uploaded successfully");
+      resetForm();
+      await fetchVideos();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Video upload failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this video?")) return;
+
+    setDeletingId(id);
+    setError("");
+    setSuccess("");
+    try {
+      await axios.delete(`${API}/videos/admin/${id}`, {
+        headers: authHeaders(),
+      });
+      setVideos((prev) => prev.filter((video) => video._id !== id));
+      setSuccess("Video deleted successfully");
+    } catch (err) {
+      setError(err?.response?.data?.message || "Delete failed");
+    } finally {
+      setDeletingId("");
+    }
+  };
+
+  const getVideoUrl = (videoPath) => {
+    if (!videoPath) return "";
+    return `http://localhost:5000/${videoPath.replace(/^\//, "")}`;
+  };
+
+  const getReactionSummary = (video) => {
+    const reactions = Array.isArray(video?.reactions) ? video.reactions : [];
+    if (!reactions.length) {
+      return { good: 0, bad: 0, list: [] };
+    }
+
+    const summary = { good: 0, bad: 0 };
+    reactions.forEach((item) => {
+      if (item?.type === "good") summary.good += 1;
+      if (item?.type === "bad") summary.bad += 1;
+    });
+
+    return {
+      ...summary,
+      list: reactions,
+    };
+  };
+
+  const filteredVideos = useMemo(() => {
+    return videos.filter((video) => {
+      const matchYear = selectedYear === "all" || String(video.academicYear) === selectedYear;
+      const matchSemester = selectedSemester === "all" || String(video.semester) === selectedSemester;
+      const matchModule = selectedModule === "all" || String(video.moduleCode || "").toUpperCase() === selectedModule;
+      const matchCategory = selectedCategory === "all" || String(video.category || "") === selectedCategory;
+      return matchYear && matchSemester && matchModule && matchCategory;
+    });
+  }, [videos, selectedYear, selectedSemester, selectedModule, selectedCategory]);
+
+  return (
+    <div className="db-root admin-theme admin-videos-page">
+      <div className="db-wrap">
+        <div className="db-topbar">
+          <div className="db-logo">Admin Videos</div>
+          <button className="db-logout" onClick={() => navigate("/admin-dashboard")}> 
+            Back to Admin
+          </button>
+        </div>
+
+        <div className="db-hero">
+          <div className="db-greeting">Video Management</div>
+          <h1>Upload Academic Videos</h1>
+          <p>Only admins can add Lecture Video, Paper Discussion, and Kuppi resources.</p>
+        </div>
+
+        <div className="db-section-title">Upload New Video</div>
+        <form className="av-form-card" onSubmit={handleUpload}>
+          {error ? <div className="av-alert error">{error}</div> : null}
+          {success ? <div className="av-alert success">{success}</div> : null}
+
+          <div className="av-grid">
+            <div className="av-field">
+              <label>Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter video title"
+                minLength={3}
+                maxLength={200}
+                required
+              />
+            </div>
+
+            <div className="av-field">
+              <label>Category</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                {VIDEO_CATEGORIES.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="av-field">
+              <label>Academic Year</label>
+              <select value={academicYear} onChange={(e) => setAcademicYear(e.target.value)}>
+                <option value="1">Year 1</option>
+                <option value="2">Year 2</option>
+                <option value="3">Year 3</option>
+                <option value="4">Year 4</option>
+              </select>
+            </div>
+
+            <div className="av-field">
+              <label>Semester</label>
+              <select value={semester} onChange={(e) => setSemester(e.target.value)}>
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+              </select>
+            </div>
+
+            <div className="av-field">
+              <label>Module Code</label>
+              <select
+                value={moduleCode}
+                onChange={(e) => setModuleCode(e.target.value)}
+                required
+              >
+                <option value="">Select Module Code</option>
+                {MODULE_CODES.map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="av-field">
+              <label>Module Name</label>
+              <select
+                value={moduleName}
+                onChange={(e) => setModuleName(e.target.value)}
+                required
+              >
+                <option value="">Select Module Name</option>
+                {MODULE_NAMES.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="av-field av-field-full">
+              <label>Description (optional)</label>
+              <textarea
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add short summary"
+                maxLength={500}
+              />
+            </div>
+
+            <div className="av-field av-field-full">
+              <label>Video File</label>
+              <input
+                type="file"
+                accept=".mp4,.mkv,.webm,.mov,.avi,video/mp4,video/x-matroska,video/webm,video/quicktime,video/x-msvideo"
+                onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                required
+              />
+              <small className="av-help-text">Allowed: MP4, MKV, WEBM, MOV, AVI. Max size: 250 MB.</small>
+            </div>
+          </div>
+
+          <button type="submit" className="av-submit" disabled={saving}>
+            {saving ? "Uploading..." : "Upload Video"}
+          </button>
+        </form>
+
+        <div className="db-section-title">Uploaded Videos</div>
+        {!loading && !error && videos.length > 0 ? (
+          <div className="av-form-card av-filter-card">
+            <div className="av-grid">
+              <div className="av-field">
+                <label>Filter by Year</label>
+                <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+                  <option value="all">All Years</option>
+                  <option value="1">1st Year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">4th Year</option>
+                </select>
+              </div>
+
+              <div className="av-field">
+                <label>Filter by Semester</label>
+                <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)}>
+                  <option value="all">All Semesters</option>
+                  <option value="1">1st Semester</option>
+                  <option value="2">2nd Semester</option>
+                </select>
+              </div>
+
+              <div className="av-field">
+                <label>Filter by Module</label>
+                <select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
+                  <option value="all">All Modules</option>
+                  {MODULE_CODES.map((module) => (
+                    <option key={module} value={module}>{module}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="av-field">
+                <label>Filter by Video Type</label>
+                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                  <option value="all">All Video Types</option>
+                  {VIDEO_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="av-empty">Loading videos...</div>
+        ) : videos.length === 0 ? (
+          <div className="av-empty">No videos uploaded yet.</div>
+        ) : filteredVideos.length === 0 ? (
+          <div className="av-empty">No videos match the selected filters.</div>
+        ) : (
+          <div className="av-list">
+            {filteredVideos.map((video) => {
+              const reactionSummary = getReactionSummary(video);
+              return (
+                <div key={video._id} className="av-card">
+                  <div className="av-head">
+                    <h3>{video.title}</h3>
+                    <span className="av-category">{video.category}</span>
+                  </div>
+                  <div className="av-meta">
+                    <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
+                    <span>{[video.moduleCode, video.moduleName].filter(Boolean).join(" - ") || "General Module"}</span>
+                    <span>{`Category: ${video.category || "General"}`}</span>
+                  </div>
+                  {video.description ? <p className="av-desc">{video.description}</p> : null}
+
+                  <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
+
+                  <div className="av-admin-reactions">
+                    <div className="av-admin-reactions-summary">
+                      <span>{`👍 ${reactionSummary.good}`}</span>
+                      <span>{`👎 ${reactionSummary.bad}`}</span>
+                    </div>
+                    {reactionSummary.list.length > 0 ? (
+                      <div className="av-admin-reactions-list">
+                        {reactionSummary.list.map((reaction, idx) => (
+                          <span key={`${video._id}-${reaction?.user?._id || idx}-${reaction?.type || "none"}`} className="av-admin-reaction-chip">
+                            {(reaction?.user?.name || reaction?.user?.email || "Unknown User") + ": " + (REACTION_BADGES[reaction?.type] || reaction?.type || "-")}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="av-help-text">No user reactions yet.</div>
+                    )}
+                  </div>
+
+                  <div className="av-actions">
+                    <button
+                      type="button"
+                      className="db-danger-btn"
+                      onClick={() => handleDelete(video._id)}
+                      disabled={deletingId === video._id}
+                    >
+                      {deletingId === video._id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      <AdminFooter />
+    </div>
+  );
+};
+
+export default AdminVideos;

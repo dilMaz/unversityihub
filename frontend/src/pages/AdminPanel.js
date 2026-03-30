@@ -1,8 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdminFooter from '../components/AdminFooter';
 import '../styles/dashboard.css';
 import '../styles/adminPanel.css';
+import '../styles/adminDashboardUnique.css';
+
+const normalizeNicInput = (value) => {
+  const upper = (value || '').toUpperCase().replace(/\s+/g, '');
+  const filtered = upper.replace(/[^0-9V]/g, '');
+  const digits = filtered.replace(/V/g, '');
+
+  if (filtered.includes('V')) {
+    return `${digits.slice(0, 9)}V`;
+  }
+
+  return digits.slice(0, 12);
+};
+
+const isValidSriLankanNic = (value) => /^(?:\d{12}|\d{9}V)$/.test((value || '').toUpperCase());
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -20,105 +36,6 @@ const AdminPanel = () => {
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [adminUsers, setAdminUsers] = useState([]);
-  const [adminsLoading, setAdminsLoading] = useState(true);
-  const [adminsError, setAdminsError] = useState('');
-  const [editingAdminId, setEditingAdminId] = useState('');
-  const [editForm, setEditForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    status: 'undergraduate',
-  });
-  const [savingEdit, setSavingEdit] = useState(false);
-
-  const fetchAdminUsers = async (showLoading = true) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setAdminsLoading(false);
-      setAdminsError('Missing auth token');
-      return;
-    }
-
-    try {
-      if (showLoading) setAdminsLoading(true);
-      setAdminsError('');
-      const res = await axios.get('http://localhost:5000/api/admin/users', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const users = Array.isArray(res.data) ? res.data : [];
-      setAdminUsers(users.filter((u) => (u.role || '').toLowerCase() === 'admin'));
-    } catch (err) {
-      setAdminsError(err.response?.data?.message || 'Failed to load admin users');
-    } finally {
-      setAdminsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAdminUsers();
-  }, []);
-
-  const startEditAdmin = (admin) => {
-    setEditingAdminId(admin._id);
-    setEditForm({
-      name: admin.name || '',
-      email: admin.email || '',
-      phone: admin.phone || '',
-      status: admin.status || 'undergraduate',
-    });
-    setMessage('');
-  };
-
-  const cancelEditAdmin = () => {
-    setEditingAdminId('');
-    setEditForm({
-      name: '',
-      email: '',
-      phone: '',
-      status: 'undergraduate',
-    });
-  };
-
-  const saveEditAdmin = async (adminId) => {
-    if (!editForm.name.trim() || !editForm.email.trim()) {
-      setMessage('Name and email are required to update admin details');
-      return;
-    }
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setMessage('Missing auth token');
-      return;
-    }
-
-    try {
-      setSavingEdit(true);
-      setMessage('');
-
-      await axios.put(
-        `http://localhost:5000/api/admin/users/${adminId}`,
-        {
-          name: editForm.name.trim(),
-          email: editForm.email.trim(),
-          phone: editForm.phone.trim(),
-          status: editForm.status,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setMessage('Admin details updated successfully! ✅');
-      cancelEditAdmin();
-      fetchAdminUsers(false);
-    } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed to update admin details');
-    } finally {
-      setSavingEdit(false);
-    }
-  };
 
   const validateField = (name, value) => {
     let error = '';
@@ -128,13 +45,15 @@ const AdminPanel = () => {
         if (!/^[a-zA-Z\s]+$/.test(value)) error = 'Name must contain only letters';
         break;
       case 'nic':
-        if (!/^[0-9]{12}$/.test(value)) error = 'NIC must have exactly 12 numbers';
+        if (!isValidSriLankanNic(value)) {
+          error = 'NIC must be 12 digits or 9 digits followed by V';
+        }
         break;
       case 'email':
         if (!/.+@.+\..+/.test(value)) error = 'Email must include @ and domain';
         break;
       case 'phone':
-        if (!/^[0-9]{10}$/.test(value.replace(/[\s\-()]/g, ''))) error = 'Phone must have exactly 10 numbers';
+        if (!/^0[0-9]{9}$/.test(value.replace(/[\s\-()]/g, ''))) error = 'Phone must start with 0 and have exactly 10 numbers';
         break;
       case 'password':
         if (value.length < 8 || value.length > 12) {
@@ -186,21 +105,20 @@ const AdminPanel = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/auth/register', {
+      await axios.post('http://localhost:5000/api/auth/register-admin', {
         name: formData.name,
         nic: formData.nic,
         email: formData.email,
         password: formData.password,
-        role: 'admin',
         status: formData.status,
         phone: formData.phone
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setMessage('New Admin registered successfully! ✅');
+      setMessage('');
+      window.alert('New Admin registered successfully!');
       setFormData({ name: '', nic: '', email: '', status: 'undergraduate', phone: '', password: '', confirmPassword: '' });
-      fetchAdminUsers(false);
     } catch (err) {
       setMessage(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -209,7 +127,7 @@ const AdminPanel = () => {
   };
 
   return (
-    <div className="db-root admin-panel-page">
+    <div className="db-root admin-theme admin-panel-page">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Admin Register</div>
@@ -256,14 +174,20 @@ const AdminPanel = () => {
                   maxLength="12"
                   value={formData.nic}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    const value = normalizeNicInput(e.target.value);
                     setFormData({
                       ...formData,
                       nic: value
                     });
+
+                    const error = validateField('nic', value);
+                    setErrors((prev) => ({
+                      ...prev,
+                      nic: error,
+                    }));
                   }}
                   required
-                  placeholder="200123456789"
+                  placeholder="200123456789 or 123456789V"
                   className={`ap-input ${errors.nic ? 'ap-input-error' : ''}`}
                 />
                 {errors.nic && <div className="ap-error">{errors.nic}</div>}
@@ -381,121 +305,9 @@ const AdminPanel = () => {
             </div>
           </form>
           </div>
-
-          <div>
-            <div className="db-section-title">All Admin Accounts</div>
-            <div className="user-table-wrap">
-              {adminsLoading ? (
-                <p>Loading admin users...</p>
-              ) : adminsError ? (
-                <p className="error-text">{adminsError}</p>
-              ) : adminUsers.length === 0 ? (
-                <p>No admin accounts found.</p>
-              ) : (
-                <table className="user-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Status</th>
-                      <th>Role</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adminUsers.map((admin) => (
-                      <tr key={admin._id}>
-                        <td>
-                          {editingAdminId === admin._id ? (
-                            <input
-                              type="text"
-                              value={editForm.name}
-                              onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                              className="ap-table-input"
-                            />
-                          ) : (
-                            admin.name
-                          )}
-                        </td>
-                        <td>
-                          {editingAdminId === admin._id ? (
-                            <input
-                              type="email"
-                              value={editForm.email}
-                              onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
-                              className="ap-table-input"
-                            />
-                          ) : (
-                            admin.email
-                          )}
-                        </td>
-                        <td>
-                          {editingAdminId === admin._id ? (
-                            <input
-                              type="text"
-                              value={editForm.phone}
-                              onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
-                              className="ap-table-input"
-                            />
-                          ) : (
-                            admin.phone || '-'
-                          )}
-                        </td>
-                        <td>
-                          {editingAdminId === admin._id ? (
-                            <select
-                              value={editForm.status}
-                              onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value }))}
-                              className="ap-table-input"
-                            >
-                              <option value="undergraduate">Undergraduate</option>
-                              <option value="graduate">Graduate</option>
-                            </select>
-                          ) : (
-                            admin.status || '-'
-                          )}
-                        </td>
-                        <td><span className="ap-role-chip">admin</span></td>
-                        <td>
-                          {editingAdminId === admin._id ? (
-                            <div className="ap-actions">
-                              <button
-                                type="button"
-                                className="db-admin-btn"
-                                onClick={() => saveEditAdmin(admin._id)}
-                                disabled={savingEdit}
-                              >
-                                {savingEdit ? 'Saving...' : 'Save'}
-                              </button>
-                              <button
-                                type="button"
-                                className="db-logout"
-                                onClick={cancelEditAdmin}
-                                disabled={savingEdit}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className="db-admin-btn"
-                              onClick={() => startEditAdmin(admin)}
-                            >
-                              Edit
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
         </div>
       </div>
+      <AdminFooter />
     </div>
   );
 };

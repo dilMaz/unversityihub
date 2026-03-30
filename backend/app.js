@@ -20,6 +20,7 @@ const multer = require('multer');
 const authRoutes = require("./routes/authRoutes");
 const noteRoutes = require("./routes/noteRoutes");
 const supportRoutes = require("./routes/supportRoutes");
+const videoRoutes = require("./routes/videoRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const User = require("./models/User");
 const Note = require("./models/Note");
@@ -60,6 +61,9 @@ const ensureAdmin = (req, res) => {
   }
   return true;
 };
+
+const isValidSriLankanNic = (nic) => /^(?:\d{12}|\d{9}V)$/i.test((nic || "").trim());
+const isValidPhoneStartingZero = (phone) => /^0\d{9}$/.test(String(phone || "").replace(/[\s\-()]/g, ""));
 
 const monthKey = (year, month) => `${year}-${String(month).padStart(2, "0")}`;
 
@@ -201,6 +205,9 @@ app.get("/api/test", (req, res) => {
   res.json({ message: "Server is working!", timestamp: new Date().toISOString() });
 });
 
+// admin videos
+app.use("/api/videos", videoRoutes);
+
 // dashboard (protected)
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
   try {
@@ -232,6 +239,8 @@ app.get("/api/profile/me", authMiddleware, async (req, res) => {
       name: user.name || "",
       email: user.email || "",
       phone: user.phone || "",
+      nic: user.nic || "",
+      status: user.status || "undergraduate",
       itNumber: user.itNumber || "",
       specialization: user.specialization || "",
       year: user.year,
@@ -282,7 +291,9 @@ app.patch("/api/profile/me", authMiddleware, async (req, res) => {
       name,
       email,
       itNumber,
+      nic,
       phone,
+      status,
       specialization,
       year,
       semester,
@@ -301,6 +312,27 @@ app.patch("/api/profile/me", authMiddleware, async (req, res) => {
     if (phone !== undefined) user.phone = String(phone);
     if (specialization !== undefined) user.specialization = String(specialization);
 
+    if ((user.role || "").toLowerCase() === "admin") {
+      if (phone !== undefined && !isValidPhoneStartingZero(phone)) {
+        return res.status(400).json({ message: "Phone must start with 0 and have exactly 10 numbers" });
+      }
+
+      if (nic !== undefined) {
+        const normalizedNic = String(nic).trim().toUpperCase();
+        if (!isValidSriLankanNic(normalizedNic)) {
+          return res.status(400).json({ message: "NIC must be 12 digits or 9 digits followed by V" });
+        }
+        user.nic = normalizedNic;
+      }
+
+      if (status !== undefined) {
+        if (!["graduate", "undergraduate"].includes(String(status))) {
+          return res.status(400).json({ message: "Invalid status" });
+        }
+        user.status = String(status);
+      }
+    }
+
     if (year !== undefined && year !== "" && year !== null) user.year = Number(year);
     if (semester !== undefined && semester !== "" && semester !== null) user.semester = Number(semester);
 
@@ -315,6 +347,8 @@ app.patch("/api/profile/me", authMiddleware, async (req, res) => {
       name: user.name || "",
       email: user.email || "",
       phone: user.phone || "",
+      nic: user.nic || "",
+      status: user.status || "undergraduate",
       itNumber: user.itNumber || "",
       specialization: user.specialization || "",
       year: user.year,
@@ -362,9 +396,18 @@ app.put("/api/admin/users/:id", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Invalid status" });
     }
 
+    if (typeof nic === "string") {
+      const nicValue = nic.trim();
+      if (nicValue && !isValidSriLankanNic(nicValue)) {
+        return res.status(400).json({
+          message: "NIC must be 12 digits or 9 digits followed by V",
+        });
+      }
+    }
+
     if (typeof name === "string") user.name = name.trim();
     if (typeof email === "string") user.email = email.trim();
-    if (typeof nic === "string") user.nic = nic.trim();
+    if (typeof nic === "string") user.nic = nic.trim().toUpperCase();
     if (typeof phone === "string") user.phone = phone.trim();
     if (typeof status === "string") user.status = status;
 
@@ -391,11 +434,15 @@ app.delete("/api/admin/users/:id", authMiddleware, async (req, res) => {
   try {
     if (!ensureAdmin(req, res)) return;
 
+    if (String(req.user?.id) === String(req.params.id)) {
+      return res.status(400).json({ message: "You cannot delete your own account" });
+    }
+
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User deleted" });
+    res.json({ message: "User deleted", deletedUserId: req.params.id });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

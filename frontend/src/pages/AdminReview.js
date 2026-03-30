@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdminFooter from '../components/AdminFooter';
 import '../styles/dashboard.css';
+import '../styles/adminDashboardUnique.css';
 
 const AdminReview = () => {
   const navigate = useNavigate();
@@ -12,6 +14,22 @@ const AdminReview = () => {
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [actionId, setActionId] = useState('');
+  const [viewingId, setViewingId] = useState('');
+  const [topNotice, setTopNotice] = useState({ type: '', text: '' });
+  const noticeTimerRef = useRef(null);
+
+  const showTopNotice = (type, text) => {
+    if (noticeTimerRef.current) {
+      clearTimeout(noticeTimerRef.current);
+    }
+
+    setTopNotice({ type, text });
+
+    noticeTimerRef.current = setTimeout(() => {
+      setTopNotice({ type: '', text: '' });
+      noticeTimerRef.current = null;
+    }, 3000);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -35,6 +53,12 @@ const AdminReview = () => {
     fetchDashboard();
     fetchPendingNotes();
     fetchReviewedNotes();
+
+    return () => {
+      if (noticeTimerRef.current) {
+        clearTimeout(noticeTimerRef.current);
+      }
+    };
   }, [navigate]);
 
   const fetchPendingNotes = async () => {
@@ -66,10 +90,12 @@ const AdminReview = () => {
   const approveNote = async (id) => {
     try {
       setActionId(id);
+      setError('');
       await axios.put(`http://localhost:5000/api/notes/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNotes((prev) => prev.filter((note) => note._id !== id));
+      showTopNotice('success', 'Document approved successfully');
       fetchReviewedNotes();
     } catch (err) {
       setError(err?.response?.data?.message || 'Approve failed');
@@ -81,10 +107,12 @@ const AdminReview = () => {
   const rejectNote = async (id) => {
     try {
       setActionId(id);
+      setError('');
       await axios.put(`http://localhost:5000/api/notes/${id}/reject`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNotes((prev) => prev.filter((note) => note._id !== id));
+      showTopNotice('reject', 'Document rejected successfully');
       fetchReviewedNotes();
     } catch (err) {
       setError(err?.response?.data?.message || 'Reject failed');
@@ -93,11 +121,61 @@ const AdminReview = () => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userRole');
-    navigate('/');
+  const deleteReviewedNote = async (id) => {
+    const confirmed = window.confirm('Delete this document permanently?');
+    if (!confirmed) return;
+
+    try {
+      setActionId(id);
+      setError('');
+      await axios.delete(`http://localhost:5000/api/notes/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+
+      setReviewedNotes((prev) => prev.filter((note) => note._id !== id));
+      showTopNotice('success', 'Document deleted successfully');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Delete failed');
+    } finally {
+      setActionId('');
+    }
+  };
+
+  const getPublicFileUrl = (fileUrl) => {
+    if (!fileUrl) return null;
+    const normalized = fileUrl.replace(/\\/g, '/').replace(/^\/+/, '');
+    if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+      return normalized;
+    }
+    return `http://localhost:5000/${normalized}`;
+  };
+
+  const viewDocument = async (id) => {
+    try {
+      setViewingId(id);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Please login again');
+        navigate('/login');
+        return;
+      }
+
+      const res = await axios.get(`http://localhost:5000/api/notes/${id}/view`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const publicUrl = getPublicFileUrl(res.data?.fileUrl);
+      if (!publicUrl) {
+        setError('This note has no viewable file');
+        return;
+      }
+
+      window.open(publicUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to open document');
+    } finally {
+      setViewingId('');
+    }
   };
 
   const formatDate = (value) => {
@@ -108,13 +186,10 @@ const AdminReview = () => {
   };
 
   return (
-    <div className="db-root">
+    <div className="db-root admin-theme">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Document Review</div>
-          <button className="db-logout" onClick={logout}>
-            <span>↩</span> Sign out
-          </button>
         </div>
 
         <div className="db-hero">
@@ -123,12 +198,16 @@ const AdminReview = () => {
           <p>Approve or reject uploaded documents.</p>
         </div>
 
+        {(topNotice.text || error) && (
+          <div className={`review-alert ${error ? 'error' : topNotice.type}`}>
+            {error || topNotice.text}
+          </div>
+        )}
+
         <div className="db-section-title">Pending Reviews ({notes.length})</div>
 
         {loading ? (
           <div>Loading...</div>
-        ) : error ? (
-          <div className="error">{error}</div>
         ) : (
           <div className="db-cards">
             {notes.map((note) => (
@@ -143,18 +222,25 @@ const AdminReview = () => {
                     Status: {note.moderationStatus || 'pending'}
                   </div>
                 </div>
-                <div>
+                <div className="pending-actions">
+                  <button
+                    onClick={() => viewDocument(note._id)}
+                    className="view-btn pending-view-btn"
+                    disabled={viewingId === note._id || actionId === note._id}
+                  >
+                    {viewingId === note._id ? 'Opening...' : 'View 📄'}
+                  </button>
                   <button
                     onClick={() => approveNote(note._id)}
                     className="approve-btn"
-                    disabled={actionId === note._id}
+                    disabled={actionId === note._id || viewingId === note._id}
                   >
                     {actionId === note._id ? 'Working...' : 'Approve ✅'}
                   </button>
                   <button
                     onClick={() => rejectNote(note._id)}
                     className="reject-btn"
-                    disabled={actionId === note._id}
+                    disabled={actionId === note._id || viewingId === note._id}
                   >
                     {actionId === note._id ? 'Working...' : 'Reject ❌'}
                   </button>
@@ -179,12 +265,14 @@ const AdminReview = () => {
                   <th>Status</th>
                   <th>Reviewed By</th>
                   <th>Reviewed At</th>
+                  <th>View</th>
+                  <th>Delete</th>
                 </tr>
               </thead>
               <tbody>
                 {reviewedNotes.length === 0 ? (
                   <tr>
-                    <td colSpan="6">No approved or rejected notes yet.</td>
+                    <td colSpan="8">No approved or rejected notes yet.</td>
                   </tr>
                 ) : (
                   reviewedNotes.map((note) => (
@@ -199,6 +287,26 @@ const AdminReview = () => {
                       </td>
                       <td>{note.reviewedBy?.name || '-'}</td>
                       <td>{formatDate(note.reviewedAt)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="view-doc-btn"
+                          onClick={() => viewDocument(note._id)}
+                          disabled={viewingId === note._id || actionId === note._id}
+                        >
+                          {viewingId === note._id ? 'Opening...' : 'View'}
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="delete-doc-btn"
+                          onClick={() => deleteReviewedNote(note._id)}
+                          disabled={actionId === note._id || viewingId === note._id}
+                        >
+                          {actionId === note._id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -211,6 +319,7 @@ const AdminReview = () => {
           ← Back to Dashboard
         </button>
       </div>
+      <AdminFooter />
     </div>
   );
 };

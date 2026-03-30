@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import AdminFooter from "../components/AdminFooter";
 import "../styles/dashboard.css";
 import "../styles/adminAnalytics.css";
+import "../styles/adminDashboardUnique.css";
 
 function AdminAnalytics() {
   const navigate = useNavigate();
@@ -105,6 +107,40 @@ function AdminAnalytics() {
     [monthly]
   );
 
+  const kpiCards = useMemo(
+    () => [
+      {
+        key: "users",
+        label: "Total Users",
+        value: summary?.totalUsers ?? 0,
+        tone: "violet",
+        icon: "U",
+      },
+      {
+        key: "notes",
+        label: "Total Notes",
+        value: summary?.totalNotes ?? 0,
+        tone: "cyan",
+        icon: "N",
+      },
+      {
+        key: "comments",
+        label: "Total Comments",
+        value: summary?.totalComments ?? 0,
+        tone: "teal",
+        icon: "C",
+      },
+      {
+        key: "downloads",
+        label: "Total Downloads",
+        value: summary?.totalDownloads ?? 0,
+        tone: "amber",
+        icon: "D",
+      },
+    ],
+    [summary]
+  );
+
   const maxActivity = useMemo(() => {
     if (!monthlyActivity.length) return 1;
     return Math.max(1, ...monthlyActivity.map((item) => item.activity));
@@ -145,7 +181,7 @@ function AdminAnalytics() {
   };
 
   return (
-    <div className="db-root analytics-page">
+    <div className="db-root admin-theme analytics-page">
       <div className="db-wrap">
         <div className="db-topbar">
           <div className="db-logo">Admin Analytics</div>
@@ -171,23 +207,31 @@ function AdminAnalytics() {
           <div className="analytics-empty">Loading analytics...</div>
         ) : (
           <>
+            <div className="analytics-mini-strip">
+              <div className="analytics-mini-chip">
+                <span>Admins</span>
+                <strong>{summary?.totalAdmins ?? 0}</strong>
+              </div>
+              <div className="analytics-mini-chip">
+                <span>Students</span>
+                <strong>{summary?.totalStudents ?? 0}</strong>
+              </div>
+              <div className="analytics-mini-chip">
+                <span>Last 6 Months</span>
+                <strong>{monthly.length}</strong>
+              </div>
+            </div>
+
             <div className="analytics-summary-grid">
-              <div className="analytics-summary-card">
-                <div className="analytics-summary-label">Total Users</div>
-                <div className="analytics-summary-value">{summary?.totalUsers ?? 0}</div>
-              </div>
-              <div className="analytics-summary-card">
-                <div className="analytics-summary-label">Total Notes</div>
-                <div className="analytics-summary-value">{summary?.totalNotes ?? 0}</div>
-              </div>
-              <div className="analytics-summary-card">
-                <div className="analytics-summary-label">Total Comments</div>
-                <div className="analytics-summary-value">{summary?.totalComments ?? 0}</div>
-              </div>
-              <div className="analytics-summary-card">
-                <div className="analytics-summary-label">Total Downloads</div>
-                <div className="analytics-summary-value">{summary?.totalDownloads ?? 0}</div>
-              </div>
+              {kpiCards.map((card) => (
+                <div key={card.key} className={`analytics-summary-card tone-${card.tone}`}>
+                  <div className="analytics-summary-top">
+                    <div className="analytics-summary-label">{card.label}</div>
+                    <div className="analytics-summary-icon">{card.icon}</div>
+                  </div>
+                  <div className="analytics-summary-value">{card.value}</div>
+                </div>
+              ))}
             </div>
 
             <div className="analytics-chart-card">
@@ -303,6 +347,7 @@ function AdminAnalytics() {
           </>
         )}
       </div>
+      <AdminFooter />
     </div>
   );
 }

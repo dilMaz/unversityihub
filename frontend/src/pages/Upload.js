@@ -202,7 +202,7 @@ function Upload() {
           <div className="upload-alert success">
             <span>✅</span>
             <div>
-              <p>Notes uploaded successfully! Redirecting to dashboard...</p>
+              <p>Notes uploaded successfully and sent for admin review. Redirecting to dashboard...</p>
             </div>
           </div>
         )}

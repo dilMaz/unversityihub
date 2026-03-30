@@ -2,6 +2,18 @@ const Note = require("../models/Note");
 const User = require("../models/User");
 const fs = require("fs");
 
+const approvedOrLegacyFilter = { $in: ["approved", null] };
+
+const isAdminRequest = (req) => req.user?.role === "admin";
+
+const canAccessNote = (req, note) => {
+  if (note?.moderationStatus === "approved" || !note?.moderationStatus) {
+    return true;
+  }
+
+  return isAdminRequest(req);
+};
+
 // seed
 exports.seedNotes = async (req, res) => {
   const seedCandidates = [
@@ -131,6 +143,7 @@ exports.searchNotes = async (req, res) => {
   const keyword = req.query.search || "";
 
   const notes = await Note.find({
+    moderationStatus: approvedOrLegacyFilter,
     $or: [
       { title:      { $regex: keyword, $options: "i" } },
       { subject:    { $regex: keyword, $options: "i" } },
@@ -146,6 +159,10 @@ exports.downloadNote = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: "Note not found" });
+
+    if (!canAccessNote(req, note)) {
+      return res.status(403).json({ message: "This note is not available for users" });
+    }
 
     if (note.filePath && note.filePath !== "seed" && !fs.existsSync(note.filePath)) {
       return res.status(404).json({ message: "File not found on server. Please re-upload this note." });
@@ -172,7 +189,9 @@ exports.downloadNote = async (req, res) => {
 
 // top rated
 exports.topNotes = async (req, res) => {
-  const notes = await Note.find().sort({ downloads: -1 }).limit(5);
+  const notes = await Note.find({ moderationStatus: approvedOrLegacyFilter })
+    .sort({ downloads: -1 })
+    .limit(5);
   res.json(notes);
 };
 
@@ -181,6 +200,10 @@ exports.viewNote = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: "Note not found" });
+
+    if (!canAccessNote(req, note)) {
+      return res.status(403).json({ message: "This note is not available for users" });
+    }
 
     if (!note.filePath || note.filePath === "seed") {
       return res.status(404).json({ message: "This note has no viewable file" });
@@ -283,6 +306,28 @@ exports.rejectNote = async (req, res) => {
   }
 };
 
+exports.deleteReviewedNote = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    if (!["approved", "rejected"].includes(note.moderationStatus)) {
+      return res.status(400).json({ message: "Only approved or rejected notes can be deleted" });
+    }
+
+    if (note.filePath && note.filePath !== "seed" && fs.existsSync(note.filePath)) {
+      fs.unlinkSync(note.filePath);
+    }
+
+    await note.deleteOne();
+    res.json({ message: "Document deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // 💬 Comments
 exports.getNoteComments = async (req, res) => {
   try {
@@ -376,7 +421,7 @@ exports.getAllCommentsByNoteForAdmin = async (req, res) => {
 
     const notes = await Note.find({ "comments.0": { $exists: true } })
       .populate("comments.user", "name email")
-      .select("title subject moduleCode comments averageRating ratingCount")
+      .select("title subject moduleCode academicYear semester comments averageRating ratingCount")
       .sort({ updatedAt: -1 });
 
     const payload = notes.map((note) => ({
@@ -384,6 +429,8 @@ exports.getAllCommentsByNoteForAdmin = async (req, res) => {
       title: note.title,
       subject: note.subject,
       moduleCode: note.moduleCode,
+      academicYear: note.academicYear,
+      semester: note.semester,
       averageRating: note.averageRating || 0,
       ratingCount: note.ratingCount || (note.comments || []).length,
       commentsCount: (note.comments || []).length,
@@ -445,6 +492,7 @@ exports.createAdminNote = async (req, res) => {
       filePath,
       uploadedBy: req.user?.id,
       uploadSource: "admin",
+      moderationStatus: "approved",
     });
 
     await note.save();
@@ -484,12 +532,13 @@ exports.createStudentNote = async (req, res) => {
       uploadSource: "student",
       academicYear: year,
       semester: sem,
+      moderationStatus: "pending",
     });
 
     await note.save();
 
     res.status(201).json({
-      message: "Note uploaded successfully",
+      message: "Note uploaded successfully and is pending admin approval",
       note,
     });
   } catch (err) {

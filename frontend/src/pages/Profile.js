@@ -26,6 +26,8 @@ function Profile() {
   const [draft, setDraft] = useState({
     name: "",
     email: "",
+    nic: "",
+    status: "undergraduate",
     itNumber: "",
     phone: "",
     specialization: "",
@@ -73,6 +75,8 @@ function Profile() {
     setDraft({
       name: profile?.name || "",
       email: profile?.email || "",
+      nic: profile?.nic || "",
+      status: profile?.status || "undergraduate",
       itNumber: profile?.itNumber || "",
       phone: profile?.phone || "",
       specialization: profile?.specialization || "",
@@ -102,6 +106,8 @@ function Profile() {
     if (val === null || val === undefined || val === "") return "—";
     return String(val);
   };
+
+  const isAdmin = (profile?.role || "").toLowerCase() === "admin";
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -215,14 +221,19 @@ function Profile() {
       const payload = {
         name: draft.name.trim(),
         email: draft.email.trim(),
-        itNumber: draft.itNumber.trim(),
         phone: draft.phone.trim(),
-        specialization: draft.specialization.trim(),
         password: draft.password !== "" ? draft.password : undefined,
       };
 
-      if (draft.year !== "") payload.year = Number(draft.year);
-      if (draft.semester !== "") payload.semester = Number(draft.semester);
+      if (isAdmin) {
+        payload.nic = draft.nic.trim().toUpperCase();
+        payload.status = draft.status;
+      } else {
+        payload.itNumber = draft.itNumber.trim();
+        payload.specialization = draft.specialization.trim();
+        if (draft.year !== "") payload.year = Number(draft.year);
+        if (draft.semester !== "") payload.semester = Number(draft.semester);
+      }
 
       await axios.patch(`${API}/profile/me`, payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -401,26 +412,43 @@ function Profile() {
                     <div className="pr-label">Email</div>
                     <div className="pr-value">{v(profile?.email)}</div>
                   </div>
-                  <div className="pr-row">
-                    <div className="pr-label">IT number</div>
-                    <div className="pr-value">{v(profile?.itNumber)}</div>
-                  </div>
+                  {isAdmin ? (
+                    <>
+                      <div className="pr-row">
+                        <div className="pr-label">NIC</div>
+                        <div className="pr-value">{v(profile?.nic)}</div>
+                      </div>
+                      <div className="pr-row">
+                        <div className="pr-label">Status</div>
+                        <div className="pr-value">{v(profile?.status)}</div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="pr-row">
+                      <div className="pr-label">IT number</div>
+                      <div className="pr-value">{v(profile?.itNumber)}</div>
+                    </div>
+                  )}
                   <div className="pr-row">
                     <div className="pr-label">Phone number</div>
                     <div className="pr-value">{v(profile?.phone)}</div>
                   </div>
-                  <div className="pr-row">
-                    <div className="pr-label">Specialization</div>
-                    <div className="pr-value">{v(profile?.specialization)}</div>
-                  </div>
-                  <div className="pr-row">
-                    <div className="pr-label">Year</div>
-                    <div className="pr-value">{v(profile?.year)}</div>
-                  </div>
-                  <div className="pr-row">
-                    <div className="pr-label">Semester</div>
-                    <div className="pr-value">{v(profile?.semester)}</div>
-                  </div>
+                  {!isAdmin ? (
+                    <>
+                      <div className="pr-row">
+                        <div className="pr-label">Specialization</div>
+                        <div className="pr-value">{v(profile?.specialization)}</div>
+                      </div>
+                      <div className="pr-row">
+                        <div className="pr-label">Year</div>
+                        <div className="pr-value">{v(profile?.year)}</div>
+                      </div>
+                      <div className="pr-row">
+                        <div className="pr-label">Semester</div>
+                        <div className="pr-value">{v(profile?.semester)}</div>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
 
                 <div className="pr-actions">
@@ -467,17 +495,33 @@ function Profile() {
                     />
                   </div>
 
-                  <div className="pr-field">
-                    <label className="pr-label">IT number</label>
-                    <input
-                      className="pr-input"
-                      type="text"
-                      value={draft.itNumber}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, itNumber: e.target.value }))
-                      }
-                    />
-                  </div>
+                  {isAdmin ? (
+                    <div className="pr-field">
+                      <label className="pr-label">NIC</label>
+                      <input
+                        className="pr-input"
+                        type="text"
+                        value={draft.nic}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, nic: e.target.value.toUpperCase() }))
+                        }
+                        placeholder="200123456789 or 123456789V"
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div className="pr-field">
+                      <label className="pr-label">IT number</label>
+                      <input
+                        className="pr-input"
+                        type="text"
+                        value={draft.itNumber}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, itNumber: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
 
                   <div className="pr-field">
                     <label className="pr-label">Phone number</label>
@@ -491,45 +535,65 @@ function Profile() {
                     />
                   </div>
 
-                  <div className="pr-field">
-                    <label className="pr-label">Specialization</label>
-                    <input
-                      className="pr-input"
-                      type="text"
-                      value={draft.specialization}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, specialization: e.target.value }))
-                      }
-                    />
-                  </div>
+                  {isAdmin ? (
+                    <div className="pr-field">
+                      <label className="pr-label">Status</label>
+                      <select
+                        className="pr-input"
+                        value={draft.status}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, status: e.target.value }))
+                        }
+                      >
+                        <option value="graduate">Graduate</option>
+                        <option value="undergraduate">Undergraduate</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="pr-field">
+                      <label className="pr-label">Specialization</label>
+                      <input
+                        className="pr-input"
+                        type="text"
+                        value={draft.specialization}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, specialization: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
 
-                  <div className="pr-field">
-                    <label className="pr-label">Year</label>
-                    <input
-                      className="pr-input"
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={draft.year}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, year: e.target.value }))
-                      }
-                    />
-                  </div>
+                  {!isAdmin ? (
+                    <div className="pr-field">
+                      <label className="pr-label">Year</label>
+                      <input
+                        className="pr-input"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={draft.year}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, year: e.target.value }))
+                        }
+                      />
+                    </div>
+                  ) : null}
 
-                  <div className="pr-field">
-                    <label className="pr-label">Semester</label>
-                    <input
-                      className="pr-input"
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={draft.semester}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, semester: e.target.value }))
-                      }
-                    />
-                  </div>
+                  {!isAdmin ? (
+                    <div className="pr-field">
+                      <label className="pr-label">Semester</label>
+                      <input
+                        className="pr-input"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={draft.semester}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, semester: e.target.value }))
+                        }
+                      />
+                    </div>
+                  ) : null}
 
                   <div className="pr-field" style={{ gridColumn: "1 / -1" }}>
                     <label className="pr-label">New password (optional)</label>

@@ -27,10 +27,6 @@ function Dashboard() {
     navigate("/login");
   };
 
-  const goToAdmin = () => {
-    navigate("/admin-dashboard");
-  };
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -101,20 +97,12 @@ function Dashboard() {
         <div className="db-topbar">
           <div className="db-logo">UniHub</div>
           <div className="db-topbar-actions">
-            {userRole === "admin" && (
-              <button className="db-admin-btn" onClick={goToAdmin}>
-                👨‍💼 Admin
-              </button>
-            )}
             <button
               type="button"
               className="db-profile-btn"
               onClick={() => navigate("/profile")}
             >
               👤 Profile
-            </button>
-            <button className="db-logout" onClick={logout}>
-              <span>↩</span> Sign out
             </button>
           </div>
         </div>

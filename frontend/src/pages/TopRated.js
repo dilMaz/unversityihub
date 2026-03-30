@@ -111,6 +111,17 @@ function TopRated() {
             : note
         )
       );
+
+      const publicUrl = getPublicFileUrl(response.data?.fileUrl);
+      if (!publicUrl) {
+        setError("This note has no downloadable file");
+        return;
+      }
+
+      const fileNameFromUrl = decodeURIComponent(publicUrl.split("?")[0].split("/").pop() || "");
+      const safeTitle = String(title || "note-file").trim() || "note-file";
+      const downloadName = fileNameFromUrl || safeTitle;
+      await forceBrowserDownload(publicUrl, downloadName);
     } catch (err) {
       let errorMessage = "Download failed";
 
@@ -433,7 +444,7 @@ function TopRated() {
                       }
                       title={expandedCommentsNote === note._id ? "Hide comments" : "Show comments"}
                     >
-                      {expandedCommentsNote === note._id ? "Hide Comments" : "Comments"}
+                      {expandedCommentsNote === note._id ? "Hide" : "Comments"}
                     </button>
                   </div>
                 </div>

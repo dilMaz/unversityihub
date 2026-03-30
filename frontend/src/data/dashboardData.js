@@ -36,13 +36,13 @@ const baseQuickActions = [
     route: "/upload",
   },
   {
-    id: "student-support",
+    id: "study-support",
     cls: "c5",
-    icon: "�",
-    title: "Student Support",
-    desc: "Facing issues? Get help from our support team for any problems you encounter.",
-    btn: "Get Support",
-    route: "/student-support",
+    icon: "🎫",
+    title: "Study Support",
+    desc: "Raise a ticket for any problem or requirement and track admin replies.",
+    btn: "Raise Ticket",
+    route: "/study-support",
   },
   {
     id: "categories",
@@ -52,6 +52,15 @@ const baseQuickActions = [
     desc: "Browse notes organized by subject tags and categories.",
     btn: "Browse Categories",
     route: "/categories",
+  },
+  {
+    id: "videos",
+    cls: "c7",
+    icon: "🎬",
+    title: "Videos",
+    desc: "Watch academic video resources uploaded by admins for each module.",
+    btn: "Open Videos",
+    route: "/videos",
   },
 ];
 

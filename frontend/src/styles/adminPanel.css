@@ -1,9 +1,12 @@
 .admin-panel-page .ap-layout {
   margin-top: 40px;
-  display: grid;
-  grid-template-columns: minmax(320px, 520px) 1fr;
-  gap: 28px;
-  align-items: start;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.admin-panel-page .ap-layout > div {
+  width: min(620px, 100%);
 }
 
 .admin-panel-page .ap-form-card {
@@ -164,8 +167,33 @@
   gap: 8px;
 }
 
+.admin-panel-page .ap-delete-btn {
+  border: 1px solid rgba(255, 118, 118, 0.5);
+  background: rgba(239, 68, 68, 0.16);
+  color: #ff9a9a;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-panel-page .ap-delete-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.24);
+  border-color: rgba(255, 138, 138, 0.7);
+  color: #ffd0d0;
+  transform: translateY(-1px);
+}
+
+.admin-panel-page .ap-delete-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 1100px) {
   .admin-panel-page .ap-layout {
-    grid-template-columns: 1fr;
+    margin-top: 28px;
   }
 }
