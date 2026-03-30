@@ -5,6 +5,20 @@ import "../styles/dashboard.css";
 import "../styles/adminVideos.css";
 import { API_BASE_URL } from "../config/appConfig";
 
+const YEAR_FILTER_OPTIONS = [
+  { value: "1", label: "1st Year" },
+  { value: "2", label: "2nd Year" },
+  { value: "3", label: "3rd Year" },
+  { value: "4", label: "4th Year" },
+];
+
+const SEMESTER_FILTER_OPTIONS = [
+  { value: "1", label: "1st Semester" },
+  { value: "2", label: "2nd Semester" },
+];
+
+const MODULE_FILTER_OPTIONS = ["IT2010", "IT2020", "IT2040", "IT2050", "IT2060"];
+
 function Videos() {
   const navigate = useNavigate();
   const [videos, setVideos] = useState([]);
@@ -44,27 +58,11 @@ function Videos() {
     return `${API_BASE_URL}/${String(videoPath).replace(/^\//, "")}`;
   };
 
-  const yearOptions = useMemo(() => {
-    return [...new Set(videos.map((video) => String(video.academicYear || "")).filter(Boolean))]
-      .sort((a, b) => Number(a) - Number(b));
-  }, [videos]);
-
-  const semesterOptions = useMemo(() => {
-    return [...new Set(videos.map((video) => String(video.semester || "")).filter(Boolean))]
-      .sort((a, b) => Number(a) - Number(b));
-  }, [videos]);
-
-  const moduleOptions = useMemo(() => {
-    return [...new Set(videos.map((video) => [video.moduleCode, video.moduleName].filter(Boolean).join(" - ")).filter(Boolean))]
-      .sort((a, b) => a.localeCompare(b));
-  }, [videos]);
-
   const filteredVideos = useMemo(() => {
     return videos.filter((video) => {
-      const moduleLabel = [video.moduleCode, video.moduleName].filter(Boolean).join(" - ");
       const matchYear = selectedYear === "all" || String(video.academicYear) === selectedYear;
       const matchSemester = selectedSemester === "all" || String(video.semester) === selectedSemester;
-      const matchModule = selectedModule === "all" || moduleLabel === selectedModule;
+      const matchModule = selectedModule === "all" || String(video.moduleCode || "").toUpperCase() === selectedModule;
       return matchYear && matchSemester && matchModule;
     });
   }, [videos, selectedYear, selectedSemester, selectedModule]);
@@ -90,8 +88,8 @@ function Videos() {
                 <label>Filter by Year</label>
                 <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
                   <option value="all">All Years</option>
-                  {yearOptions.map((year) => (
-                    <option key={year} value={year}>{`Year ${year}`}</option>
+                  {YEAR_FILTER_OPTIONS.map((year) => (
+                    <option key={year.value} value={year.value}>{year.label}</option>
                   ))}
                 </select>
               </div>
@@ -100,8 +98,8 @@ function Videos() {
                 <label>Filter by Semester</label>
                 <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)}>
                   <option value="all">All Semesters</option>
-                  {semesterOptions.map((semester) => (
-                    <option key={semester} value={semester}>{`Semester ${semester}`}</option>
+                  {SEMESTER_FILTER_OPTIONS.map((semester) => (
+                    <option key={semester.value} value={semester.value}>{semester.label}</option>
                   ))}
                 </select>
               </div>
@@ -110,7 +108,7 @@ function Videos() {
                 <label>Filter by Module</label>
                 <select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
                   <option value="all">All Modules</option>
-                  {moduleOptions.map((module) => (
+                  {MODULE_FILTER_OPTIONS.map((module) => (
                     <option key={module} value={module}>{module}</option>
                   ))}
                 </select>
