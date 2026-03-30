@@ -50,14 +50,20 @@
 }
 
 .admin-videos-page .av-submit {
-  margin-top: 12px;
-  border: 1px solid rgba(108, 187, 255, 0.55);
-  background: linear-gradient(135deg, rgba(43, 165, 255, 0.34), rgba(59, 102, 255, 0.28));
-  color: #deefff;
+  display: block;
+  margin: 12px auto 0;
+  border: 1px solid rgba(255, 94, 94, 0.6);
+  background: linear-gradient(135deg, rgba(232, 61, 61, 0.92), rgba(168, 20, 20, 0.92));
+  color: #fff4f4;
   border-radius: 10px;
   padding: 10px 14px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.admin-videos-page .av-submit:hover:not(:disabled) {
+  border-color: rgba(255, 126, 126, 0.75);
+  background: linear-gradient(135deg, rgba(244, 73, 73, 0.96), rgba(186, 26, 26, 0.96));
 }
 
 .admin-videos-page .av-submit:disabled {
