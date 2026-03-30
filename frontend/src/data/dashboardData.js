@@ -51,7 +51,7 @@ const baseQuickActions = [
     title: "Videos",
     desc: "Watch academic video resources uploaded by admins for each module.",
     btn: "Open Videos",
-    route: "/admin-videos",
+    route: "/videos",
   },
 ];
 

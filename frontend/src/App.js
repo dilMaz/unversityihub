@@ -21,6 +21,7 @@ import Search from "./pages/Search";
 import TopRated from "./pages/TopRated";
 import Recommended from "./pages/Recommended";
 import Upload from "./pages/Upload";
+import Videos from "./pages/Videos";
 import Categories from "./pages/Categories";
 import AdminReview from "./pages/AdminReview";
 import AdminAnalytics from "./pages/AdminAnalytics";
@@ -63,6 +64,7 @@ function App() {
             <Route path="/study-support" element={<ProtectedRoute><StudySupport /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+            <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
             <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
             <Route path="/top-rated" element={<ProtectedRoute><TopRated /></ProtectedRoute>} />

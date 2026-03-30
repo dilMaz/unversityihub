@@ -78,6 +78,19 @@ exports.getAllAdminVideos = async (req, res) => {
   }
 };
 
+exports.getAllVideos = async (_req, res) => {
+  try {
+    const videos = await VideoResource.find()
+      .populate("uploadedBy", "name email")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.deleteAdminVideo = async (req, res) => {
   try {
     const video = await VideoResource.findById(req.params.id);
