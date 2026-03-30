@@ -11,7 +11,8 @@ const API = "http://localhost:5000/api";
 const VIDEO_CATEGORIES = ["Lecture Video", "Paper Discussion", "Kuppi"];
 const VALID_YEARS = ["1", "2", "3", "4"];
 const VALID_SEMESTERS = ["1", "2"];
-const MODULE_NAME_REGEX = /^[A-Za-z\s]+$/;
+const MODULE_CODES = ["IT2010", "IT2020", "IT2040", "IT2050", "IT2060"];
+const MODULE_NAMES = ["DS", "ITPM", "NDM", "OSSA", "OOP", "PAF"];
 const MAX_VIDEO_SIZE_BYTES = 250 * 1024 * 1024;
 const ALLOWED_VIDEO_MIME = [
   "video/mp4",
@@ -42,7 +43,7 @@ const AdminVideos = () => {
 
   const validateUploadForm = () => {
     const cleanedTitle = title.trim();
-    const cleanedModuleCode = moduleCode.trim().toUpperCase();
+    const cleanedModuleCode = moduleCode.trim();
     const cleanedModuleName = moduleName.trim();
     const cleanedDescription = description.trim();
 
@@ -62,16 +63,12 @@ const AdminVideos = () => {
       return "Semester must be 1 or 2";
     }
 
-    if (!/^[A-Z0-9-]{2,40}$/.test(cleanedModuleCode)) {
-      return "Module code must be 2-40 characters (A-Z, 0-9, -)";
+    if (!MODULE_CODES.includes(cleanedModuleCode)) {
+      return "Please select a valid module code";
     }
 
-    if (cleanedModuleName.length > 120) {
-      return "Module name cannot exceed 120 characters";
-    }
-
-    if (cleanedModuleName && !MODULE_NAME_REGEX.test(cleanedModuleName)) {
-      return "Module name must contain letters only";
+    if (!MODULE_NAMES.includes(cleanedModuleName)) {
+      return "Please select a valid module name";
     }
 
     if (cleanedDescription.length > 500) {
@@ -153,7 +150,7 @@ const AdminVideos = () => {
     fd.append("category", category);
     fd.append("academicYear", academicYear);
     fd.append("semester", semester);
-    fd.append("moduleCode", moduleCode.trim().toUpperCase());
+    fd.append("moduleCode", moduleCode.trim());
     fd.append("moduleName", moduleName.trim());
     fd.append("description", description.trim());
     fd.append("videoFile", videoFile);
@@ -265,29 +262,34 @@ const AdminVideos = () => {
 
             <div className="av-field">
               <label>Module Code</label>
-              <input
-                type="text"
+              <select
                 value={moduleCode}
-                onChange={(e) => setModuleCode(e.target.value.toUpperCase())}
-                placeholder="e.g. CS301"
-                pattern="[A-Z0-9-]{2,40}"
-                title="Use 2-40 characters: A-Z, 0-9, and -"
-                maxLength={40}
+                onChange={(e) => setModuleCode(e.target.value)}
                 required
-              />
+              >
+                <option value="">Select Module Code</option>
+                {MODULE_CODES.map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="av-field">
-              <label>Module Name (optional)</label>
-              <input
-                type="text"
+              <label>Module Name</label>
+              <select
                 value={moduleName}
                 onChange={(e) => setModuleName(e.target.value)}
-                placeholder="e.g. Operating Systems"
-                pattern="[A-Za-z ]+"
-                title="Module name must contain letters only"
-                maxLength={120}
-              />
+                required
+              >
+                <option value="">Select Module Name</option>
+                {MODULE_NAMES.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="av-field av-field-full">
