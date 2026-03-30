@@ -111,5 +111,37 @@ exports.updateAdmin = async (req, res) => {
   }
 };
 
+exports.deleteMine = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await SupportRequest.findOne({ _id: id, student: req.user.id });
+
+    if (!doc) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    const canDelete = ["resolved", "approved"].includes(String(doc.status || "").toLowerCase());
+    if (!canDelete) {
+      return res.status(403).json({ message: "Only approved support requests can be deleted" });
+    }
+
+    if (doc.attachment) {
+      const absolutePath = path.join(__dirname, "..", "uploads", doc.attachment);
+      if (fs.existsSync(absolutePath)) {
+        try {
+          fs.unlinkSync(absolutePath);
+        } catch (_e) {
+          // Ignore attachment cleanup errors and continue deleting the request.
+        }
+      }
+    }
+
+    await SupportRequest.deleteOne({ _id: doc._id });
+    res.json({ message: "Support request deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.ensureUploadsDir = ensureUploadsDir;
 exports.uploadsDir = uploadsDir;

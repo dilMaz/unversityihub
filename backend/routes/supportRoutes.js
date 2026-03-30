@@ -37,6 +37,7 @@ router.post(
 );
 
 router.get("/my", authMiddleware, supportController.listMine);
+router.delete("/:id", authMiddleware, supportController.deleteMine);
 
 router.get(
   "/admin/all",

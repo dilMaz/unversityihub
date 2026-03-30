@@ -35,6 +35,7 @@ function StudySupport() {
   const [requests, setRequests] = useState([]);
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -116,6 +117,30 @@ function StudySupport() {
   const attachmentUrl = (rel) => {
     if (!rel) return "";
     return `http://localhost:5000/uploads/${rel.replace(/^\//, "")}`;
+  };
+
+  const canDeleteRequest = (status) => {
+    const normalized = String(status || "").toLowerCase();
+    return normalized === "resolved" || normalized === "approved";
+  };
+
+  const handleDeleteRequest = async (id) => {
+    if (!id) return;
+    const confirmed = window.confirm("Delete this support request?");
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    setError("");
+    try {
+      await axios.delete(`${API}/support/${id}`, {
+        headers: authHeaders(),
+      });
+      setRequests((prev) => prev.filter((request) => request._id !== id));
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to delete support request.");
+    } finally {
+      setDeletingId("");
+    }
   };
 
   if (loading) {
@@ -249,9 +274,21 @@ function StudySupport() {
             <div className="ss-request-card" key={r._id}>
               <div className="ss-request-head">
                 <div className="ss-request-title">{r.title}</div>
-                <span className={`ss-badge ${r.status}`}>
-                  {statusLabel(r.status)}
-                </span>
+                <div className="ss-request-head-actions">
+                  <span className={`ss-badge ${r.status}`}>
+                    {statusLabel(r.status)}
+                  </span>
+                  {canDeleteRequest(r.status) ? (
+                    <button
+                      type="button"
+                      className="ss-request-delete"
+                      onClick={() => handleDeleteRequest(r._id)}
+                      disabled={deletingId === r._id}
+                    >
+                      {deletingId === r._id ? "Deleting..." : "Delete"}
+                    </button>
+                  ) : null}
+                </div>
               </div>
               <div className="ss-request-meta">
                 <strong>Category:</strong> {r.category} ·{" "}
