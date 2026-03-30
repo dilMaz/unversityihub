@@ -148,6 +148,55 @@
   max-height: 320px;
 }
 
+.admin-videos-page .av-reactions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.admin-videos-page .av-reactions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.admin-videos-page .av-reaction-btn {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 999px;
+  min-width: 64px;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-videos-page .av-reaction-btn:hover {
+  border-color: rgba(108, 187, 255, 0.45);
+  background: rgba(108, 187, 255, 0.12);
+}
+
+.admin-videos-page .av-reaction-btn.active {
+  border-color: rgba(108, 187, 255, 0.7);
+  background: rgba(108, 187, 255, 0.22);
+  color: #dff1ff;
+}
+
+.admin-videos-page .av-reaction-count {
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 10px;
+}
+
 .admin-videos-page .av-actions {
   margin-top: 10px;
   display: flex;

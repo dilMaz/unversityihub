@@ -19,6 +19,10 @@ const SEMESTER_FILTER_OPTIONS = [
 
 const MODULE_FILTER_OPTIONS = ["IT2010", "IT2020", "IT2040", "IT2050", "IT2060"];
 const CATEGORY_FILTER_OPTIONS = ["Lecture Video", "Paper Discussion", "Kuppi"];
+const REACTION_OPTIONS = [
+  { value: "good", icon: "👍" },
+  { value: "bad", icon: "👎" },
+];
 
 function Videos() {
   const navigate = useNavigate();
@@ -29,6 +33,7 @@ function Videos() {
   const [selectedSemester, setSelectedSemester] = useState("all");
   const [selectedModule, setSelectedModule] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [reactionsByVideo, setReactionsByVideo] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -69,6 +74,25 @@ function Videos() {
       return matchYear && matchSemester && matchModule && matchCategory;
     });
   }, [videos, selectedYear, selectedSemester, selectedModule, selectedCategory]);
+
+  const handleReactionClick = (videoId, reaction) => {
+    setReactionsByVideo((prev) => {
+      const activeReaction = prev[videoId];
+      if (activeReaction === reaction) {
+        const next = { ...prev };
+        delete next[videoId];
+        return next;
+      }
+      return {
+        ...prev,
+        [videoId]: reaction,
+      };
+    });
+  };
+
+  const getReactionCount = (videoId, reaction) => {
+    return reactionsByVideo[videoId] === reaction ? 1 : 0;
+  };
 
   return (
     <div className="db-root admin-videos-page">
@@ -153,6 +177,25 @@ function Videos() {
                 {video.description ? <p className="av-desc">{video.description}</p> : null}
 
                 <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
+
+                <div className="av-reactions">
+                  <div className="av-reactions-row">
+                    {REACTION_OPTIONS.map((reaction) => {
+                      const isActive = reactionsByVideo[video._id] === reaction.value;
+                      return (
+                        <button
+                          key={`${video._id}-${reaction.value}`}
+                          type="button"
+                          className={`av-reaction-btn ${isActive ? "active" : ""}`}
+                          onClick={() => handleReactionClick(video._id, reaction.value)}
+                        >
+                          <span>{reaction.icon}</span>
+                          <span className="av-reaction-count">{getReactionCount(video._id, reaction.value)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
