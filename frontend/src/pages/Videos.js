@@ -18,6 +18,7 @@ const SEMESTER_FILTER_OPTIONS = [
 ];
 
 const MODULE_FILTER_OPTIONS = ["IT2010", "IT2020", "IT2040", "IT2050", "IT2060"];
+const CATEGORY_FILTER_OPTIONS = ["Lecture Video", "Paper Discussion", "Kuppi"];
 
 function Videos() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ function Videos() {
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedSemester, setSelectedSemester] = useState("all");
   const [selectedModule, setSelectedModule] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -63,9 +65,10 @@ function Videos() {
       const matchYear = selectedYear === "all" || String(video.academicYear) === selectedYear;
       const matchSemester = selectedSemester === "all" || String(video.semester) === selectedSemester;
       const matchModule = selectedModule === "all" || String(video.moduleCode || "").toUpperCase() === selectedModule;
-      return matchYear && matchSemester && matchModule;
+      const matchCategory = selectedCategory === "all" || String(video.category || "") === selectedCategory;
+      return matchYear && matchSemester && matchModule && matchCategory;
     });
-  }, [videos, selectedYear, selectedSemester, selectedModule]);
+  }, [videos, selectedYear, selectedSemester, selectedModule, selectedCategory]);
 
   return (
     <div className="db-root admin-videos-page">
@@ -110,6 +113,16 @@ function Videos() {
                   <option value="all">All Modules</option>
                   {MODULE_FILTER_OPTIONS.map((module) => (
                     <option key={module} value={module}>{module}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="av-field av-field-full">
+                <label>Filter by Video Type</label>
+                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                  <option value="all">All Video Types</option>
+                  {CATEGORY_FILTER_OPTIONS.map((category) => (
+                    <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
               </div>
