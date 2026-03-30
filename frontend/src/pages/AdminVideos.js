@@ -198,6 +198,22 @@ const AdminVideos = () => {
     return `http://localhost:5000/${videoPath.replace(/^\//, "")}`;
   };
 
+  const organizeVideos = () => {
+    const organized = {};
+    videos.forEach((video) => {
+      const year = `Year ${video.academicYear}`;
+      const semester = `Semester ${video.semester}`;
+      const moduleKey = `${video.moduleCode} - ${video.moduleName}`;
+
+      if (!organized[year]) organized[year] = {};
+      if (!organized[year][semester]) organized[year][semester] = {};
+      if (!organized[year][semester][moduleKey]) organized[year][semester][moduleKey] = [];
+
+      organized[year][semester][moduleKey].push(video);
+    });
+    return organized;
+  };
+
   return (
     <div className="db-root admin-theme admin-videos-page">
       <div className="db-wrap">
@@ -326,32 +342,52 @@ const AdminVideos = () => {
         ) : videos.length === 0 ? (
           <div className="av-empty">No videos uploaded yet.</div>
         ) : (
-          <div className="av-list">
-            {videos.map((video) => (
-              <div key={video._id} className="av-card">
-                <div className="av-head">
-                  <h3>{video.title}</h3>
-                  <span className="av-category">{video.category}</span>
-                </div>
-                <div className="av-meta">
-                  <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
-                  <span>{video.moduleCode}</span>
-                  {video.moduleName ? <span>{video.moduleName}</span> : null}
-                </div>
-                {video.description ? <p className="av-desc">{video.description}</p> : null}
+          <div className="av-organized">
+            {Object.entries(organizeVideos()).map(([year, semesters]) => (
+              <div key={year} className="av-year-section">
+                <h2 className="av-year-title">{year}</h2>
+                
+                {Object.entries(semesters).map(([semester, modules]) => (
+                  <div key={semester} className="av-semester-section">
+                    <h3 className="av-semester-title">{semester}</h3>
+                    
+                    {Object.entries(modules).map(([moduleKey, moduleVideos]) => (
+                      <div key={moduleKey} className="av-module-section">
+                        <h4 className="av-module-title">{moduleKey}</h4>
+                        
+                        <div className="av-list">
+                          {moduleVideos.map((video) => (
+                            <div key={video._id} className="av-card">
+                              <div className="av-head">
+                                <h5>{video.title}</h5>
+                                <span className="av-category">{video.category}</span>
+                              </div>
+                              <div className="av-meta">
+                                <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
+                                <span>{video.moduleCode}</span>
+                                {video.moduleName ? <span>{video.moduleName}</span> : null}
+                              </div>
+                              {video.description ? <p className="av-desc">{video.description}</p> : null}
 
-                <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
+                              <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
 
-                <div className="av-actions">
-                  <button
-                    type="button"
-                    className="db-danger-btn"
-                    onClick={() => handleDelete(video._id)}
-                    disabled={deletingId === video._id}
-                  >
-                    {deletingId === video._id ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
+                              <div className="av-actions">
+                                <button
+                                  type="button"
+                                  className="db-danger-btn"
+                                  onClick={() => handleDelete(video._id)}
+                                  disabled={deletingId === video._id}
+                                >
+                                  {deletingId === video._id ? "Deleting..." : "Delete"}
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
             ))}
           </div>

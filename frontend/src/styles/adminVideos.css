@@ -159,6 +159,65 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
+.admin-videos-page .av-organized {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-videos-page .av-year-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-videos-page .av-year-title {
+  margin: 0;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(43, 165, 255, 0.2), rgba(59, 102, 255, 0.15));
+  border: 1px solid rgba(108, 187, 255, 0.35);
+  border-radius: 12px;
+  color: #6cbfff;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.admin-videos-page .av-semester-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left: 20px;
+}
+
+.admin-videos-page .av-semester-title {
+  margin: 0;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(138, 222, 255, 0.15), rgba(108, 187, 255, 0.1));
+  border: 1px solid rgba(138, 222, 255, 0.3);
+  border-radius: 10px;
+  color: #9ec5ff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.admin-videos-page .av-module-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left: 20px;
+}
+
+.admin-videos-page .av-module-title {
+  margin: 0;
+  padding: 8px 10px;
+  background: rgba(180, 150, 255, 0.12);
+  border: 1px solid rgba(180, 150, 255, 0.3);
+  border-radius: 8px;
+  color: #c4b5fd;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .admin-videos-page .av-grid {
     grid-template-columns: 1fr;
@@ -166,5 +225,10 @@
 
   .admin-videos-page .av-head {
     flex-direction: column;
+  }
+
+  .admin-videos-page .av-semester-section,
+  .admin-videos-page .av-module-section {
+    margin-left: 10px;
   }
 }
