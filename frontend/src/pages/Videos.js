@@ -10,6 +10,9 @@ function Videos() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedSemester, setSelectedSemester] = useState("all");
+  const [selectedModule, setSelectedModule] = useState("all");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -41,21 +44,30 @@ function Videos() {
     return `${API_BASE_URL}/${String(videoPath).replace(/^\//, "")}`;
   };
 
-  const grouped = useMemo(() => {
-    const map = {};
-    videos.forEach((video) => {
-      const yearKey = `Year ${video.academicYear || "-"}`;
-      const semesterKey = `Semester ${video.semester || "-"}`;
-      const moduleKey = [video.moduleCode, video.moduleName].filter(Boolean).join(" - ") || "General Module";
-
-      if (!map[yearKey]) map[yearKey] = {};
-      if (!map[yearKey][semesterKey]) map[yearKey][semesterKey] = {};
-      if (!map[yearKey][semesterKey][moduleKey]) map[yearKey][semesterKey][moduleKey] = [];
-
-      map[yearKey][semesterKey][moduleKey].push(video);
-    });
-    return map;
+  const yearOptions = useMemo(() => {
+    return [...new Set(videos.map((video) => String(video.academicYear || "")).filter(Boolean))]
+      .sort((a, b) => Number(a) - Number(b));
   }, [videos]);
+
+  const semesterOptions = useMemo(() => {
+    return [...new Set(videos.map((video) => String(video.semester || "")).filter(Boolean))]
+      .sort((a, b) => Number(a) - Number(b));
+  }, [videos]);
+
+  const moduleOptions = useMemo(() => {
+    return [...new Set(videos.map((video) => [video.moduleCode, video.moduleName].filter(Boolean).join(" - ")).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b));
+  }, [videos]);
+
+  const filteredVideos = useMemo(() => {
+    return videos.filter((video) => {
+      const moduleLabel = [video.moduleCode, video.moduleName].filter(Boolean).join(" - ");
+      const matchYear = selectedYear === "all" || String(video.academicYear) === selectedYear;
+      const matchSemester = selectedSemester === "all" || String(video.semester) === selectedSemester;
+      const matchModule = selectedModule === "all" || moduleLabel === selectedModule;
+      return matchYear && matchSemester && matchModule;
+    });
+  }, [videos, selectedYear, selectedSemester, selectedModule]);
 
   return (
     <div className="db-root admin-videos-page">
@@ -71,44 +83,65 @@ function Videos() {
           <p>Browse all videos uploaded by admins, grouped by year, semester, and module.</p>
         </div>
 
+        {!loading && !error && videos.length > 0 ? (
+          <div className="av-form-card av-filter-card">
+            <div className="av-grid">
+              <div className="av-field">
+                <label>Filter by Year</label>
+                <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+                  <option value="all">All Years</option>
+                  {yearOptions.map((year) => (
+                    <option key={year} value={year}>{`Year ${year}`}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="av-field">
+                <label>Filter by Semester</label>
+                <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)}>
+                  <option value="all">All Semesters</option>
+                  {semesterOptions.map((semester) => (
+                    <option key={semester} value={semester}>{`Semester ${semester}`}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="av-field av-field-full">
+                <label>Filter by Module</label>
+                <select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
+                  <option value="all">All Modules</option>
+                  {moduleOptions.map((module) => (
+                    <option key={module} value={module}>{module}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {loading ? (
           <div className="av-empty">Loading videos...</div>
         ) : error ? (
           <div className="av-alert error">{error}</div>
-        ) : videos.length === 0 ? (
-          <div className="av-empty">No videos uploaded yet.</div>
+        ) : filteredVideos.length === 0 ? (
+          <div className="av-empty">No videos match the selected filters.</div>
         ) : (
-          <div className="av-organized">
-            {Object.entries(grouped).map(([year, semesters]) => (
-              <div key={year} className="av-year-section">
-                <h2 className="av-year-title">{year}</h2>
-                {Object.entries(semesters).map(([semester, modules]) => (
-                  <div key={semester} className="av-semester-section">
-                    <h3 className="av-semester-title">{semester}</h3>
-                    {Object.entries(modules).map(([moduleKey, moduleVideos]) => (
-                      <div key={moduleKey} className="av-module-section">
-                        <h4 className="av-module-title">{moduleKey}</h4>
-                        <div className="av-list">
-                          {moduleVideos.map((video) => (
-                            <div key={video._id} className="av-card">
-                              <div className="av-head">
-                                <h3>{video.title}</h3>
-                                <span className="av-category">{video.category}</span>
-                              </div>
-                              <div className="av-meta">
-                                <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
-                                {video.uploadedBy?.name ? <span>{`By ${video.uploadedBy.name}`}</span> : null}
-                              </div>
-                              {video.description ? <p className="av-desc">{video.description}</p> : null}
+          <div className="av-list">
+            {filteredVideos.map((video) => (
+              <div key={video._id} className="av-card">
+                <div className="av-head">
+                  <h3>{video.title}</h3>
+                  <span className="av-category">{video.category}</span>
+                </div>
+                <div className="av-meta">
+                  <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
+                  <span>{[video.moduleCode, video.moduleName].filter(Boolean).join(" - ") || "General Module"}</span>
+                  <span>{`Category: ${video.category || "General"}`}</span>
+                  {video.uploadedBy?.name ? <span>{`By ${video.uploadedBy.name}`}</span> : null}
+                </div>
+                {video.description ? <p className="av-desc">{video.description}</p> : null}
 
-                              <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+                <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
               </div>
             ))}
           </div>
