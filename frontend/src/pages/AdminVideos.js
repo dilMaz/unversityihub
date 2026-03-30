@@ -13,6 +13,10 @@ const VALID_YEARS = ["1", "2", "3", "4"];
 const VALID_SEMESTERS = ["1", "2"];
 const MODULE_CODES = ["IT2010", "IT2020", "IT2040", "IT2050", "IT2060"];
 const MODULE_NAMES = ["DS", "ITPM", "NDM", "OSSA", "OOP", "PAF"];
+const REACTION_BADGES = {
+  good: "👍 Good",
+  bad: "👎 Bad",
+};
 const MAX_VIDEO_SIZE_BYTES = 250 * 1024 * 1024;
 const ALLOWED_VIDEO_MIME = [
   "video/mp4",
@@ -198,6 +202,24 @@ const AdminVideos = () => {
     return `http://localhost:5000/${videoPath.replace(/^\//, "")}`;
   };
 
+  const getReactionSummary = (video) => {
+    const reactions = Array.isArray(video?.reactions) ? video.reactions : [];
+    if (!reactions.length) {
+      return { good: 0, bad: 0, list: [] };
+    }
+
+    const summary = { good: 0, bad: 0 };
+    reactions.forEach((item) => {
+      if (item?.type === "good") summary.good += 1;
+      if (item?.type === "bad") summary.bad += 1;
+    });
+
+    return {
+      ...summary,
+      list: reactions,
+    };
+  };
+
   const organizeVideos = () => {
     const organized = {};
     videos.forEach((video) => {
@@ -356,33 +378,54 @@ const AdminVideos = () => {
                         <h4 className="av-module-title">{moduleKey}</h4>
                         
                         <div className="av-list">
-                          {moduleVideos.map((video) => (
-                            <div key={video._id} className="av-card">
-                              <div className="av-head">
-                                <h5>{video.title}</h5>
-                                <span className="av-category">{video.category}</span>
-                              </div>
-                              <div className="av-meta">
-                                <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
-                                <span>{video.moduleCode}</span>
-                                {video.moduleName ? <span>{video.moduleName}</span> : null}
-                              </div>
-                              {video.description ? <p className="av-desc">{video.description}</p> : null}
+                          {moduleVideos.map((video) => {
+                            const reactionSummary = getReactionSummary(video);
+                            return (
+                              <div key={video._id} className="av-card">
+                                <div className="av-head">
+                                  <h5>{video.title}</h5>
+                                  <span className="av-category">{video.category}</span>
+                                </div>
+                                <div className="av-meta">
+                                  <span>{`Year ${video.academicYear} / Semester ${video.semester}`}</span>
+                                  <span>{video.moduleCode}</span>
+                                  {video.moduleName ? <span>{video.moduleName}</span> : null}
+                                </div>
+                                {video.description ? <p className="av-desc">{video.description}</p> : null}
 
-                              <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
+                                <video controls preload="metadata" className="av-player" src={getVideoUrl(video.videoPath)} />
 
-                              <div className="av-actions">
-                                <button
-                                  type="button"
-                                  className="db-danger-btn"
-                                  onClick={() => handleDelete(video._id)}
-                                  disabled={deletingId === video._id}
-                                >
-                                  {deletingId === video._id ? "Deleting..." : "Delete"}
-                                </button>
+                                <div className="av-admin-reactions">
+                                  <div className="av-admin-reactions-summary">
+                                    <span>{`👍 ${reactionSummary.good}`}</span>
+                                    <span>{`👎 ${reactionSummary.bad}`}</span>
+                                  </div>
+                                  {reactionSummary.list.length > 0 ? (
+                                    <div className="av-admin-reactions-list">
+                                      {reactionSummary.list.map((reaction, idx) => (
+                                        <span key={`${video._id}-${reaction?.user?._id || idx}-${reaction?.type || "none"}`} className="av-admin-reaction-chip">
+                                          {(reaction?.user?.name || reaction?.user?.email || "Unknown User") + ": " + (REACTION_BADGES[reaction?.type] || reaction?.type || "-")}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="av-help-text">No user reactions yet.</div>
+                                  )}
+                                </div>
+
+                                <div className="av-actions">
+                                  <button
+                                    type="button"
+                                    className="db-danger-btn"
+                                    onClick={() => handleDelete(video._id)}
+                                    disabled={deletingId === video._id}
+                                  >
+                                    {deletingId === video._id ? "Deleting..." : "Delete"}
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     ))}

@@ -4,6 +4,18 @@ const { VIDEO_CATEGORIES } = require("../models/VideoResource");
 const VALID_YEARS = [1, 2, 3, 4];
 const VALID_SEMESTERS = [1, 2];
 const MODULE_NAME_REGEX = /^[A-Za-z\s]+$/;
+const VALID_REACTIONS = ["good", "bad"];
+
+const buildReactionCounts = (reactions = []) => {
+  return reactions.reduce(
+    (acc, item) => {
+      if (item?.type === "good") acc.good += 1;
+      if (item?.type === "bad") acc.bad += 1;
+      return acc;
+    },
+    { good: 0, bad: 0 }
+  );
+};
 
 exports.createAdminVideo = async (req, res) => {
   try {
@@ -69,6 +81,7 @@ exports.getAllAdminVideos = async (req, res) => {
   try {
     const videos = await VideoResource.find()
       .populate("uploadedBy", "name email")
+      .populate("reactions.user", "name email")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -78,16 +91,74 @@ exports.getAllAdminVideos = async (req, res) => {
   }
 };
 
-exports.getAllVideos = async (_req, res) => {
+exports.getAllVideos = async (req, res) => {
   try {
+    const currentUserId = String(req.user?.id || req.user?._id || "");
     const videos = await VideoResource.find()
       .populate("uploadedBy", "name email")
+      .populate("reactions.user", "name email")
       .sort({ createdAt: -1 })
       .lean();
 
-    res.json(videos);
+    const payload = videos.map((video) => {
+      const reactions = Array.isArray(video.reactions) ? video.reactions : [];
+      const currentUserReaction = reactions.find((item) => {
+        const reactionUserId = String(item?.user?._id || item?.user || "");
+        return reactionUserId && reactionUserId === currentUserId;
+      })?.type || "";
+
+      return {
+        ...video,
+        reactionCounts: buildReactionCounts(reactions),
+        currentUserReaction,
+      };
+    });
+
+    res.json(payload);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+exports.addOrUpdateReaction = async (req, res) => {
+  try {
+    const videoId = req.params.id;
+    const reactionType = String(req.body?.reaction || "").trim().toLowerCase();
+
+    if (!VALID_REACTIONS.includes(reactionType)) {
+      return res.status(400).json({ message: "Reaction must be good or bad" });
+    }
+
+    const video = await VideoResource.findById(videoId);
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    const currentUserId = String(req.user?.id || req.user?._id || "");
+    const existing = video.reactions.find((item) => String(item.user) === currentUserId);
+
+    if (existing) {
+      existing.type = reactionType;
+      existing.createdAt = new Date();
+    } else {
+      video.reactions.push({
+        user: currentUserId,
+        type: reactionType,
+      });
+    }
+
+    await video.save();
+
+    const updated = await VideoResource.findById(videoId).lean();
+    const reactionCounts = buildReactionCounts(updated?.reactions || []);
+
+    return res.json({
+      message: "Reaction saved",
+      reactionCounts,
+      currentUserReaction: reactionType,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
   }
 };
 

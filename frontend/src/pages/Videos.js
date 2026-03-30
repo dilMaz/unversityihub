@@ -34,6 +34,13 @@ function Videos() {
   const [selectedModule, setSelectedModule] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [reactionsByVideo, setReactionsByVideo] = useState({});
+  const [reactionCountsByVideo, setReactionCountsByVideo] = useState({});
+  const [savingReactionByVideo, setSavingReactionByVideo] = useState({});
+
+  const authHeaders = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -46,9 +53,24 @@ function Videos() {
       setError("");
       try {
         const res = await axios.get(`${API_BASE_URL}/api/videos/all`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: authHeaders(),
         });
-        setVideos(Array.isArray(res.data) ? res.data : []);
+        const list = Array.isArray(res.data) ? res.data : [];
+        setVideos(list);
+
+        const initialReactions = {};
+        const initialCounts = {};
+        list.forEach((video) => {
+          if (video?._id) {
+            initialReactions[video._id] = video.currentUserReaction || "";
+            initialCounts[video._id] = {
+              good: Number(video?.reactionCounts?.good || 0),
+              bad: Number(video?.reactionCounts?.bad || 0),
+            };
+          }
+        });
+        setReactionsByVideo(initialReactions);
+        setReactionCountsByVideo(initialCounts);
       } catch (err) {
         setError(err?.response?.data?.message || "Unable to load videos");
         setVideos([]);
@@ -75,23 +97,39 @@ function Videos() {
     });
   }, [videos, selectedYear, selectedSemester, selectedModule, selectedCategory]);
 
-  const handleReactionClick = (videoId, reaction) => {
-    setReactionsByVideo((prev) => {
-      const activeReaction = prev[videoId];
-      if (activeReaction === reaction) {
-        const next = { ...prev };
-        delete next[videoId];
-        return next;
-      }
-      return {
+  const handleReactionClick = async (videoId, reaction) => {
+    if (!videoId || savingReactionByVideo[videoId]) return;
+
+    setSavingReactionByVideo((prev) => ({ ...prev, [videoId]: true }));
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/api/videos/${videoId}/reaction`,
+        { reaction },
+        { headers: authHeaders() }
+      );
+
+      setReactionsByVideo((prev) => ({
         ...prev,
-        [videoId]: reaction,
-      };
-    });
+        [videoId]: res?.data?.currentUserReaction || reaction,
+      }));
+
+      setReactionCountsByVideo((prev) => ({
+        ...prev,
+        [videoId]: {
+          good: Number(res?.data?.reactionCounts?.good || 0),
+          bad: Number(res?.data?.reactionCounts?.bad || 0),
+        },
+      }));
+    } catch (_err) {
+      setError("Unable to save reaction. Please try again.");
+    } finally {
+      setSavingReactionByVideo((prev) => ({ ...prev, [videoId]: false }));
+    }
   };
 
   const getReactionCount = (videoId, reaction) => {
-    return reactionsByVideo[videoId] === reaction ? 1 : 0;
+    const counts = reactionCountsByVideo[videoId] || { good: 0, bad: 0 };
+    return reaction === "good" ? counts.good : counts.bad;
   };
 
   return (
@@ -188,6 +226,7 @@ function Videos() {
                           type="button"
                           className={`av-reaction-btn ${isActive ? "active" : ""}`}
                           onClick={() => handleReactionClick(video._id, reaction.value)}
+                          disabled={Boolean(savingReactionByVideo[video._id])}
                         >
                           <span>{reaction.icon}</span>
                           <span className="av-reaction-count">{getReactionCount(video._id, reaction.value)}</span>

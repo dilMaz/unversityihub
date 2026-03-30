@@ -8,6 +8,7 @@ const {
   createAdminVideo,
   getAllAdminVideos,
   getAllVideos,
+  addOrUpdateReaction,
   deleteAdminVideo,
 } = require("../controllers/videoController");
 
@@ -56,6 +57,7 @@ router.post(
 );
 
 router.get("/all", authMiddleware, getAllVideos);
+router.post("/:id/reaction", authMiddleware, addOrUpdateReaction);
 router.get("/admin/all", authMiddleware, adminMiddleware, getAllAdminVideos);
 router.delete("/admin/:id", authMiddleware, adminMiddleware, deleteAdminVideo);
 
