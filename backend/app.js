@@ -562,10 +562,10 @@ app.use((err, req, res, next) => {
 });
 
 // DB connect
-const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/unversityihubb";
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/unversityihubb";
 
-if (!process.env.MONGO_URI) {
-  console.warn("MONGO_URI is not set. Using local MongoDB fallback URI.");
+if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
+  console.warn("MONGO_URI/MONGODB_URI is not set. Using local MongoDB fallback URI.");
 }
 
 mongoose
