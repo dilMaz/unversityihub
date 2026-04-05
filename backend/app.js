@@ -562,8 +562,14 @@ app.use((err, req, res, next) => {
 });
 
 // DB connect
+const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/unversityihubb";
+
+if (!process.env.MONGO_URI) {
+  console.warn("MONGO_URI is not set. Using local MongoDB fallback URI.");
+}
+
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(mongoUri)
   .then(() => {
     console.log("DB connected ✅");
     const port = Number(process.env.PORT) || 5000;
