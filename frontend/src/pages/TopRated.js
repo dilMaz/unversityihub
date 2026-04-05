@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
 import NoteComments from "../components/NoteComments";
