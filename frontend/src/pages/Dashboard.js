@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/dashboard.css";
 import { API_BASE_URL } from "../config/appConfig";
@@ -20,12 +20,12 @@ function Dashboard() {
   const [stats, setStats] = useState(getDefaultStats());
   const [notes, setNotes] = useState([]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("userRole");
     navigate("/login");
-  };
+  }, [navigate]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -82,7 +82,7 @@ function Dashboard() {
 
     fetchDashboard();
     fetchStats();
-  }, [navigate]);
+  }, [navigate, logout]);
 
   const quickActions = getQuickActions(userRole);
   const recentNotes = getRecentNotes(notes, 4);

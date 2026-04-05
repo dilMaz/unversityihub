@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
 import NoteComments from "../components/NoteComments";
@@ -275,7 +275,7 @@ function Search() {
         return;
       }
 
-      const res = await axios.get(`${API_BASE_URL}/notes/${noteId}/view`, {
+      const res = await axios.get(`${API_ROOT}/api/notes/${noteId}/view`, {
         headers: { Authorization: `Bearer ${token}` },
         timeout: 10000,
       });
@@ -292,7 +292,7 @@ function Search() {
     } finally {
       setViewing(null);
     }
-  }, [API_BASE_URL, getPublicFileUrl]);
+  }, [API_ROOT, getPublicFileUrl]);
 
   // Clear search and results
   const handleClearSearch = useCallback(() => {
