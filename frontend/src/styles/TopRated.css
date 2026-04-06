@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
-/* ── Reset & Variables ─────────────────────────────────── */
+/* â”€â”€ Reset & Variables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 * {
   margin: 0;
   padding: 0;
@@ -29,7 +29,7 @@ body {
   min-height: 100vh;
 }
 
-/* ── Root & Orbs ───────────────────────────────────────── */
+/* â”€â”€ Root & Orbs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-root {
   min-height: 100vh;
   background: var(--bg);
@@ -73,7 +73,7 @@ body {
   to   { transform: translate(-50px, -60px); }
 }
 
-/* ── Wrapper ───────────────────────────────────────────── */
+/* â”€â”€ Wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-wrap {
   max-width: 860px;
   margin: 0 auto;
@@ -88,7 +88,7 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Header ────────────────────────────────────────────── */
+/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-header {
   margin-bottom: 44px;
   text-align: center;
@@ -141,14 +141,120 @@ body {
   font-weight: 300;
 }
 
-/* ── Grid ──────────────────────────────────────────────── */
+/* â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tr-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tr-stat-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+}
+
+.tr-stat-card.tr-wide {
+  grid-column: span 1;
+}
+
+.tr-stat-label {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.tr-stat-card strong {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+/* â”€â”€ Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tr-controls {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.tr-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.tr-search-bar input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.tr-search-bar input::placeholder {
+  color: rgba(240, 238, 255, 0.35);
+}
+
+.tr-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tr-filter-grid select {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+
+.tr-filter-grid select option {
+  background: #111118;
+  color: var(--text);
+}
+
+.tr-clear-filters {
+  margin-top: 10px;
+  border: 1px solid rgba(224, 95, 255, 0.4);
+  border-radius: 8px;
+  background: rgba(224, 95, 255, 0.14);
+  color: #efbcff;
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.tr-results-summary {
+  margin: 2px 0 12px;
+  font-size: 0.78rem;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* â”€â”€ Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 18px;
 }
 
-/* ── Card ──────────────────────────────────────────────── */
+/* â”€â”€ Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -200,7 +306,7 @@ body {
 
 .tr-card:hover .tr-card-glow { opacity: 1; }
 
-/* ── Rank Badge ────────────────────────────────────────── */
+/* â”€â”€ Rank Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-rank {
   position: absolute;
   top: 16px;
@@ -209,7 +315,7 @@ body {
   line-height: 1;
 }
 
-/* ── Note Icon ─────────────────────────────────────────── */
+/* â”€â”€ Note Icon â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-note-icon {
   width: 44px;
   height: 44px;
@@ -225,7 +331,7 @@ body {
 .rank-2 .tr-note-icon { background: rgba(160, 174, 192, 0.1); }
 .rank-3 .tr-note-icon { background: rgba(205, 124, 68, 0.1); }
 
-/* ── Note Info ─────────────────────────────────────────── */
+/* â”€â”€ Note Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-note-info {
   display: flex;
   flex-direction: column;
@@ -259,23 +365,26 @@ body {
   color: var(--muted);
 }
 
-/* ── Download Button ───────────────────────────────────── */
+.tr-note-meta {
+  font-size: 0.76rem;
+  color: rgba(240, 238, 255, 0.68);}
+
+/* â”€â”€ Download Button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-download-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 16px;
+  justify-content: center;
+  padding: 9px 10px;
   border: none;
   border-radius: 10px;
   background: rgba(60, 255, 166, 0.12);
   color: #5fffc0;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s, transform 0.15s;
-  align-self: flex-start;
-  margin-top: 4px;
 }
 
 .tr-download-btn:hover:not(:disabled) {
@@ -288,7 +397,90 @@ body {
   cursor: not-allowed;
 }
 
-/* ── Spinner ───────────────────────────────────────────── */
+.tr-view-btn,
+.tr-comments-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.tr-view-btn {
+  border: 1px solid rgba(134, 201, 255, 0.38);
+  background: rgba(69, 154, 255, 0.12);
+  color: #bfe2ff;
+}
+
+.tr-view-btn:hover:not(:disabled) {
+  background: rgba(69, 154, 255, 0.22);
+  border-color: rgba(134, 201, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.tr-comments-btn {
+  border: 1px solid rgba(224, 95, 255, 0.45);
+  background: rgba(224, 95, 255, 0.14);
+  color: #efbcff;
+}
+
+.tr-comments-btn:hover:not(:disabled) {
+  background: rgba(224, 95, 255, 0.26);
+  border-color: rgba(224, 95, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.tr-view-btn:disabled,
+.tr-comments-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tr-note-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tr-note-actions > button {
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.tr-quiz-btn {
+  padding: 9px 10px;
+  background: rgba(124, 92, 252, 0.18);
+  color: #d7ccff;
+  border: 1px solid rgba(124, 92, 252, 0.45);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tr-quiz-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(124, 92, 252, 0.3);
+}
+
+.tr-quiz-container {
+  margin-top: -6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(17, 17, 24, 0.7);
+  padding: 12px;
+}
+
+/* â”€â”€ Spinner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-spinner {
   display: inline-block;
   width: 13px;
@@ -303,7 +495,7 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ── Skeleton Loading ──────────────────────────────────── */
+/* â”€â”€ Skeleton Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-loading {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -342,7 +534,7 @@ body {
   100% { background-position: -200% 0; }
 }
 
-/* ── Error State ───────────────────────────────────────── */
+/* â”€â”€ Error State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-error-banner {
   display: flex;
   align-items: flex-start;
@@ -398,7 +590,7 @@ body {
   }
 }
 
-/* ── Empty State ───────────────────────────────────────── */
+/* â”€â”€ Empty State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .tr-empty {
   text-align: center;
   padding: 70px 20px;
@@ -423,10 +615,28 @@ body {
   color: rgba(240, 238, 255, 0.3);
 }
 
-/* ── Responsive ────────────────────────────────────────── */
+/* â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 600px) {
   .tr-wrap { padding: 30px 16px 60px; }
   .tr-header h1 { font-size: 1.8rem; }
   .tr-grid { grid-template-columns: 1fr; }
   .tr-loading { grid-template-columns: 1fr; }
+
+  .tr-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .tr-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tr-note-actions {
+    flex-direction: column;
+  }
+
+  .tr-download-btn,
+  .tr-quiz-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

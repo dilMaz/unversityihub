@@ -1,5 +1,7 @@
 const Note = require("../models/Note");
 
+const approvedOrLegacyFilter = { $in: ["approved", null] };
+
 exports.getRecommendations = async (user) => {
   const downloadedIds = (user.downloads || []).map((n) =>
     n._id ? n._id.toString() : n.toString()
@@ -24,6 +26,7 @@ exports.getRecommendations = async (user) => {
       contentBased = await Note.find({
         subject: { $in: topSubjects },
         _id:     { $nin: downloadedIds },
+        moderationStatus: approvedOrLegacyFilter,
       })
         .sort({ downloads: -1 })
         .limit(8);
@@ -32,25 +35,32 @@ exports.getRecommendations = async (user) => {
 
   // Fallback
   if (contentBased.length === 0) {
-    contentBased = await Note.aggregate([{ $sample: { size: 8 } }]);
+    contentBased = await Note.aggregate([
+      { $match: { moderationStatus: approvedOrLegacyFilter } },
+      { $sample: { size: 8 } },
+    ]);
   }
 
   // ── 🔥 2. TRENDING ──────────────────────────────────────
   let trending = await Note.find({
     _id: { $nin: downloadedIds },
+    moderationStatus: approvedOrLegacyFilter,
   })
     .sort({ downloads: -1 }) // ✅ most downloaded
     .limit(8);
 
   // Fallback
   if (trending.length < 3) {
-    trending = await Note.find()
+    trending = await Note.find({ moderationStatus: approvedOrLegacyFilter })
       .sort({ downloads: -1 })
       .limit(8);
   }
 
   // ── 🆕 3. RECENT ────────────────────────────────────────
-  const recent = await Note.find({ _id: { $nin: downloadedIds } })
+  const recent = await Note.find({
+    _id: { $nin: downloadedIds },
+    moderationStatus: approvedOrLegacyFilter,
+  })
     .sort({ createdAt: -1 })
     .limit(8);
 

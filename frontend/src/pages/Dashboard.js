@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/dashboard.css";
 import { API_BASE_URL } from "../config/appConfig";
@@ -20,6 +20,13 @@ function Dashboard() {
   const [stats, setStats] = useState(getDefaultStats());
   const [notes, setNotes] = useState([]);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    navigate("/login");
+  }, [navigate]);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -39,7 +46,6 @@ function Dashboard() {
 
     if (storedUser?.name) {
       setName(storedUser.name);
-      setLoading(false);
     }
 
     const fetchDashboard = async () => {
@@ -55,17 +61,12 @@ function Dashboard() {
       } catch (err) {
         console.error("Dashboard fetch error:", err);
         if (err.response?.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          localStorage.removeItem("userRole");
-          navigate("/login");
+          logout();
         }
       } finally {
         setLoading(false);
       }
     };
-
-    fetchDashboard();
 
     const fetchStats = async () => {
       try {
@@ -79,8 +80,9 @@ function Dashboard() {
       }
     };
 
+    fetchDashboard();
     fetchStats();
-  }, [navigate]);
+  }, [navigate, logout]);
 
   const quickActions = getQuickActions(userRole);
   const recentNotes = getRecentNotes(notes, 4);
@@ -94,6 +96,15 @@ function Dashboard() {
         {/* Topbar */}
         <div className="db-topbar">
           <div className="db-logo">UniHub</div>
+          <div className="db-topbar-actions">
+            <button
+              type="button"
+              className="db-profile-btn"
+              onClick={() => navigate("/profile")}
+            >
+              👤 Profile
+            </button>
+          </div>
         </div>
 
         {/* Hero */}
@@ -199,7 +210,6 @@ function Dashboard() {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );

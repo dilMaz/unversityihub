@@ -66,6 +66,18 @@ function NavBar() {
 
   const isActive = (path) => location.pathname === path;
   const navMenuId = "primary-navigation";
+  const isAdminArea = location.pathname.startsWith("/admin");
+
+  const adminNavItems = [
+    { label: "Overview", path: "/admin-dashboard" },
+    { label: "Users", path: "/admin-users" },
+    { label: "Videos", path: "/admin-videos" },
+    { label: "Support", path: "/admin-student-support" },
+    { label: "Review", path: "/admin-review" },
+    { label: "Analytics", path: "/admin-analytics" },
+    { label: "Comments", path: "/admin-comments" },
+    { label: "Register Admin", path: "/admin-panel" },
+  ];
 
   const renderNavItem = (label, path, extraClass = "", index = 0) => {
     const activeClass = isActive(path) ? "active" : "";
@@ -88,7 +100,7 @@ function NavBar() {
   }
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${isLoggedIn ? "is-auth" : "is-guest"}`}>
       <div className="nav-container">
         <button
           className="nav-logo"
@@ -112,28 +124,50 @@ function NavBar() {
           <span></span>
         </button>
 
-        <ul id={navMenuId} className={`nav-menu ${mobileOpen ? "active" : ""}`}>
+        <ul
+          id={navMenuId}
+          className={`nav-menu ${mobileOpen ? "active" : ""} ${
+            isLoggedIn ? "menu-auth" : "menu-guest"
+          }`}
+        >
           {isLoggedIn ? (
             <>
-              {renderNavItem("Dashboard", "/dashboard", "", 0)}
-              {renderNavItem("Search", "/search", "", 1)}
-              {renderNavItem("Top Rated", "/top-rated", "", 2)}
-              {renderNavItem("Recommended", "/recommend", "", 3)}
-              {renderNavItem("Upload", "/upload", "", 4)}
-              {renderNavItem("Categories", "/categories", "", 5)}
-
-              {userRole === "admin" && (
+              {userRole === "admin" && isAdminArea ? (
                 <>
-                  <li className="nav-divider"></li>
-                  {renderNavItem("Admin", "/admin-dashboard", "admin", 6)}
+                  {adminNavItems.map((item, index) =>
+                    renderNavItem(item.label, item.path, "admin", index)
+                  )}
+                  <li className="nav-item" style={{ "--item-delay": adminNavItems.length }}>
+                    <button className="nav-link logout" onClick={handleLogout}>
+                      Logout
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <>
+                  {renderNavItem("Dashboard", "/dashboard", "", 0)}
+                  {renderNavItem("Support", "/study-support", "", 1)}
+                  {renderNavItem("Videos", "/videos", "", 3)}
+                  {renderNavItem("Search", "/search", "", 4)}
+                  {renderNavItem("Top Rated", "/top-rated", "", 5)}
+                  {renderNavItem("Recommended", "/recommend", "", 6)}
+                  {renderNavItem("Upload", "/upload", "", 7)}
+                  {renderNavItem("Categories", "/categories", "", 8)}
+
+                  {userRole === "admin" && (
+                    <>
+                      <li className="nav-divider"></li>
+                      {renderNavItem("Admin", "/admin-dashboard", "admin", 9)}
+                    </>
+                  )}
+
+                  <li className="nav-item" style={{ "--item-delay": 10 }}>
+                    <button className="nav-link logout" onClick={handleLogout}>
+                      Logout
+                    </button>
+                  </li>
                 </>
               )}
-
-              <li className="nav-item" style={{ "--item-delay": 7 }}>
-                <button className="nav-link logout" onClick={handleLogout}>
-                  Logout
-                </button>
-              </li>
             </>
           ) : (
             <>

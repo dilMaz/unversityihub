@@ -3,17 +3,36 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/upload.css";
 
+const MODULE_CODE_OPTIONS = [
+  "IT1010",
+  "IT1020",
+  "IT1030",
+  "IT1040",
+  "IT1050",
+  "IT1060",
+  "IT2010",
+  "IT2020",
+  "IT2050",
+  "IT2080",
+];
+
+const MODULE_NAME_OPTIONS = [
+  "DS",
+  "PAF",
+  "ITPM",
+  "IWT",
+  "OOP",
+  "NDM",
+];
+
 function Upload() {
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
-  const [title, setTitle] = useState("");
-  const [subject, setSubject] = useState("");
+  const [moduleCode, setModuleCode] = useState("");
+  const [moduleName, setModuleName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
   const [academicYear, setAcademicYear] = useState("");
   const [semester, setSemester] = useState("");
-  const [subjectOptions, setSubjectOptions] = useState([]);
-  const [categoryOptions, setCategoryOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -75,43 +94,6 @@ function Upload() {
     }
   }, [navigate]);
 
-  // Load dynamic subject/category options from existing notes
-  useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/notes", {
-          timeout: 10000,
-        });
-
-        const notes = Array.isArray(res.data) ? res.data : [];
-
-        const subjects = [
-          ...new Set(
-            notes
-              .map((n) => (n.subject || "").trim())
-              .filter(Boolean)
-          ),
-        ].sort((a, b) => a.localeCompare(b));
-
-        const categories = [
-          ...new Set(
-            notes
-              .map((n) => (n.category || "").trim())
-              .filter(Boolean)
-          ),
-        ].sort((a, b) => a.localeCompare(b));
-
-        setSubjectOptions(subjects);
-        setCategoryOptions(categories);
-      } catch (err) {
-        setSubjectOptions([]);
-        setCategoryOptions([]);
-      }
-    };
-
-    loadOptions();
-  }, []);
-
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,25 +107,29 @@ function Upload() {
     }
 
     // Validation
-    if (!file || !title || !subject || !category || !academicYear || !semester) {
+    if (!file || !academicYear || !semester) {
       setError("Please fill in all required fields and select a semester");
       return;
     }
 
-    if (title.length < 5) {
-      setError("Title must be at least 5 characters long");
-      return;
-    }
+    const derivedTitle = (file.name || "Uploaded Note")
+      .replace(/\.[^/.]+$/, "")
+      .trim()
+      .slice(0, 100) || "Uploaded Note";
+    const derivedSubject = moduleName.trim() || moduleCode.trim() || "General";
+    const defaultCategory = "Lecture Notes";
 
     setLoading(true);
 
     try {
       const formData = new FormData();
       formData.append("noteFile", file);
-      formData.append("title", title);
-      formData.append("subject", subject);
+      formData.append("title", derivedTitle);
+      formData.append("subject", derivedSubject);
+      formData.append("moduleCode", moduleCode);
+      formData.append("moduleName", moduleName);
       formData.append("description", description);
-      formData.append("category", category);
+      formData.append("category", defaultCategory);
       formData.append("academicYear", academicYear);
       formData.append("semester", semester);
 
@@ -161,10 +147,9 @@ function Upload() {
 
       setSuccess(true);
       setFile(null);
-      setTitle("");
-      setSubject("");
+      setModuleCode("");
+      setModuleName("");
       setDescription("");
-      setCategory("");
       setAcademicYear("");
       setSemester("");
 
@@ -217,7 +202,7 @@ function Upload() {
           <div className="upload-alert success">
             <span>✅</span>
             <div>
-              <p>Notes uploaded successfully! Redirecting to dashboard...</p>
+              <p>Notes uploaded successfully and sent for admin review. Redirecting to dashboard...</p>
             </div>
           </div>
         )}
@@ -281,55 +266,6 @@ function Upload() {
           {/* Form Fields */}
           <div className="form-row">
             <div className="form-section">
-              <label className="form-label">📝 Title *</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Enter note title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={100}
-              />
-              <small className="input-hint">{title.length}/100 characters</small>
-            </div>
-
-            <div className="form-section">
-              <label className="form-label">📚 Subject *</label>
-              <input
-                type="text"
-                className="form-input"
-                list="subject-options"
-                placeholder="Enter or select a subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-              />
-              <datalist id="subject-options">
-                {subjectOptions.map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-section">
-              <label className="form-label">📂 Category *</label>
-              <input
-                type="text"
-                className="form-input"
-                list="category-options"
-                placeholder="Enter or select a category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-              <datalist id="category-options">
-                {categoryOptions.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-            </div>
-
-            <div className="form-section">
               <label className="form-label">📅 Academic Year *</label>
               <select
                 className="form-input"
@@ -343,9 +279,7 @@ function Upload() {
                 <option value="4">4th Year</option>
               </select>
             </div>
-          </div>
 
-          <div className="form-row">
             <div className="form-section">
               <label className="form-label">🔢 Semester *</label>
               <div className="semester-radios">
@@ -363,19 +297,38 @@ function Upload() {
                 ))}
               </div>
             </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-section">
+              <label className="form-label">📌 Module Code</label>
+              <select
+                className="form-input"
+                value={moduleCode}
+                onChange={(e) => setModuleCode(e.target.value)}
+              >
+                <option value="">Select module code</option>
+                {MODULE_CODE_OPTIONS.map((code) => (
+                  <option key={code} value={code}>{code}</option>
+                ))}
+              </select>
+            </div>
 
             <div className="form-section">
-              <label className="form-label">🏷️ Tags (Optional)</label>
-              <input
-                type="text"
+              <label className="form-label">📘 Module Name</label>
+              <select
                 className="form-input"
-                placeholder="e.g., Final Exam, Chapter 5"
-                maxLength={100}
-              />
+                value={moduleName}
+                onChange={(e) => setModuleName(e.target.value)}
+              >
+                <option value="">Select module name</option>
+                {MODULE_NAME_OPTIONS.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Description */}
           <div className="form-section">
             <label className="form-label">📖 Description (Optional)</label>
             <textarea
@@ -384,7 +337,7 @@ function Upload() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={500}
-              rows={5}
+              rows={8}
             />
             <small className="input-hint">{description.length}/500 characters</small>
           </div>

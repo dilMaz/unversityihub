@@ -166,6 +166,30 @@ body {
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
 }
 
+.db-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(124, 92, 252, 0.12);
+  color: #c4b5fd;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.db-profile-btn:hover {
+  border-color: rgba(124, 92, 252, 0.65);
+  background: rgba(124, 92, 252, 0.2);
+  color: #b09fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 92, 252, 0.22);
+}
+
 /* ── Hero ──────────────────────────────────────────────── */
 .db-hero {
   margin-bottom: 48px;
@@ -203,6 +227,66 @@ body {
 
 .user-table tbody tr:hover {
   background: rgba(124, 92, 252, 0.08);
+}
+
+.review-status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border);
+}
+
+.review-status-chip.approved {
+  color: #3cffa6;
+  background: rgba(60, 255, 166, 0.12);
+  border-color: rgba(60, 255, 166, 0.35);
+}
+
+.review-status-chip.rejected {
+  color: #ff8484;
+  background: rgba(255, 132, 132, 0.12);
+  border-color: rgba(255, 132, 132, 0.35);
+}
+
+.review-status-chip.pending {
+  color: #f5c842;
+  background: rgba(245, 200, 66, 0.12);
+  border-color: rgba(245, 200, 66, 0.35);
+}
+
+.review-alert {
+  border: 1px solid rgba(120, 170, 255, 0.35);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(20, 32, 54, 0.7);
+  color: #dbe9ff;
+}
+
+.review-alert.success {
+  border-color: rgba(60, 255, 166, 0.45);
+  background: rgba(21, 90, 61, 0.26);
+  color: #bfffe2;
+}
+
+.review-alert.reject {
+  border-color: rgba(255, 158, 88, 0.5);
+  background: rgba(129, 67, 14, 0.24);
+  color: #ffe1be;
+}
+
+.review-alert.error {
+  border-color: rgba(255, 115, 115, 0.55);
+  background: rgba(124, 28, 28, 0.28);
+  color: #ffd7d7;
 }
 
 .error-text {
@@ -532,6 +616,175 @@ body {
 
 .db-card:hover .db-card-arrow {
   transform: translateX(4px);
+}
+
+.db-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.db-danger-btn {
+  border: 1px solid rgba(255, 118, 118, 0.55);
+  background: rgba(195, 50, 50, 0.26);
+  color: #ffd2d2;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.db-danger-btn:hover:not(:disabled) {
+  background: rgba(226, 67, 67, 0.34);
+  border-color: rgba(255, 160, 160, 0.76);
+  color: #fff0f0;
+  transform: translateY(-1px);
+}
+
+.db-danger-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Admin Review Action Buttons ───────────────────────── */
+.view-btn,
+.view-doc-btn {
+  border: 1px solid rgba(90, 216, 255, 0.45);
+  border-radius: 10px;
+  padding: 9px 14px;
+  min-width: 128px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #dff7ff;
+  background: linear-gradient(135deg, rgba(72, 166, 255, 0.22), rgba(33, 109, 182, 0.18));
+  box-shadow: 0 8px 20px rgba(25, 90, 150, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.view-btn:hover:not(:disabled),
+.view-doc-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(95, 181, 255, 0.3), rgba(45, 126, 205, 0.24));
+  border-color: rgba(149, 220, 255, 0.85);
+  box-shadow: 0 10px 24px rgba(31, 110, 181, 0.32);
+}
+
+.approve-btn,
+.reject-btn {
+  min-width: 128px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.approve-btn {
+  color: #dcfff0;
+  background: linear-gradient(135deg, rgba(60, 255, 166, 0.22), rgba(28, 198, 120, 0.18));
+  border-color: rgba(60, 255, 166, 0.45);
+  box-shadow: 0 8px 20px rgba(16, 122, 76, 0.25);
+}
+
+.approve-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(80, 255, 181, 0.3), rgba(40, 212, 133, 0.24));
+  border-color: rgba(113, 255, 200, 0.85);
+  box-shadow: 0 10px 24px rgba(26, 180, 112, 0.32);
+}
+
+.reject-btn {
+  color: #ffe8e8;
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.22), rgba(213, 64, 64, 0.18));
+  border-color: rgba(255, 107, 107, 0.45);
+  box-shadow: 0 8px 20px rgba(117, 32, 32, 0.24);
+  margin-top: 10px;
+}
+
+.reject-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(255, 124, 124, 0.3), rgba(228, 80, 80, 0.24));
+  border-color: rgba(255, 151, 151, 0.82);
+  box-shadow: 0 10px 24px rgba(168, 48, 48, 0.3);
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled,
+.view-btn:disabled,
+.view-doc-btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.view-doc-btn {
+  min-width: 84px;
+  padding: 6px 11px;
+  font-size: 0.76rem;
+}
+
+.delete-doc-btn {
+  min-width: 84px;
+  border: 1px solid rgba(255, 119, 119, 0.5);
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #ffe2e2;
+  background: linear-gradient(135deg, rgba(255, 105, 105, 0.24), rgba(180, 49, 49, 0.2));
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.delete-doc-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(255, 166, 166, 0.82);
+  background: linear-gradient(135deg, rgba(255, 126, 126, 0.32), rgba(205, 68, 68, 0.26));
+  box-shadow: 0 8px 18px rgba(155, 42, 42, 0.28);
+}
+
+.delete-doc-btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.review-card {
+  position: relative;
+}
+
+.pending-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.pending-view-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  min-width: 108px;
+}
+
+.pending-actions .reject-btn {
+  margin-top: 0;
 }
 
 /* ── Study Pulse Panels ───────────────────────────────── */

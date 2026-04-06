@@ -1,19 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
+import NoteComments from "../components/NoteComments";
 import "../styles/categories.css";
 
 function Categories() {
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [modules, setModules] = useState([]);
+  const [selectedModule, setSelectedModule] = useState("All");
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedSemester, setSelectedSemester] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [downloading, setDownloading] = useState(null);
+  const [viewing, setViewing] = useState(null);
   const [expandedNote, setExpandedNote] = useState(null);
+  const [expandedCommentsNote, setExpandedCommentsNote] = useState(null);
 
   const getPublicFileUrl = useCallback((fileUrl) => {
     if (!fileUrl) return null;
@@ -50,16 +53,16 @@ function Categories() {
       const allNotes = Array.isArray(res.data) ? res.data : [];
       setNotes(allNotes);
 
-      const dynamicCategories = [
+      const dynamicModules = [
         ...new Set(
           allNotes
-            .map((note) => (note.category || "").trim())
+            .map((note) => (note.moduleName || note.moduleCode || "").trim())
             .filter(Boolean)
         ),
       ].sort((a, b) => a.localeCompare(b));
 
-      setCategories(["All", ...dynamicCategories]);
-      setSelectedCategory("All");
+      setModules(["All", ...dynamicModules]);
+      setSelectedModule("All");
     } catch (err) {
       let errorMessage = "Failed to load notes";
 
@@ -85,13 +88,16 @@ function Categories() {
     fetchNotes();
   }, [fetchNotes]);
 
-  // Filter notes by category, year, and semester
+  // Filter notes by module, year, semester, and approval status
   useEffect(() => {
     let filtered = notes;
 
-    // Filter by category
-    if (selectedCategory !== "All") {
-      filtered = filtered.filter((note) => note.category === selectedCategory);
+    // Filter by approval status (show only approved or legacy notes)
+    filtered = filtered.filter((note) => note.moderationStatus === "approved" || !note.moderationStatus);
+
+    // Filter by module
+    if (selectedModule !== "All") {
+      filtered = filtered.filter((note) => (note.moduleName || note.moduleCode) === selectedModule);
     }
 
     // Filter by academic year
@@ -105,7 +111,7 @@ function Categories() {
     }
 
     setFilteredNotes(filtered);
-  }, [selectedCategory, selectedYear, selectedSemester, notes]);
+  }, [selectedModule, selectedYear, selectedSemester, notes]);
 
   // Download handler
   const handleDownload = useCallback(async (id, title) => {
@@ -159,14 +165,48 @@ function Categories() {
     }
   }, [fetchNotes, forceBrowserDownload, getPublicFileUrl]);
 
+  const handleViewOnline = useCallback(async (id) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Please log in to view notes");
+      return;
+    }
+
+    setViewing(id);
+    setError(null);
+
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/notes/${id}/view`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 10000,
+        }
+      );
+
+      const publicUrl = getPublicFileUrl(response.data?.fileUrl);
+      if (publicUrl) {
+        window.open(publicUrl, "_blank", "noopener,noreferrer");
+      } else {
+        setError("This note file is missing on server. Please re-upload it.");
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Failed to open note";
+      setError(errorMessage);
+    } finally {
+      setViewing(null);
+    }
+  }, [getPublicFileUrl]);
+
   return (
     <div className="categories-root">
       <div className="cat-wrap">
         {/* Header */}
         <div className="cat-header">
-          <div className="cat-label">📂 Organize</div>
-          <h1>Browse by <span>Category</span></h1>
-          <p>Explore notes organized by type and subject</p>
+          <div className="cat-label">📚 Modules</div>
+          <h1>Browse by <span>Module</span></h1>
+          <p>Explore approved notes organized by module</p>
         </div>
 
         {/* Error */}
@@ -232,9 +272,11 @@ function Categories() {
         )}
 
         {/* Active Filter Display */}
-        {!loading && (selectedYear !== "All" || selectedSemester !== "All") && (
+        {!loading && (selectedYear !== "All" || selectedSemester !== "All" || selectedModule !== "All") && (
           <div className="active-filter-display">
             <span className="filter-badge">
+              {selectedModule !== "All" ? `Module: ${selectedModule}` : "All Modules"}
+              {" • "}
               {selectedYear !== "All" ? `Year ${selectedYear}` : "All Years"}
               {" • "}
               {selectedSemester !== "All" ? `Semester ${selectedSemester}` : "All Semesters"}
@@ -242,27 +284,20 @@ function Categories() {
           </div>
         )}
 
-        {/* Category Filter - SECONDARY */}
+        {/* Module Filter - SECONDARY */}
         {!loading && (
           <div className="categories-filter">
-            <h3 className="filter-title">📂 Filter by Category</h3>
+            <h3 className="filter-title">📚 Filter by Module</h3>
             <div className="category-buttons">
-              {categories.map((cat) => (
+              {modules.map((mod) => (
                 <button
-                  key={cat}
-                  className={`cat-btn ${selectedCategory === cat ? "active" : ""}`}
-                  onClick={() => setSelectedCategory(cat)}
+                  key={mod}
+                  className={`cat-btn ${selectedModule === mod ? "active" : ""}`}
+                  onClick={() => setSelectedModule(mod)}
                 >
-                  {cat === "Lecture Notes" && "📖"}
-                  {cat === "Study Guides" && "📚"}
-                  {cat === "Exam Papers" && "📄"}
-                  {cat === "Practice Questions" && "❓"}
-                  {cat === "Summaries" && "📝"}
-                  {cat === "Tutorials" && "🎓"}
-                  {cat === "Previous Exams" && "📋"}
-                  {cat === "Assignments" && "✏️"}
-                  {cat === "All" && "📂"}
-                  {` ${cat}`}
+                  {mod === "All" && "📂"}
+                  {mod !== "All" && "📖"}
+                  {` ${mod}`}
                 </button>
               ))}
             </div>
@@ -287,7 +322,7 @@ function Categories() {
         {!loading && filteredNotes.length === 0 && !error && (
           <div className="cat-empty">
             <span>📭</span>
-            <p>No notes found in this category</p>
+            <p>No approved notes found in this module</p>
             <small>Check back soon for more content</small>
           </div>
         )}
@@ -300,7 +335,7 @@ function Categories() {
                 <div className="cat-card">
                   <div className="cat-card-header">
                     <div className="cat-icon">📄</div>
-                    <div className="cat-badge">{note.category}</div>
+                    <div className="cat-badge">{note.moduleName || note.moduleCode || "General"}</div>
                   </div>
 
                   <div className="cat-card-content">
@@ -318,6 +353,15 @@ function Categories() {
                   </div>
 
                   <div className="cat-actions">
+                    <button
+                      className="cat-view-btn"
+                      onClick={() => handleViewOnline(note._id)}
+                      disabled={viewing === note._id}
+                      title="View note online"
+                    >
+                      {viewing === note._id ? "Opening..." : "👀 View"}
+                    </button>
+
                     <button
                       className="cat-download-btn"
                       onClick={() => handleDownload(note._id, note.title)}
@@ -344,6 +388,18 @@ function Categories() {
                     >
                       {expandedNote === note._id ? "Hide ▼" : "📝 Quiz"}
                     </button>
+
+                    <button
+                      className="cat-comments-btn"
+                      onClick={() =>
+                        setExpandedCommentsNote(
+                          expandedCommentsNote === note._id ? null : note._id
+                        )
+                      }
+                      title="Show comments"
+                    >
+                      {expandedCommentsNote === note._id ? "Hide 💬" : "💬 Comments"}
+                    </button>
                   </div>
                 </div>
 
@@ -351,6 +407,12 @@ function Categories() {
                 {expandedNote === note._id && (
                   <div className="cat-quiz-container">
                     <QuizSection noteId={note._id} />
+                  </div>
+                )}
+
+                {expandedCommentsNote === note._id && (
+                  <div className="cat-comments-container">
+                    <NoteComments noteId={note._id} />
                   </div>
                 )}
               </div>
@@ -362,7 +424,7 @@ function Categories() {
         {!loading && notes.length > 0 && (
           <div className="cat-stats">
             <div className="stat-item">
-              <span className="stat-icon">📄</span>
+              <span className="stat-icon">📚</span>
               <div>
                 <div className="stat-value">{notes.length}</div>
                 <div className="stat-label">Total Notes</div>
@@ -378,10 +440,10 @@ function Categories() {
               </div>
             </div>
             <div className="stat-item">
-              <span className="stat-icon">📂</span>
+              <span className="stat-icon">�</span>
               <div>
-                <div className="stat-value">{categories.length - 1}</div>
-                <div className="stat-label">Categories</div>
+                <div className="stat-value">{modules.length - 1}</div>
+                <div className="stat-label">Modules</div>
               </div>
             </div>
             <div className="stat-item">

@@ -17,6 +17,11 @@ const noteSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    moduleName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     category: {
       type: String,
       default: "Lecture Notes",
@@ -58,6 +63,63 @@ const noteSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    ratingCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    moderationStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "approved",
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
+    reviewedAt: {
+      type: Date,
+      required: false,
+    },
+    reviewComment: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 300,
+    },
+    comments: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        rating: {
+          type: Number,
+          min: 1,
+          max: 5,
+          required: false,
+          default: 3,
+        },
+        text: {
+          type: String,
+          required: true,
+          trim: true,
+          maxlength: 500,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     // 📚 Quiz Generation Fields
     quizStatus: {
       type: String,

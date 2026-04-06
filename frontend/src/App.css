@@ -2,11 +2,14 @@
 .app-shell {
   min-height: 100vh;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-content {
-  min-height: calc(100vh - 70px);
+  flex: 1;
   position: relative;
+  min-height: calc(100vh - 70px);
 }
 
 .app-shell::before,

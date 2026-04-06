@@ -1,6 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap");
 
 :root {
+  --app-font: "Syne", sans-serif;
   --bg: #061327;
   --surface: rgba(10, 28, 52, 0.82);
   --surface2: rgba(14, 36, 66, 0.86);
@@ -46,9 +47,17 @@ body {
   background-blend-mode: normal, soft-light, screen, screen, screen, normal;
   background-attachment: fixed;
   color: var(--text);
-  font-family: "DM Sans", sans-serif;
+  font-family: var(--app-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Enforce one consistent type style across the full app UI */
+body,
+body *,
+body *::before,
+body *::after {
+  font-family: var(--app-font) !important;
 }
 
 body::before {
@@ -85,7 +94,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Syne", sans-serif;
+  font-family: var(--app-font);
   margin: 0;
 }
 
@@ -103,6 +112,35 @@ textarea {
 button {
   cursor: pointer;
 }
+
+/* ────────────────────────────────────────────────────── */
+/* Select Dropdown Visibility - Ensure options are readable */
+/* ────────────────────────────────────────────────────── */
+select {
+  background-color: #131320;
+  color: #f0eeff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+}
+
+select option {
+  background-color: #131320;
+  color: #f0eeff;
+  padding: 8px;
+}
+
+select option:checked {
+  background: linear-gradient(#667eea, #667eea);
+  background-color: #667eea !important;
+  color: #f0eeff !important;
+}
+
+/* Fallback for different browsers */
+select option:hover {
+  background-color: #1a1a2e;
+}
+
+/* ────────────────────────────────────────────────────── */
 
 a {
   color: inherit;

@@ -2,6 +2,18 @@ const Note = require("../models/Note");
 const User = require("../models/User");
 const fs = require("fs");
 
+const approvedOrLegacyFilter = { $in: ["approved", null] };
+
+const isAdminRequest = (req) => req.user?.role === "admin";
+
+const canAccessNote = (req, note) => {
+  if (note?.moderationStatus === "approved" || !note?.moderationStatus) {
+    return true;
+  }
+
+  return isAdminRequest(req);
+};
+
 // seed
 exports.seedNotes = async (req, res) => {
   const seedCandidates = [
@@ -131,6 +143,7 @@ exports.searchNotes = async (req, res) => {
   const keyword = req.query.search || "";
 
   const notes = await Note.find({
+    moderationStatus: approvedOrLegacyFilter,
     $or: [
       { title:      { $regex: keyword, $options: "i" } },
       { subject:    { $regex: keyword, $options: "i" } },
@@ -146,6 +159,10 @@ exports.downloadNote = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: "Note not found" });
+
+    if (!canAccessNote(req, note)) {
+      return res.status(403).json({ message: "This note is not available for users" });
+    }
 
     if (note.filePath && note.filePath !== "seed" && !fs.existsSync(note.filePath)) {
       return res.status(404).json({ message: "File not found on server. Please re-upload this note." });
@@ -172,8 +189,288 @@ exports.downloadNote = async (req, res) => {
 
 // top rated
 exports.topNotes = async (req, res) => {
-  const notes = await Note.find().sort({ downloads: -1 }).limit(5);
+  const notes = await Note.find({ moderationStatus: approvedOrLegacyFilter })
+    .sort({ downloads: -1 })
+    .limit(5);
   res.json(notes);
+};
+
+// 👀 View online
+exports.viewNote = async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    if (!canAccessNote(req, note)) {
+      return res.status(403).json({ message: "This note is not available for users" });
+    }
+
+    if (!note.filePath || note.filePath === "seed") {
+      return res.status(404).json({ message: "This note has no viewable file" });
+    }
+
+    if (!fs.existsSync(note.filePath)) {
+      return res.status(404).json({ message: "File not found on server. Please re-upload this note." });
+    }
+
+    res.json({ fileUrl: note.filePath });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const ensureAdmin = (req, res) => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ message: "Admin only" });
+    return false;
+  }
+  return true;
+};
+
+const recalculateRating = (note) => {
+  const comments = Array.isArray(note.comments) ? note.comments : [];
+  const ratingCount = comments.length;
+  const averageRating = ratingCount
+    ? comments.reduce((sum, c) => sum + (Number(c.rating) || 0), 0) / ratingCount
+    : 0;
+
+  note.ratingCount = ratingCount;
+  note.averageRating = Number(averageRating.toFixed(2));
+};
+
+// 🧾 Admin moderation routes
+exports.getPendingReviewNotes = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const notes = await Note.find({ moderationStatus: "pending" })
+      .populate("uploadedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(notes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getReviewedNotes = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const notes = await Note.find({ moderationStatus: { $in: ["approved", "rejected"] } })
+      .populate("uploadedBy", "name email")
+      .populate("reviewedBy", "name email")
+      .sort({ reviewedAt: -1, updatedAt: -1 });
+
+    res.json(notes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.approveNote = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    note.moderationStatus = "approved";
+    note.reviewedBy = req.user.id;
+    note.reviewedAt = new Date();
+    note.reviewComment = "";
+    await note.save();
+
+    res.json({ message: "Note approved", note });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.rejectNote = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    note.moderationStatus = "rejected";
+    note.reviewedBy = req.user.id;
+    note.reviewedAt = new Date();
+    note.reviewComment = (req.body?.comment || "").toString().slice(0, 300);
+    await note.save();
+
+    res.json({ message: "Note rejected", note });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteReviewedNote = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    if (!["approved", "rejected"].includes(note.moderationStatus)) {
+      return res.status(400).json({ message: "Only approved or rejected notes can be deleted" });
+    }
+
+    if (note.filePath && note.filePath !== "seed" && fs.existsSync(note.filePath)) {
+      fs.unlinkSync(note.filePath);
+    }
+
+    await note.deleteOne();
+    res.json({ message: "Document deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// 💬 Comments
+exports.getNoteComments = async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id)
+      .populate("comments.user", "name email")
+      .select("comments");
+
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const comments = [...(note.comments || [])].sort(
+      (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    );
+
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.addNoteComment = async (req, res) => {
+  try {
+    const text = (req.body?.text || "").trim();
+    const parsedRating = Number(req.body?.rating);
+    const rating = Number.isFinite(parsedRating) ? Math.max(1, Math.min(5, Math.round(parsedRating))) : 3;
+
+    if (!text) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    note.comments.push({
+      user: req.user.id,
+      rating,
+      text: text.slice(0, 500),
+      createdAt: new Date(),
+    });
+
+    recalculateRating(note);
+    await note.save();
+
+    res.status(201).json({ message: "Comment added" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateNoteComment = async (req, res) => {
+  try {
+    const { id, commentId } = req.params;
+    const note = await Note.findById(id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const comment = note.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    const isAdmin = req.user?.role === "admin";
+    const isOwner = String(comment.user) === String(req.user?.id);
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "You can only edit your own comments" });
+    }
+
+    const nextText = (req.body?.text ?? comment.text).toString().trim();
+    if (!nextText) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    comment.text = nextText.slice(0, 500);
+
+    if (req.body?.rating !== undefined) {
+      const parsedRating = Number(req.body.rating);
+      if (Number.isFinite(parsedRating)) {
+        comment.rating = Math.max(1, Math.min(5, Math.round(parsedRating)));
+      }
+    }
+
+    recalculateRating(note);
+    await note.save();
+
+    res.json({ message: "Comment updated" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// 💬 Admin comments management
+exports.getAllCommentsByNoteForAdmin = async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+
+    const notes = await Note.find({ "comments.0": { $exists: true } })
+      .populate("comments.user", "name email")
+      .select("title subject moduleCode academicYear semester comments averageRating ratingCount")
+      .sort({ updatedAt: -1 });
+
+    const payload = notes.map((note) => ({
+      _id: note._id,
+      title: note.title,
+      subject: note.subject,
+      moduleCode: note.moduleCode,
+      academicYear: note.academicYear,
+      semester: note.semester,
+      averageRating: note.averageRating || 0,
+      ratingCount: note.ratingCount || (note.comments || []).length,
+      commentsCount: (note.comments || []).length,
+      comments: [...(note.comments || [])].sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      ),
+    }));
+
+    res.json(payload);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteNoteCommentByAdmin = async (req, res) => {
+  try {
+    const { noteId, commentId } = req.params;
+    const note = await Note.findById(noteId);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    const comment = note.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    const isAdmin = req.user?.role === "admin";
+    const isOwner = String(comment.user) === String(req.user?.id);
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "You can only delete your own comments" });
+    }
+
+    comment.deleteOne();
+
+    recalculateRating(note);
+    await note.save();
+
+    res.json({ message: "Comment deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // 📤 Admin create note
@@ -195,6 +492,7 @@ exports.createAdminNote = async (req, res) => {
       filePath,
       uploadedBy: req.user?.id,
       uploadSource: "admin",
+      moderationStatus: "approved",
     });
 
     await note.save();
@@ -234,12 +532,13 @@ exports.createStudentNote = async (req, res) => {
       uploadSource: "student",
       academicYear: year,
       semester: sem,
+      moderationStatus: "pending",
     });
 
     await note.save();
 
     res.status(201).json({
-      message: "Note uploaded successfully",
+      message: "Note uploaded successfully and is pending admin approval",
       note,
     });
   } catch (err) {

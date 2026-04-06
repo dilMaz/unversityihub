@@ -163,6 +163,16 @@
   transition: all 0.2s;
 }
 
+select.form-input {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+select.form-input option {
+  background: #111118;
+  color: #f0eeff;
+}
+
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
@@ -179,6 +189,23 @@
 .form-textarea {
   resize: vertical;
   font-family: 'DM Sans', sans-serif;
+  min-height: 220px;
+}
+
+select.form-input {
+  color: #f0eeff;
+  background: #171722;
+}
+
+select.form-input option {
+  color: #f0eeff;
+  background: #131320;
+  padding: 8px;
+}
+
+select.form-input option:checked {
+  background: rgba(102, 126, 234, 0.3);
+  color: #f0eeff;
 }
 
 /* ── Semester Radio Buttons ────────────────────────────– */

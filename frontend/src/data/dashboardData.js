@@ -35,12 +35,39 @@ const baseQuickActions = [
     btn: "Upload Now",
     route: "/upload",
   },
+  {
+    id: "study-support",
+    cls: "c5",
+    icon: "🎫",
+    title: "Study Support",
+    desc: "Raise a ticket for any problem or requirement and track admin replies.",
+    btn: "Raise Ticket",
+    route: "/study-support",
+  },
+  {
+    id: "categories",
+    cls: "c6",
+    icon: "📂",
+    title: "Categories",
+    desc: "Browse notes organized by subject tags and categories.",
+    btn: "Browse Categories",
+    route: "/categories",
+  },
+  {
+    id: "videos",
+    cls: "c7",
+    icon: "🎬",
+    title: "Videos",
+    desc: "Watch academic video resources uploaded by admins for each module.",
+    btn: "Open Videos",
+    route: "/videos",
+  },
 ];
 
 const adminQuickActions = [
   {
     id: "admin-panel",
-    cls: "c5",
+    cls: "c6",
     icon: "🛡️",
     title: "Admin Panel",
     desc: "Moderate users, review submissions, and keep quality standards high.",
