@@ -517,3 +517,204 @@ body {
   position: relative;
   top: -2px;
 }
+
+/* ── Forgot Password Link ─────────────────────────────────── */
+.auth-forgot-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin: 0;
+  width: auto;
+  height: auto;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  margin-top: 4px;
+  position: relative;
+  top: -2px;
+}
+
+.auth-forgot-link:hover {
+  color: var(--accent2);
+  background: rgba(124, 92, 252, 0.1);
+  transform: none;
+  box-shadow: none;
+}
+
+.auth-forgot-link::before {
+  display: none;
+}
+
+/* ── Modal Styles ─────────────────────────────────────────── */
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.auth-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0;
+  width: 90%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.3s ease;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px) scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+.auth-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  border-radius: 20px 20px 0 0;
+}
+
+.auth-modal-header h3 {
+  margin: 0;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.auth-back-arrow {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.auth-back-arrow:hover {
+  background: rgba(124, 92, 252, 0.1);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateX(-2px);
+}
+
+.auth-back-arrow svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-modal-form {
+  padding: 24px;
+}
+
+.auth-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.auth-primary-btn {
+  flex: 1;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(124, 92, 252, 0.3);
+}
+
+.auth-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(124, 92, 252, 0.4);
+}
+
+.auth-primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-secondary-btn {
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.auth-modal input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.auth-modal input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15);
+}
+
+.auth-modal input::placeholder {
+  color: rgba(240, 238, 255, 0.25);
+}
