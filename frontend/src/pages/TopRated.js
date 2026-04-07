@@ -144,10 +144,11 @@ function TopRated() {
     }
   }, [API_ROOT, forceBrowserDownload, getPublicFileUrl]);
 
-  const availableYears = useMemo(
-    () => [...new Set(notes.map((n) => n.academicYear).filter(Boolean))].sort((a, b) => a - b),
-    [notes]
-  );
+  const availableYears = useMemo(() => {
+    const yearsFromNotes = [...new Set(notes.map((n) => n.academicYear).filter(Boolean))];
+    // Always show the standard academic year options.
+    return [...new Set([1, 2, 3, 4, ...yearsFromNotes])].sort((a, b) => a - b);
+  }, [notes]);
 
   const availableSemesters = useMemo(
     () => [...new Set(notes.map((n) => n.semester).filter(Boolean))].sort((a, b) => a - b),
