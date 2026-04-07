@@ -641,7 +641,6 @@ exports.downloadQuizPDF = async (req, res) => {
     const noteTitle = safeText(note.title) || "Untitled Note";
     const subject = safeText(note.subject) || "General";
 
-    // Generate PDF with a cleaner layout
     const doc = new PDFDocument({
       size: "A4",
       margin: 48,
@@ -666,144 +665,216 @@ exports.downloadQuizPDF = async (req, res) => {
     const left = doc.page.margins.left;
     const right = pageWidth - doc.page.margins.right;
     const contentWidth = right - left;
+    const topMargin = doc.page.margins.top;
     const bottomLimit = pageHeight - doc.page.margins.bottom;
+    const colors = {
+      pageBg: "#EEF1F5",
+      headerBlue: "#0E4A83",
+      headerText: "#FFFFFF",
+      headerSubText: "#CFE2F7",
+      titleText: "#1E2A38",
+      divider: "#C6D1DC",
+      cardBg: "#E9EEF3",
+      cardBorder: "#C7D2DE",
+      chipBg: "#167C95",
+      chipText: "#FFFFFF",
+      questionText: "#1F2A38",
+      optionText: "#364453",
+      answerLine: "#B6C3D2",
+      keyCardBg: "#FFFFFF",
+      keyCardBorder: "#D0DAE5",
+      keyAccent: "#0E4A83",
+    };
 
-    const ensureSpace = (requiredHeight = 80) => {
+    const drawPageBackground = () => {
+      doc.save();
+      doc.rect(0, 0, pageWidth, pageHeight).fill(colors.pageBg);
+      doc.restore();
+    };
+
+    const ensureSpace = (requiredHeight = 120) => {
       if (doc.y + requiredHeight > bottomLimit) {
         doc.addPage();
+        drawPageBackground();
+        doc.y = topMargin;
       }
     };
 
     const drawHeader = () => {
       const top = doc.y;
-      const headerHeight = 86;
+      const headerHeight = 138;
 
       doc
-        .roundedRect(left, top, contentWidth, headerHeight, 12)
-        .fillAndStroke("#F7F8FC", "#DDE3EF");
+        .roundedRect(left, top, contentWidth, headerHeight, 16)
+        .fill(colors.headerBlue);
 
-      doc.fillColor("#1A2A45").font("Helvetica-Bold").fontSize(22);
-      doc.text("Quiz Sheet", left + 16, top + 14, { width: contentWidth - 32 });
+      doc.fillColor(colors.headerText).font("Helvetica-Bold").fontSize(38);
+      doc.text("QUIZ SHEET", left + 28, top + 24, { width: contentWidth - 56 });
 
-      doc.fillColor("#2E3A52").font("Helvetica-Bold").fontSize(12);
-      doc.text(noteTitle, left + 16, top + 46, { width: contentWidth - 32 });
-
-      doc.fillColor("#5E6B84").font("Helvetica").fontSize(10);
-      doc.text(
-        `Subject: ${subject}    |    Generated: ${new Date().toLocaleDateString()}`,
-        left + 16,
-        top + 64,
-        { width: contentWidth - 32 }
-      );
-
-      doc.moveDown(5);
-    };
-
-    const drawQuestionTitle = (idx, qType, questionText) => {
-      ensureSpace(100);
-
-      const label = qType === "mcq" ? "Multiple Choice" : "Short Answer";
-
-      doc.fillColor("#0E1729").font("Helvetica-Bold").fontSize(12);
-      doc.text(`Question ${idx + 1}`, left, doc.y, { continued: true });
-      doc
-        .fillColor("#5B6A86")
-        .font("Helvetica")
-        .fontSize(10)
-        .text(`  (${label})`);
-
-      doc.fillColor("#1F2A3D").font("Helvetica").fontSize(11);
-      doc.text(safeText(questionText) || "No question text", {
-        width: contentWidth,
-        lineGap: 3,
+      doc.fillColor(colors.headerSubText).font("Helvetica").fontSize(16);
+      doc.text(`Module: ${subject}`, left + 28, top + 78, { width: contentWidth - 56 });
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, left + 28, top + 106, {
+        width: contentWidth - 56,
       });
-      doc.moveDown(0.5);
+
+      doc.y = top + headerHeight + 32;
     };
 
-    const drawAnswerLines = () => {
-      const lineCount = 4;
-      for (let i = 0; i < lineCount; i += 1) {
-        ensureSpace(20);
-        doc
-          .moveTo(left, doc.y + 8)
-          .lineTo(right, doc.y + 8)
-          .strokeColor("#D8DEE8")
-          .lineWidth(1)
-          .stroke();
-        doc.moveDown(0.8);
-      }
-    };
+    const drawQuestionCard = (question, idx) => {
+      const isMcq = question.type === "mcq";
+      const chipLabel = isMcq ? "Multiple Choice" : "Short Answer";
+      const cardLeft = left;
+      const cardWidth = contentWidth;
+      const innerLeft = cardLeft + 24;
+      const innerWidth = cardWidth - 48;
+      const chipWidth = isMcq ? 200 : 170;
+      const chipHeight = 40;
+      const questionTopPadding = 22;
+      const chipBottomGap = 18;
+      const questionFontSize = 16;
+      const optionFontSize = 13;
 
-    drawHeader();
+      doc.font("Helvetica-Bold").fontSize(questionFontSize);
+      const questionText = `${idx + 1}. ${safeText(question.question) || "No question text"}`;
+      const questionHeight = doc.heightOfString(questionText, {
+        width: innerWidth,
+        lineGap: 4,
+      });
 
-    doc.fillColor("#4F5D78").font("Helvetica").fontSize(10);
-    doc.text("Instructions: Answer all questions. Choose one option for MCQ questions.", {
-      width: contentWidth,
-      lineGap: 2,
-    });
-    doc.moveDown(1);
-
-    note.quiz.questions.forEach((q, idx) => {
-      drawQuestionTitle(idx, q.type, q.question);
-
-      if (q.type === "mcq") {
-        const options = Array.isArray(q.options) ? q.options : [];
+      let detailHeight = 0;
+      if (isMcq) {
+        const options = Array.isArray(question.options) ? question.options : [];
+        doc.font("Helvetica").fontSize(optionFontSize);
         options.forEach((opt, optIdx) => {
-          ensureSpace(26);
-          const optionLabel = `${String.fromCharCode(65 + optIdx)})`;
-          doc.fillColor("#0F1A30").font("Helvetica-Bold").fontSize(10.5);
-          doc.text(optionLabel, left + 6, doc.y, { continued: true });
-          doc.fillColor("#253047").font("Helvetica").fontSize(10.5);
-          doc.text(` ${safeText(opt)}`);
+          const rowText = `${String.fromCharCode(65 + optIdx)}. ${safeText(opt)}`;
+          detailHeight += doc.heightOfString(rowText, {
+            width: innerWidth,
+            lineGap: 4,
+          }) + 8;
         });
       } else {
-        drawAnswerLines();
+        detailHeight = 96;
       }
 
-      doc.moveDown(0.8);
-      ensureSpace(24);
-      doc
-        .moveTo(left, doc.y)
-        .lineTo(right, doc.y)
-        .strokeColor("#E5EAF2")
-        .lineWidth(1)
-        .stroke();
-      doc.moveDown(0.8);
-    });
+      const cardHeight =
+        questionTopPadding +
+        chipHeight +
+        chipBottomGap +
+        questionHeight +
+        14 +
+        detailHeight +
+        22;
 
-    // Answer key page
-    doc.addPage();
-    doc.fillColor("#12213A").font("Helvetica-Bold").fontSize(19);
-    doc.text("Answer Key", left, doc.y);
-    doc.moveDown(0.6);
-
-    doc.fillColor("#5B6A86").font("Helvetica").fontSize(10);
-    doc.text("For study and review only.", left, doc.y);
-    doc.moveDown(1);
-
-    note.quiz.questions.forEach((q, idx) => {
-      ensureSpace(110);
+      ensureSpace(cardHeight + 20);
+      const cardTop = doc.y;
 
       doc
-        .roundedRect(left, doc.y, contentWidth, 88, 10)
-        .fillAndStroke("#FAFBFE", "#E2E8F2");
+        .roundedRect(cardLeft, cardTop, cardWidth, cardHeight, 14)
+        .fillAndStroke(colors.cardBg, colors.cardBorder);
 
-      const boxTop = doc.y;
-      doc.fillColor("#13233D").font("Helvetica-Bold").fontSize(11);
-      doc.text(`Question ${idx + 1}`, left + 12, boxTop + 10);
+      const chipTop = cardTop + questionTopPadding;
+      doc
+        .roundedRect(innerLeft, chipTop, chipWidth, chipHeight, 20)
+        .fill(colors.chipBg);
 
-      doc.fillColor("#2E3A52").font("Helvetica-Bold").fontSize(10);
-      doc.text(`Answer: ${safeText(q.correctAnswer) || "N/A"}`, left + 12, boxTop + 30, {
-        width: contentWidth - 24,
+      doc.fillColor(colors.chipText).font("Helvetica-Bold").fontSize(11);
+      doc.text(chipLabel, innerLeft, chipTop + 12, {
+        width: chipWidth,
+        align: "center",
       });
 
-      doc.fillColor("#4B5A74").font("Helvetica").fontSize(9.6);
-      doc.text(`Explanation: ${safeText(q.explanation) || "No explanation"}`, left + 12, boxTop + 48, {
-        width: contentWidth - 24,
+      let cursorY = chipTop + chipHeight + chipBottomGap;
+
+      doc.fillColor(colors.questionText).font("Helvetica-Bold").fontSize(questionFontSize);
+      doc.text(questionText, innerLeft, cursorY, {
+        width: innerWidth,
+        lineGap: 4,
+      });
+
+      cursorY = doc.y + 12;
+
+      if (isMcq) {
+        const options = Array.isArray(question.options) ? question.options : [];
+        doc.fillColor(colors.optionText).font("Helvetica").fontSize(optionFontSize);
+        options.forEach((opt, optIdx) => {
+          const rowText = `${String.fromCharCode(65 + optIdx)}. ${safeText(opt)}`;
+          doc.text(rowText, innerLeft + 2, cursorY, {
+            width: innerWidth - 2,
+            lineGap: 4,
+          });
+          cursorY = doc.y + 6;
+        });
+      } else {
+        for (let i = 0; i < 4; i += 1) {
+          const lineY = cursorY + 14;
+          doc
+            .moveTo(innerLeft, lineY)
+            .lineTo(innerLeft + innerWidth, lineY)
+            .strokeColor(colors.answerLine)
+            .lineWidth(1)
+            .stroke();
+          cursorY += 24;
+        }
+      }
+
+      doc.y = cardTop + cardHeight + 18;
+    };
+
+    drawPageBackground();
+    drawHeader();
+
+    doc.fillColor(colors.titleText).font("Helvetica-Bold").fontSize(19);
+    doc.text(noteTitle, left, doc.y, { width: contentWidth });
+    doc.moveDown(0.8);
+
+    doc
+      .moveTo(left, doc.y)
+      .lineTo(right, doc.y)
+      .strokeColor(colors.divider)
+      .lineWidth(1)
+      .stroke();
+    doc.moveDown(1.2);
+
+    note.quiz.questions.forEach((q, idx) => {
+      drawQuestionCard(q, idx);
+    });
+
+    doc.addPage();
+    drawPageBackground();
+    doc.y = topMargin;
+
+    doc.fillColor(colors.headerBlue).font("Helvetica-Bold").fontSize(28);
+    doc.text("ANSWER KEY", left, doc.y, { width: contentWidth });
+    doc.moveDown(0.8);
+
+    note.quiz.questions.forEach((q, idx) => {
+      const blockHeight = 110;
+      ensureSpace(blockHeight + 16);
+      const top = doc.y;
+
+      doc
+        .roundedRect(left, top, contentWidth, blockHeight, 12)
+        .fillAndStroke(colors.keyCardBg, colors.keyCardBorder);
+
+      doc
+        .roundedRect(left + 10, top + 10, 6, blockHeight - 20, 3)
+        .fill(colors.keyAccent);
+
+      doc.fillColor(colors.questionText).font("Helvetica-Bold").fontSize(12);
+      doc.text(`Question ${idx + 1}`, left + 24, top + 14);
+
+      doc.fillColor(colors.optionText).font("Helvetica-Bold").fontSize(10.5);
+      doc.text(`Answer: ${safeText(q.correctAnswer) || "N/A"}`, left + 24, top + 36, {
+        width: contentWidth - 36,
+      });
+
+      doc.fillColor(colors.optionText).font("Helvetica").fontSize(10);
+      doc.text(`Explanation: ${safeText(q.explanation) || "No explanation"}`, left + 24, top + 56, {
+        width: contentWidth - 36,
         lineGap: 2,
       });
 
-      doc.y = boxTop + 96;
+      doc.y = top + blockHeight + 14;
     });
 
     // Finalize PDF
