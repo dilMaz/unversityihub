@@ -12,7 +12,8 @@ exports.register = async (req, res) => {
     name,
     email,
     password,
-    itNumber,
+    studentNumber,
+    nic,
     phone,
     specialization,
     year,
@@ -20,15 +21,31 @@ exports.register = async (req, res) => {
   } = req.body;
 
   try {
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ message: "User already exists" });
+    // Check for existing email (case-insensitive)
+    const emailExists = await User.findOne({ 
+      email: { $regex: new RegExp(`^${String(email).trim()}$`, 'i') }
+    });
+    if (emailExists) return res.status(400).json({ message: "Email already registered" });
+
+    // Check for existing NIC (if provided)
+    if (nic && nic.trim()) {
+      const nicExists = await User.findOne({ nic: String(nic).trim().toUpperCase() });
+      if (nicExists) return res.status(400).json({ message: "NIC already registered" });
+    }
+
+    // Check for existing student number (if provided)
+    if (studentNumber && studentNumber.trim()) {
+      const studentNumberExists = await User.findOne({ studentNumber: String(studentNumber).trim().toUpperCase() });
+      if (studentNumberExists) return res.status(400).json({ message: "Student number already registered" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name,
-      email,
-      itNumber: itNumber || "",
+      email: String(email).trim().toLowerCase(), // Normalize email to lowercase
+      studentNumber: studentNumber || "",
+      nic: nic || "",
       phone: phone || "",
       specialization: specialization || "",
       year: year === "" || year === undefined ? undefined : year,
@@ -75,14 +92,21 @@ exports.registerAdmin = async (req, res) => {
       return res.status(400).json({ message: "Phone must start with 0 and have exactly 10 numbers" });
     }
 
-    const userExists = await User.findOne({ email: String(email).trim() });
-    if (userExists) return res.status(400).json({ message: "User already exists" });
+    // Check for existing email (case-insensitive)
+    const emailExists = await User.findOne({ 
+      email: { $regex: new RegExp(`^${String(email).trim()}$`, 'i') }
+    });
+    if (emailExists) return res.status(400).json({ message: "Email already registered" });
+
+    // Check for existing NIC
+    const nicExists = await User.findOne({ nic: normalizedNic });
+    if (nicExists) return res.status(400).json({ message: "NIC already registered" });
 
     const hashedPassword = await bcrypt.hash(String(password), 10);
 
     const user = await User.create({
       name: String(name).trim(),
-      email: String(email).trim(),
+      email: String(email).trim().toLowerCase(), // Normalize email to lowercase
       nic: normalizedNic,
       phone: phone ? String(phone).trim() : "",
       status: status || "undergraduate",
@@ -114,7 +138,9 @@ exports.login = async (req, res) => {
   console.log('Login attempt for:', email);
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ 
+      email: { $regex: new RegExp(`^${String(email).trim()}$`, 'i') }
+    });
     console.log('User found:', !!user);
 
     if (!user) return res.status(400).json({ message: "Invalid Email" });

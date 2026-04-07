@@ -9,6 +9,9 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -46,8 +49,76 @@ function Login() {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/forgot-password",
+        {
+          email,
+        }
+      );
+
+      console.log("FORGOT PASSWORD:", res.data);
+      alert("Password reset link sent to your email!");
+      setShowForgotPassword(false);
+
+    } catch (err) {
+      console.error("Forgot password error:", err);
+      setError(err?.response?.data?.message || "Failed to send reset link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/reset-password",
+        {
+          email,
+          newPassword,
+        }
+      );
+
+      console.log("RESET PASSWORD:", res.data);
+      alert("Password updated successfully!");
+      setShowForgotPassword(false);
+      setNewPassword("");
+      setConfirmPassword("");
+
+    } catch (err) {
+      console.error("Reset password error:", err);
+      setError(err?.response?.data?.message || "Failed to update password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="auth-container">
+      {/* Debug: Show forgot password state */}
+      {showForgotPassword && console.log("Modal should be visible")}
+      
       <div className="auth-card">
         <div className="auth-brand">
           <div className="auth-brand-icon">
@@ -109,6 +180,17 @@ function Login() {
                 </svg>
               )}
             </span>
+            <span 
+              onClick={(e) => {
+                e.preventDefault();
+                console.log("Forgot password clicked");
+                setShowForgotPassword(true);
+              }} 
+              className="auth-forgot-link"
+              style={{ cursor: "pointer", color: "var(--accent)", fontSize: "0.75rem", fontWeight: "600", marginLeft: "8px", marginTop: "4px", position: "relative", top: "-2px" }}
+            >
+              Forgot Password
+            </span>
           </div>
 
           <button type="submit" disabled={loading} className="auth-submit-btn">
@@ -129,6 +211,91 @@ function Login() {
           Don't have an account? <Link to="/register">Create Account</Link>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="auth-modal-overlay">
+          <div className="auth-modal">
+            <div className="auth-modal-header">
+              <button 
+                type="button" 
+                className="auth-back-arrow" 
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setError("");
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+              </button>
+              <h3>Reset Password</h3>
+            </div>
+
+            <form onSubmit={handleUpdatePassword} className="auth-modal-form">
+              {error && <div className="auth-error">{error}</div>}
+              
+              <div className="auth-field">
+                <label className="auth-label" htmlFor="reset-email">Email Address</label>
+                <input
+                  id="reset-email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="auth-field">
+                <label className="auth-label" htmlFor="new-password">New Password</label>
+                <input
+                  id="new-password"
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="auth-field">
+                <label className="auth-label" htmlFor="confirm-password">Confirm Password</label>
+                <input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="auth-modal-actions">
+                <button 
+                  type="submit" 
+                  className="auth-primary-btn"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className="auth-loading">
+                      <span className="auth-spinner"></span>
+                      Updating...
+                    </span>
+                  ) : (
+                    "Update Password"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

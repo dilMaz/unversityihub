@@ -240,7 +240,7 @@ app.get("/api/profile/me", authMiddleware, async (req, res) => {
       phone: user.phone || "",
       nic: user.nic || "",
       status: user.status || "undergraduate",
-      itNumber: user.itNumber || "",
+      studentNumber: user.studentNumber || "",
       specialization: user.specialization || "",
       year: user.year,
       semester: user.semester,
@@ -289,7 +289,7 @@ app.patch("/api/profile/me", authMiddleware, async (req, res) => {
     const {
       name,
       email,
-      itNumber,
+      studentNumber,
       nic,
       phone,
       status,
@@ -306,8 +306,22 @@ app.patch("/api/profile/me", authMiddleware, async (req, res) => {
       user.email = email;
     }
 
+    // Only validate NIC when user is changing it
+    if (nic !== undefined && nic !== user.nic) {
+      const normalizedNic = String(nic).trim().toUpperCase();
+      const nicTaken = await User.findOne({ nic: normalizedNic });
+      if (nicTaken) return res.status(400).json({ message: "NIC already in use" });
+      user.nic = normalizedNic;
+    }
+
+    // Only validate student number when user is changing it
+    if (studentNumber !== undefined && studentNumber !== user.studentNumber) {
+      const studentNumberTaken = await User.findOne({ studentNumber: String(studentNumber).trim().toUpperCase() });
+      if (studentNumberTaken) return res.status(400).json({ message: "Student number already in use" });
+      user.studentNumber = String(studentNumber).trim().toUpperCase();
+    }
+
     if (name !== undefined) user.name = String(name);
-    if (itNumber !== undefined) user.itNumber = String(itNumber);
     if (phone !== undefined) user.phone = String(phone);
     if (specialization !== undefined) user.specialization = String(specialization);
 
