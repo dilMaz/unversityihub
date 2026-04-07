@@ -637,50 +637,173 @@ exports.downloadQuizPDF = async (req, res) => {
       });
     }
 
-    // Generate PDF
-    const doc = new PDFDocument();
+    const safeText = (value) => String(value ?? "").replace(/\s+/g, " ").trim();
+    const noteTitle = safeText(note.title) || "Untitled Note";
+    const subject = safeText(note.subject) || "General";
+
+    // Generate PDF with a cleaner layout
+    const doc = new PDFDocument({
+      size: "A4",
+      margin: 48,
+      info: {
+        Title: `Quiz - ${noteTitle}`,
+        Author: "UniHub",
+      },
+    });
 
     // Set response headers
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="Quiz_${note.title.replace(/ /g, "_")}.pdf"`
+      `attachment; filename="Quiz_${noteTitle.replace(/\s+/g, "_")}.pdf"`
     );
 
     // Pipe to response
     doc.pipe(res);
 
-    // Add content
-    doc.fontSize(20).text(`Quiz: ${note.title}`, { underline: true });
-    doc.fontSize(12).text(`Subject: ${note.subject}\n`, { underline: false });
-    doc.fontSize(10).text(`Generated: ${new Date().toLocaleDateString()}\n\n`);
+    const pageWidth = doc.page.width;
+    const pageHeight = doc.page.height;
+    const left = doc.page.margins.left;
+    const right = pageWidth - doc.page.margins.right;
+    const contentWidth = right - left;
+    const bottomLimit = pageHeight - doc.page.margins.bottom;
 
-    // Add questions
-    note.quiz.questions.forEach((q, idx) => {
-      doc.fontSize(12).text(`Question ${idx + 1}: ${q.question}`, {
-        underline: true,
+    const ensureSpace = (requiredHeight = 80) => {
+      if (doc.y + requiredHeight > bottomLimit) {
+        doc.addPage();
+      }
+    };
+
+    const drawHeader = () => {
+      const top = doc.y;
+      const headerHeight = 86;
+
+      doc
+        .roundedRect(left, top, contentWidth, headerHeight, 12)
+        .fillAndStroke("#F7F8FC", "#DDE3EF");
+
+      doc.fillColor("#1A2A45").font("Helvetica-Bold").fontSize(22);
+      doc.text("Quiz Sheet", left + 16, top + 14, { width: contentWidth - 32 });
+
+      doc.fillColor("#2E3A52").font("Helvetica-Bold").fontSize(12);
+      doc.text(noteTitle, left + 16, top + 46, { width: contentWidth - 32 });
+
+      doc.fillColor("#5E6B84").font("Helvetica").fontSize(10);
+      doc.text(
+        `Subject: ${subject}    |    Generated: ${new Date().toLocaleDateString()}`,
+        left + 16,
+        top + 64,
+        { width: contentWidth - 32 }
+      );
+
+      doc.moveDown(5);
+    };
+
+    const drawQuestionTitle = (idx, qType, questionText) => {
+      ensureSpace(100);
+
+      const label = qType === "mcq" ? "Multiple Choice" : "Short Answer";
+
+      doc.fillColor("#0E1729").font("Helvetica-Bold").fontSize(12);
+      doc.text(`Question ${idx + 1}`, left, doc.y, { continued: true });
+      doc
+        .fillColor("#5B6A86")
+        .font("Helvetica")
+        .fontSize(10)
+        .text(`  (${label})`);
+
+      doc.fillColor("#1F2A3D").font("Helvetica").fontSize(11);
+      doc.text(safeText(questionText) || "No question text", {
+        width: contentWidth,
+        lineGap: 3,
       });
+      doc.moveDown(0.5);
+    };
+
+    const drawAnswerLines = () => {
+      const lineCount = 4;
+      for (let i = 0; i < lineCount; i += 1) {
+        ensureSpace(20);
+        doc
+          .moveTo(left, doc.y + 8)
+          .lineTo(right, doc.y + 8)
+          .strokeColor("#D8DEE8")
+          .lineWidth(1)
+          .stroke();
+        doc.moveDown(0.8);
+      }
+    };
+
+    drawHeader();
+
+    doc.fillColor("#4F5D78").font("Helvetica").fontSize(10);
+    doc.text("Instructions: Answer all questions. Choose one option for MCQ questions.", {
+      width: contentWidth,
+      lineGap: 2,
+    });
+    doc.moveDown(1);
+
+    note.quiz.questions.forEach((q, idx) => {
+      drawQuestionTitle(idx, q.type, q.question);
 
       if (q.type === "mcq") {
-        doc.fontSize(11);
-        q.options.forEach((opt, optIdx) => {
-          doc.text(`${String.fromCharCode(65 + optIdx)}) ${opt}`);
+        const options = Array.isArray(q.options) ? q.options : [];
+        options.forEach((opt, optIdx) => {
+          ensureSpace(26);
+          const optionLabel = `${String.fromCharCode(65 + optIdx)})`;
+          doc.fillColor("#0F1A30").font("Helvetica-Bold").fontSize(10.5);
+          doc.text(optionLabel, left + 6, doc.y, { continued: true });
+          doc.fillColor("#253047").font("Helvetica").fontSize(10.5);
+          doc.text(` ${safeText(opt)}`);
         });
       } else {
-        doc.fontSize(10).text("[Space for your answer]\n");
+        drawAnswerLines();
       }
 
-      doc.fontSize(10).text("");
+      doc.moveDown(0.8);
+      ensureSpace(24);
+      doc
+        .moveTo(left, doc.y)
+        .lineTo(right, doc.y)
+        .strokeColor("#E5EAF2")
+        .lineWidth(1)
+        .stroke();
+      doc.moveDown(0.8);
     });
 
-    // Add answer key
-    doc.addPage().fontSize(16).text("ANSWER KEY", { underline: true });
-    doc.fontSize(10).text("");
+    // Answer key page
+    doc.addPage();
+    doc.fillColor("#12213A").font("Helvetica-Bold").fontSize(19);
+    doc.text("Answer Key", left, doc.y);
+    doc.moveDown(0.6);
+
+    doc.fillColor("#5B6A86").font("Helvetica").fontSize(10);
+    doc.text("For study and review only.", left, doc.y);
+    doc.moveDown(1);
 
     note.quiz.questions.forEach((q, idx) => {
-      doc.fontSize(11).text(`Question ${idx + 1}:`);
-      doc.fontSize(10).text(`Answer: ${q.correctAnswer}`);
-      doc.text(`Explanation: ${q.explanation}\n`);
+      ensureSpace(110);
+
+      doc
+        .roundedRect(left, doc.y, contentWidth, 88, 10)
+        .fillAndStroke("#FAFBFE", "#E2E8F2");
+
+      const boxTop = doc.y;
+      doc.fillColor("#13233D").font("Helvetica-Bold").fontSize(11);
+      doc.text(`Question ${idx + 1}`, left + 12, boxTop + 10);
+
+      doc.fillColor("#2E3A52").font("Helvetica-Bold").fontSize(10);
+      doc.text(`Answer: ${safeText(q.correctAnswer) || "N/A"}`, left + 12, boxTop + 30, {
+        width: contentWidth - 24,
+      });
+
+      doc.fillColor("#4B5A74").font("Helvetica").fontSize(9.6);
+      doc.text(`Explanation: ${safeText(q.explanation) || "No explanation"}`, left + 12, boxTop + 48, {
+        width: contentWidth - 24,
+        lineGap: 2,
+      });
+
+      doc.y = boxTop + 96;
     });
 
     // Finalize PDF
