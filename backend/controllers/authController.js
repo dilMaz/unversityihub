@@ -163,3 +163,58 @@ exports.login = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Forgot Password (simple email existence check)
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    if (!email || !String(email).trim()) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({
+      email: { $regex: new RegExp(`^${String(email).trim()}$`, "i") },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    return res.json({ message: "Reset request accepted" });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// Reset Password
+exports.resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+    if (!email || !String(email).trim()) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    if (!newPassword || String(newPassword).length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const user = await User.findOne({
+      email: { $regex: new RegExp(`^${String(email).trim()}$`, "i") },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    user.password = await bcrypt.hash(String(newPassword), 10);
+    await user.save();
+
+    return res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
