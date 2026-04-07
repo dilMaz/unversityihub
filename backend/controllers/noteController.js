@@ -577,12 +577,6 @@ exports.generateQuiz = async (req, res) => {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: "Note not found" });
 
-    if (!note.filePath || note.filePath === "seed") {
-      return res.status(400).json({
-        message: "Quiz can only be generated from an uploaded note document",
-      });
-    }
-
     const hasQuiz = note.quiz && note.quiz.questions && note.quiz.questions.length > 0;
     const isDocumentBasedQuiz = note.quiz?.generatedBy === DOCUMENT_BASED_GENERATOR;
 
@@ -598,7 +592,32 @@ exports.generateQuiz = async (req, res) => {
     note.quizStatus = "generating";
     await note.save();
 
-    const extractedText = await extractTextFromNoteDocument(note.filePath);
+    let extractedText = "";
+    let usedFallback = false;
+
+    // Prefer document-based extraction, but gracefully fallback so users can always generate.
+    if (note.filePath && note.filePath !== "seed") {
+      try {
+        extractedText = await extractTextFromNoteDocument(note.filePath);
+      } catch (extractErr) {
+        usedFallback = true;
+        console.log("QUIZ EXTRACTION FALLBACK:", extractErr.message);
+      }
+    } else {
+      usedFallback = true;
+    }
+
+    if (!extractedText) {
+      extractedText = [
+        `Topic: ${note.title}`,
+        `Subject: ${note.subject || "General"}`,
+        `Module: ${note.moduleCode || "N/A"}`,
+        `Category: ${note.category || "Lecture Notes"}`,
+        note.description || "",
+        "Generate conceptual and practical questions related to this topic.",
+      ].join("\n");
+    }
+
     const noteContent = [
       `Title: ${note.title}`,
       `Subject: ${note.subject}`,
@@ -614,7 +633,7 @@ exports.generateQuiz = async (req, res) => {
     note.quiz = {
       questions: questions,
       generatedAt: new Date(),
-      generatedBy: DOCUMENT_BASED_GENERATOR,
+      generatedBy: usedFallback ? "Claude AI (Fallback)" : DOCUMENT_BASED_GENERATOR,
     };
     note.quizStatus = "completed";
     await note.save();
@@ -843,16 +862,6 @@ exports.getQuizStatus = async (req, res) => {
     if (!note) return res.status(404).json({ message: "Note not found" });
 
     const hasQuiz = note.quiz && note.quiz.questions && note.quiz.questions.length > 0;
-    const isDocumentBasedQuiz = note.quiz?.generatedBy === DOCUMENT_BASED_GENERATOR;
-
-    // Legacy quizzes were created from placeholders, so prompt regeneration.
-    if (hasQuiz && !isDocumentBasedQuiz) {
-      return res.json({
-        quizStatus: "pending",
-        hasQuiz: false,
-        quiz: null,
-      });
-    }
 
     res.json({
       quizStatus: note.quizStatus,
