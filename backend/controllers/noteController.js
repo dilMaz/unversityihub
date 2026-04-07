@@ -1,6 +1,7 @@
 const Note = require("../models/Note");
 const User = require("../models/User");
 const fs = require("fs");
+const { extractTextFromNoteDocument } = require("../utils/documentTextExtractor");
 
 const approvedOrLegacyFilter = { $in: ["approved", null] };
 
@@ -547,8 +548,9 @@ exports.createStudentNote = async (req, res) => {
 };
 
 const { getRecommendations } = require("../utils/recommendationEngine");
-const { generateQuizFromNote, formatQuizForPDF } = require("../utils/quizGenerator");
+const { generateQuizFromNote } = require("../utils/quizGenerator");
 const PDFDocument = require("pdfkit");
+const DOCUMENT_BASED_GENERATOR = "Claude AI (Document-Based)";
 
 // 🤖 RECOMMEND
 exports.recommendNotes = async (req, res) => {
@@ -575,8 +577,17 @@ exports.generateQuiz = async (req, res) => {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: "Note not found" });
 
-    // Check if quiz already exists
-    if (note.quiz && note.quiz.questions && note.quiz.questions.length > 0) {
+    if (!note.filePath || note.filePath === "seed") {
+      return res.status(400).json({
+        message: "Quiz can only be generated from an uploaded note document",
+      });
+    }
+
+    const hasQuiz = note.quiz && note.quiz.questions && note.quiz.questions.length > 0;
+    const isDocumentBasedQuiz = note.quiz?.generatedBy === DOCUMENT_BASED_GENERATOR;
+
+    // Reuse only if quiz is already document-based
+    if (hasQuiz && isDocumentBasedQuiz) {
       return res.json({
         message: "Quiz already generated",
         quiz: note.quiz,
@@ -587,16 +598,14 @@ exports.generateQuiz = async (req, res) => {
     note.quizStatus = "generating";
     await note.save();
 
-    // For now, use note title + subject as content
-    // In production, you'd extract text from the PDF file
-    const noteContent = `
-Title: ${note.title}
-Subject: ${note.subject}
-Module Code: ${note.moduleCode || "N/A"}
-
-This note contains important information about ${note.subject}.
-Key concepts: Core fundamentals, advanced topics, and practical applications.
-`;
+    const extractedText = await extractTextFromNoteDocument(note.filePath);
+    const noteContent = [
+      `Title: ${note.title}`,
+      `Subject: ${note.subject}`,
+      `Module Code: ${note.moduleCode || "N/A"}`,
+      "",
+      extractedText,
+    ].join("\n");
 
     // Generate quiz using Claude AI
     const questions = await generateQuizFromNote(note.title, noteContent);
@@ -605,7 +614,7 @@ Key concepts: Core fundamentals, advanced topics, and practical applications.
     note.quiz = {
       questions: questions,
       generatedAt: new Date(),
-      generatedBy: "Claude AI",
+      generatedBy: DOCUMENT_BASED_GENERATOR,
     };
     note.quizStatus = "completed";
     await note.save();
@@ -637,8 +646,15 @@ exports.downloadQuizPDF = async (req, res) => {
       });
     }
 
-    // Generate PDF
-    const doc = new PDFDocument();
+    // Generate a styled PDF that is readable on desktop and mobile viewers
+    const doc = new PDFDocument({
+      size: "A4",
+      margin: 44,
+      info: {
+        Title: `Quiz - ${note.title}`,
+        Author: "University iHubb",
+      },
+    });
 
     // Set response headers
     res.setHeader("Content-Type", "application/pdf");
@@ -650,37 +666,166 @@ exports.downloadQuizPDF = async (req, res) => {
     // Pipe to response
     doc.pipe(res);
 
-    // Add content
-    doc.fontSize(20).text(`Quiz: ${note.title}`, { underline: true });
-    doc.fontSize(12).text(`Subject: ${note.subject}\n`, { underline: false });
-    doc.fontSize(10).text(`Generated: ${new Date().toLocaleDateString()}\n\n`);
+    const pageLeft = doc.page.margins.left;
+    const pageRight = doc.page.width - doc.page.margins.right;
+    const usableWidth = pageRight - pageLeft;
 
-    // Add questions
-    note.quiz.questions.forEach((q, idx) => {
-      doc.fontSize(12).text(`Question ${idx + 1}: ${q.question}`, {
-        underline: true,
+    const ensureSpace = (neededHeight = 90) => {
+      if (doc.y + neededHeight > doc.page.height - doc.page.margins.bottom) {
+        doc.addPage();
+      }
+    };
+
+    const drawHeaderBand = () => {
+      const bandTop = doc.y;
+      const bandHeight = 88;
+
+      doc
+        .roundedRect(pageLeft, bandTop, usableWidth, bandHeight, 10)
+        .fill("#0F4C81");
+
+      doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(22).text("QUIZ SHEET", pageLeft + 18, bandTop + 16, {
+        width: usableWidth - 36,
       });
 
-      if (q.type === "mcq") {
-        doc.fontSize(11);
-        q.options.forEach((opt, optIdx) => {
-          doc.text(`${String.fromCharCode(65 + optIdx)}) ${opt}`);
-        });
+      doc.fillColor("#D9ECFF").font("Helvetica").fontSize(11).text(`Module: ${note.subject || "General"}`, pageLeft + 18, bandTop + 48, {
+        width: usableWidth - 36,
+      });
+
+      doc.fillColor("#D9ECFF").font("Helvetica").fontSize(10).text(`Generated: ${new Date().toLocaleDateString()}`, pageLeft + 18, bandTop + 65, {
+        width: usableWidth - 36,
+      });
+
+      doc.y = bandTop + bandHeight + 18;
+
+      doc.fillColor("#0D1B2A").font("Helvetica-Bold").fontSize(14).text(note.title, pageLeft, doc.y, {
+        width: usableWidth,
+      });
+
+      doc.moveDown(0.8);
+      doc.strokeColor("#CED9E3").lineWidth(1).moveTo(pageLeft, doc.y).lineTo(pageRight, doc.y).stroke();
+      doc.moveDown(0.7);
+    };
+
+    const drawQuestionCard = (question, idx) => {
+      const questionText = `${idx + 1}. ${question.question}`;
+      const optionCount = question.type === "mcq" ? (question.options || []).length : 0;
+
+      const questionHeight = doc.heightOfString(questionText, {
+        width: usableWidth - 28,
+        align: "left",
+      });
+      const optionsHeight = question.type === "mcq"
+        ? (question.options || []).reduce(
+            (sum, opt, optIdx) =>
+              sum +
+              doc.heightOfString(`${String.fromCharCode(65 + optIdx)}. ${opt}`, {
+                width: usableWidth - 40,
+              }) +
+              6,
+            0
+          )
+        : 64;
+
+      const typePillHeight = 24;
+      const basePadding = 16;
+      const cardHeight = basePadding + typePillHeight + 8 + questionHeight + 14 + optionsHeight + 14;
+
+      ensureSpace(cardHeight + 12);
+
+      const cardTop = doc.y;
+      doc.roundedRect(pageLeft, cardTop, usableWidth, cardHeight, 8).fill("#F7FAFC");
+      doc.roundedRect(pageLeft, cardTop, usableWidth, cardHeight, 8).lineWidth(1).strokeColor("#D6E0EA").stroke();
+
+      const pillText = question.type === "mcq" ? "Multiple Choice" : "Short Answer";
+      const pillColor = question.type === "mcq" ? "#1F7A8C" : "#7A5C3E";
+      const pillWidth = question.type === "mcq" ? 124 : 104;
+
+      doc.roundedRect(pageLeft + 14, cardTop + 14, pillWidth, 24, 12).fill(pillColor);
+      doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(10).text(pillText, pageLeft + 14, cardTop + 21, {
+        width: pillWidth,
+        align: "center",
+      });
+
+      let cursorY = cardTop + 48;
+      doc.fillColor("#0D1B2A").font("Helvetica-Bold").fontSize(12).text(questionText, pageLeft + 14, cursorY, {
+        width: usableWidth - 28,
+      });
+      cursorY = doc.y + 10;
+
+      if (question.type === "mcq") {
+        doc.font("Helvetica").fontSize(11).fillColor("#1F2937");
+        for (let i = 0; i < optionCount; i += 1) {
+          const opt = question.options[i];
+          doc.text(`${String.fromCharCode(65 + i)}. ${opt}`, pageLeft + 20, cursorY, {
+            width: usableWidth - 40,
+          });
+          cursorY = doc.y + 6;
+        }
       } else {
-        doc.fontSize(10).text("[Space for your answer]\n");
+        // Draw answer lines to make short-answer section look like a worksheet
+        const lineStart = pageLeft + 20;
+        const lineEnd = pageRight - 20;
+        for (let i = 0; i < 3; i += 1) {
+          const lineY = cursorY + i * 18;
+          doc.strokeColor("#C8D3DE").lineWidth(1).moveTo(lineStart, lineY).lineTo(lineEnd, lineY).stroke();
+        }
       }
 
-      doc.fontSize(10).text("");
+      doc.y = cardTop + cardHeight + 12;
+    };
+
+    const drawAnswerHeader = () => {
+      doc.fillColor("#16324F").font("Helvetica-Bold").fontSize(20).text("Answer Key", pageLeft, doc.y, {
+        width: usableWidth,
+      });
+      doc.moveDown(0.2);
+      doc.fillColor("#4B5D70").font("Helvetica").fontSize(11).text("Use this section for review after attempting all questions.", {
+        width: usableWidth,
+      });
+      doc.moveDown(0.6);
+      doc.strokeColor("#CED9E3").lineWidth(1).moveTo(pageLeft, doc.y).lineTo(pageRight, doc.y).stroke();
+      doc.moveDown(0.7);
+    };
+
+    const drawAnswerItem = (question, idx) => {
+      const questionLabel = `Q${idx + 1}`;
+      const answerText = `Answer: ${question.correctAnswer || "N/A"}`;
+      const explanationText = `Explanation: ${question.explanation || "No explanation available."}`;
+
+      const needed =
+        doc.heightOfString(answerText, { width: usableWidth - 26 }) +
+        doc.heightOfString(explanationText, { width: usableWidth - 26 }) +
+        40;
+      ensureSpace(needed);
+
+      const boxTop = doc.y;
+      const boxHeight = needed;
+      doc.roundedRect(pageLeft, boxTop, usableWidth, boxHeight, 8).fill("#FFFFFF");
+      doc.roundedRect(pageLeft, boxTop, usableWidth, boxHeight, 8).lineWidth(1).strokeColor("#D6E0EA").stroke();
+
+      doc.fillColor("#0F4C81").font("Helvetica-Bold").fontSize(11).text(questionLabel, pageLeft + 12, boxTop + 10);
+      doc.fillColor("#111827").font("Helvetica").fontSize(11).text(answerText, pageLeft + 12, boxTop + 30, {
+        width: usableWidth - 24,
+      });
+      doc.fillColor("#374151").font("Helvetica").fontSize(10).text(explanationText, pageLeft + 12, doc.y + 6, {
+        width: usableWidth - 24,
+      });
+
+      doc.y = boxTop + boxHeight + 10;
+    };
+
+    drawHeaderBand();
+
+    note.quiz.questions.forEach((question, idx) => {
+      drawQuestionCard(question, idx);
     });
 
-    // Add answer key
-    doc.addPage().fontSize(16).text("ANSWER KEY", { underline: true });
-    doc.fontSize(10).text("");
+    doc.addPage();
+    drawAnswerHeader();
 
-    note.quiz.questions.forEach((q, idx) => {
-      doc.fontSize(11).text(`Question ${idx + 1}:`);
-      doc.fontSize(10).text(`Answer: ${q.correctAnswer}`);
-      doc.text(`Explanation: ${q.explanation}\n`);
+    note.quiz.questions.forEach((question, idx) => {
+      drawAnswerItem(question, idx);
     });
 
     // Finalize PDF
@@ -697,9 +842,21 @@ exports.getQuizStatus = async (req, res) => {
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ message: "Note not found" });
 
+    const hasQuiz = note.quiz && note.quiz.questions && note.quiz.questions.length > 0;
+    const isDocumentBasedQuiz = note.quiz?.generatedBy === DOCUMENT_BASED_GENERATOR;
+
+    // Legacy quizzes were created from placeholders, so prompt regeneration.
+    if (hasQuiz && !isDocumentBasedQuiz) {
+      return res.json({
+        quizStatus: "pending",
+        hasQuiz: false,
+        quiz: null,
+      });
+    }
+
     res.json({
       quizStatus: note.quizStatus,
-      hasQuiz: note.quiz && note.quiz.questions && note.quiz.questions.length > 0,
+      hasQuiz,
       quiz: note.quiz || null,
     });
   } catch (err) {
