@@ -21,6 +21,12 @@ exports.register = async (req, res) => {
   } = req.body;
 
   try {
+    const normalizedNic = String(nic || "").trim().toUpperCase();
+
+    if (normalizedNic && !isValidSriLankanNic(normalizedNic)) {
+      return res.status(400).json({ message: "NIC must be 12 digits or 9 digits followed by V" });
+    }
+
     // Check for existing email (case-insensitive)
     const emailExists = await User.findOne({ 
       email: { $regex: new RegExp(`^${String(email).trim()}$`, 'i') }
@@ -28,8 +34,8 @@ exports.register = async (req, res) => {
     if (emailExists) return res.status(400).json({ message: "Email already registered" });
 
     // Check for existing NIC (if provided)
-    if (nic && nic.trim()) {
-      const nicExists = await User.findOne({ nic: String(nic).trim().toUpperCase() });
+    if (normalizedNic) {
+      const nicExists = await User.findOne({ nic: { $regex: new RegExp(`^${normalizedNic}$`, "i") } });
       if (nicExists) return res.status(400).json({ message: "NIC already registered" });
     }
 
@@ -45,7 +51,7 @@ exports.register = async (req, res) => {
       name,
       email: String(email).trim().toLowerCase(), // Normalize email to lowercase
       studentNumber: studentNumber || "",
-      nic: nic || "",
+      nic: normalizedNic,
       phone: phone || "",
       specialization: specialization || "",
       year: year === "" || year === undefined ? undefined : year,

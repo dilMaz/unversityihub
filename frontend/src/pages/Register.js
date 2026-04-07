@@ -32,10 +32,9 @@ function Register() {
   };
 
   const validateNIC = (nic) => {
-    // 12 letters OR 9 numbers + 'v' or 'V'
-    const oldNICPattern = /^\d{9}[vV]$/;
-    const newNICPattern = /^[A-Za-z]{12}$/;
-    return oldNICPattern.test(nic) || newNICPattern.test(nic);
+    // Sri Lankan NIC: 9 digits + V/v OR 12 digits
+    const nicPattern = /^(?:\d{9}[vV]|\d{12})$/;
+    return nicPattern.test(String(nic || "").trim());
   };
 
   const validatePhone = (phone) => {
@@ -78,7 +77,7 @@ function Register() {
     }
 
     if (!validateNIC(nic)) {
-      setError("Invalid NIC. Must be 12 letters or 9 numbers + 'v' or 'V'.");
+      setError("Invalid NIC. Use 9 digits + V (e.g. 123456789V) or 12 digits.");
       return;
     }
 
@@ -118,10 +117,10 @@ function Register() {
       // Build the payload with all available fields
       const payload = {
         name,
-        nic: nic || 'N/A',
+        nic: nic.trim().toUpperCase(),
         email,
         password,
-        phone: phone || 'N/A',
+        phone: phone || "",
         status,
         studentNumber: studentNumber.trim(),
         specialization: specialization.trim(),
@@ -203,30 +202,14 @@ function Register() {
               <input
                 className="reg-input"
                 type="text"
-                placeholder="e.g. 123456789V or ABCDEF123456"
+                placeholder="e.g. 123456789V or 123456789012"
                 value={nic}
                 onChange={(e) => {
-                  const value = e.target.value;
-                  // Allow only 12 letters OR 9 numbers + V/v
-                  const lettersOnly = value.replace(/[^A-Za-z]/g, '');
-                  const numbersAndV = value.replace(/[^0-9Vv]/g, '');
-                  
-                  if (lettersOnly.length <= 12 && value === lettersOnly) {
-                    setNic(lettersOnly);
-                  } else if (numbersAndV.length <= 10 && value === numbersAndV) {
-                    // For old NIC format, ensure V is only at the end
-                    if (numbersAndV.length === 10) {
-                      const lastChar = numbersAndV[9];
-                      if (lastChar === 'V' || lastChar === 'v') {
-                        setNic(numbersAndV);
-                      }
-                    } else if (numbersAndV.length <= 9) {
-                      setNic(numbersAndV);
-                    }
-                  } else if (value.length < nic.length) {
-                    // Allow backspace
-                    setNic(value);
-                  }
+                  const cleaned = e.target.value
+                    .toUpperCase()
+                    .replace(/[^0-9V]/g, "")
+                    .slice(0, 12);
+                  setNic(cleaned);
                 }}
                 maxLength={12}
               />
