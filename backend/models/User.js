@@ -4,7 +4,6 @@ const userSchema = new mongoose.Schema({
   name: String,
   // Student details shown on the Profile page (optional for backward compatibility)
   itNumber: String,
-  studentNumber: String,
   specialization: String,
   year: Number,
   semester: Number,
