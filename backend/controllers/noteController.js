@@ -476,7 +476,7 @@ exports.deleteNoteCommentByAdmin = async (req, res) => {
 // 📤 Admin create note
 exports.createAdminNote = async (req, res) => {
   try {
-    const { title, subject, moduleCode, category, description } = req.body;
+    const { title, subject, moduleCode, category, description, header } = req.body;
     const filePath = req.file ? req.file.path : null;
 
     if (!title || !subject || !filePath) {
@@ -485,6 +485,7 @@ exports.createAdminNote = async (req, res) => {
 
     const note = new Note({
       title,
+      header: header || "",
       subject,
       moduleCode: moduleCode || "",
       category: category || "Lecture Notes",
@@ -506,7 +507,7 @@ exports.createAdminNote = async (req, res) => {
 // 📤 Student create note
 exports.createStudentNote = async (req, res) => {
   try {
-    const { title, subject, moduleCode, category, description, academicYear, semester } = req.body;
+    const { title, subject, moduleCode, category, description, header, academicYear, semester } = req.body;
     const filePath = req.file ? req.file.path : null;
 
     // Validation
@@ -523,6 +524,7 @@ exports.createStudentNote = async (req, res) => {
 
     const note = new Note({
       title,
+      header: header || "",
       subject,
       moduleCode: moduleCode || "",
       category,

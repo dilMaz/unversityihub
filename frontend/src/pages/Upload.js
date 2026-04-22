@@ -1,42 +1,43 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import programsData from "../data/ProgramsData";
 import "../styles/upload.css";
-
-const MODULE_CODE_OPTIONS = [
-  "IT1010",
-  "IT1020",
-  "IT1030",
-  "IT1040",
-  "IT1050",
-  "IT1060",
-  "IT2010",
-  "IT2020",
-  "IT2050",
-  "IT2080",
-];
-
-const MODULE_NAME_OPTIONS = [
-  "DS",
-  "PAF",
-  "ITPM",
-  "IWT",
-  "OOP",
-  "NDM",
-];
 
 function Upload() {
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
-  const [moduleCode, setModuleCode] = useState("");
-  const [moduleName, setModuleName] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Computing");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("Information Technology");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedModule, setSelectedModule] = useState("");
+  const [header, setHeader] = useState("");
   const [description, setDescription] = useState("");
-  const [academicYear, setAcademicYear] = useState("");
-  const [semester, setSemester] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [availableModules, setAvailableModules] = useState([]);
+
+  // Update available modules based on selections
+  useEffect(() => {
+    let modules = [];
+    if (selectedCategory && selectedSubcategory && selectedYear && selectedSemester) {
+      const categoryData = programsData.categories[selectedCategory];
+      if (categoryData) {
+        const subData = categoryData.subcategories[selectedSubcategory];
+        if (subData && subData.years[selectedYear] && subData.years[selectedYear].semesters[selectedSemester]) {
+          modules = subData.years[selectedYear].semesters[selectedSemester];
+        }
+      }
+    }
+    setAvailableModules(modules);
+    // Reset selected module if it's not in the new list
+    if (selectedModule && !modules.find(m => `${m.code} - ${m.name}` === selectedModule)) {
+      setSelectedModule("");
+    }
+  }, [selectedCategory, selectedSubcategory, selectedYear, selectedSemester, selectedModule]);
 
   // Handle file selection
   const handleFileChange = useCallback((e) => {
@@ -107,16 +108,20 @@ function Upload() {
     }
 
     // Validation
-    if (!file || !academicYear || !semester) {
-      setError("Please fill in all required fields and select a semester");
+    if (!file || !selectedYear || !selectedSemester || !selectedModule || !header.trim()) {
+      setError("Please fill in all required fields");
       return;
     }
 
-    const derivedTitle = (file.name || "Uploaded Note")
+    // Parse selected module
+    const [moduleCode, ...moduleNameParts] = selectedModule.split(" - ");
+    const moduleName = moduleNameParts.join(" - ");
+
+    const derivedTitle = header.trim() || (file.name || "Uploaded Note")
       .replace(/\.[^/.]+$/, "")
       .trim()
       .slice(0, 100) || "Uploaded Note";
-    const derivedSubject = moduleName.trim() || moduleCode.trim() || "General";
+    const derivedSubject = moduleName || moduleCode || "General";
     const defaultCategory = "Lecture Notes";
 
     setLoading(true);
@@ -128,10 +133,11 @@ function Upload() {
       formData.append("subject", derivedSubject);
       formData.append("moduleCode", moduleCode);
       formData.append("moduleName", moduleName);
+      formData.append("header", header.trim());
       formData.append("description", description);
       formData.append("category", defaultCategory);
-      formData.append("academicYear", academicYear);
-      formData.append("semester", semester);
+      formData.append("academicYear", selectedYear);
+      formData.append("semester", selectedSemester);
 
       await axios.post(
         "http://localhost:5000/api/notes/upload",
@@ -147,11 +153,11 @@ function Upload() {
 
       setSuccess(true);
       setFile(null);
-      setModuleCode("");
-      setModuleName("");
+      setSelectedModule("");
+      setHeader("");
       setDescription("");
-      setAcademicYear("");
-      setSemester("");
+      setSelectedYear("");
+      setSelectedSemester("");
 
       setTimeout(() => {
         navigate("/dashboard");
@@ -266,71 +272,126 @@ function Upload() {
           {/* Form Fields */}
           <div className="form-row">
             <div className="form-section">
-              <label className="form-label">📅 Academic Year *</label>
+              <label className="form-label">🏫 Category *</label>
               <select
                 className="form-input"
-                value={academicYear}
-                onChange={(e) => setAcademicYear(e.target.value)}
+                value={selectedCategory}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedCategory(value);
+                  // Reset subcategory when category changes
+                  const firstSub = Object.keys(programsData.categories[value].subcategories)[0];
+                  setSelectedSubcategory(firstSub || "");
+                  setSelectedYear("");
+                  setSelectedSemester("");
+                  setSelectedModule("");
+                }}
               >
-                <option value="">Select year</option>
-                <option value="1">1st Year</option>
-                <option value="2">2nd Year</option>
-                <option value="3">3rd Year</option>
-                <option value="4">4th Year</option>
+                {Object.keys(programsData.categories).map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="form-section">
-              <label className="form-label">🔢 Semester *</label>
-              <div className="semester-radios">
-                {[1, 2].map((sem) => (
-                  <label key={sem} className="radio-label">
-                    <input
-                      type="radio"
-                      name="semester"
-                      value={sem}
-                      checked={semester === sem.toString()}
-                      onChange={(e) => setSemester(e.target.value)}
-                    />
-                    <span>Semester {sem}</span>
-                  </label>
+              <label className="form-label">📚 Subcategory *</label>
+              <select
+                className="form-input"
+                value={selectedSubcategory}
+                onChange={(e) => {
+                  setSelectedSubcategory(e.target.value);
+                  setSelectedYear("");
+                  setSelectedSemester("");
+                  setSelectedModule("");
+                }}
+              >
+                {selectedCategory && Object.keys(programsData.categories[selectedCategory].subcategories).map((sub) => (
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-section">
-              <label className="form-label">📌 Module Code</label>
+              <label className="form-label">📅 Academic Year *</label>
               <select
                 className="form-input"
-                value={moduleCode}
-                onChange={(e) => setModuleCode(e.target.value)}
+                value={selectedYear}
+                onChange={(e) => {
+                  setSelectedYear(e.target.value);
+                  setSelectedSemester("");
+                  setSelectedModule("");
+                }}
               >
-                <option value="">Select module code</option>
-                {MODULE_CODE_OPTIONS.map((code) => (
-                  <option key={code} value={code}>{code}</option>
+                <option value="">Select year</option>
+                {[1, 2, 3, 4].map((year) => (
+                  <option key={year} value={year.toString()}>
+                    Year {year}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="form-section">
-              <label className="form-label">📘 Module Name</label>
+              <label className="form-label">🔢 Semester *</label>
               <select
                 className="form-input"
-                value={moduleName}
-                onChange={(e) => setModuleName(e.target.value)}
+                value={selectedSemester}
+                onChange={(e) => {
+                  setSelectedSemester(e.target.value);
+                  setSelectedModule("");
+                }}
               >
-                <option value="">Select module name</option>
-                {MODULE_NAME_OPTIONS.map((name) => (
-                  <option key={name} value={name}>{name}</option>
+                <option value="">Select semester</option>
+                {[1, 2].map((sem) => (
+                  <option key={sem} value={sem.toString()}>
+                    Semester {sem}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="form-section">
-            <label className="form-label">📖 Description (Optional)</label>
+            <label className="form-label">📚 Module *</label>
+            <select
+              className="form-input"
+              value={selectedModule}
+              onChange={(e) => setSelectedModule(e.target.value)}
+              disabled={!availableModules.length}
+            >
+              <option value="">
+                {availableModules.length ? "Select module" : "Please select category, subcategory, year, and semester first"}
+              </option>
+              {availableModules.map((module) => (
+                <option key={module.code} value={`${module.code} - ${module.name}`}>
+                  {module.code} - {module.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-section">
+            <label className="form-label">� Header/Title *</label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Enter a descriptive title for your notes (e.g., 'Introduction to Programming - Week 1 Notes')"
+              value={header}
+              onChange={(e) => setHeader(e.target.value)}
+              maxLength={200}
+              required
+            />
+            <small className="input-hint">{header.length}/200 characters</small>
+          </div>
+
+          <div className="form-section">
+            <label className="form-label">�📖 Description (Optional)</label>
             <textarea
               className="form-textarea"
               placeholder="Add a brief description of your notes (what topics are covered, any additional notes, etc.)"

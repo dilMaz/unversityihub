@@ -40,3 +40,72 @@
   font-size: 14px;
   color: #aaa;
 }
+
+/* Module Notes Page */
+.module-notes-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.module-notes-page .module-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.module-notes-page .module-header h1 {
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.module-notes-page .module-header p {
+  color: #aaa;
+}
+
+/* Module Content Layout */
+.module-content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.module-section {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.section-title {
+  color: #fff;
+  font-size: 18px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #333;
+}
+
+.notes-section {
+  min-height: 400px;
+}
+
+.chat-section {
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+
+.no-content {
+  color: #aaa;
+  text-align: center;
+  padding: 40px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .module-content {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-section {
+    position: static;
+  }
+}

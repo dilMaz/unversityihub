@@ -1,16 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import QuizSection from "../components/QuizSection";
 import NoteComments from "../components/NoteComments";
+import programsData from "../data/ProgramsData";
 import "../styles/categories.css";
 
 function Categories() {
+  const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
-  const [modules, setModules] = useState([]);
+  const [modules, setModules] = useState(["All"]);
   const [selectedModule, setSelectedModule] = useState("All");
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedSemester, setSelectedSemester] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [downloading, setDownloading] = useState(null);
@@ -52,17 +57,6 @@ function Categories() {
       });
       const allNotes = Array.isArray(res.data) ? res.data : [];
       setNotes(allNotes);
-
-      const dynamicModules = [
-        ...new Set(
-          allNotes
-            .map((note) => (note.moduleName || note.moduleCode || "").trim())
-            .filter(Boolean)
-        ),
-      ].sort((a, b) => a.localeCompare(b));
-
-      setModules(["All", ...dynamicModules]);
-      setSelectedModule("All");
     } catch (err) {
       let errorMessage = "Failed to load notes";
 
@@ -88,16 +82,47 @@ function Categories() {
     fetchNotes();
   }, [fetchNotes]);
 
-  // Filter notes by module, year, semester, and approval status
+  // Filter notes by category, subcategory, module, year, semester, and approval status
   useEffect(() => {
     let filtered = notes;
 
     // Filter by approval status (show only approved or legacy notes)
     filtered = filtered.filter((note) => note.moderationStatus === "approved" || !note.moderationStatus);
 
+    // Filter by category and subcategory
+    if (selectedCategory !== "All" || selectedSubcategory !== "All") {
+      const validModuleCodes = new Set();
+      const categoryData = selectedCategory !== "All" ? programsData.categories[selectedCategory] : null;
+      if (categoryData) {
+        const subcategories = selectedSubcategory !== "All" ? [selectedSubcategory] : Object.keys(categoryData.subcategories);
+        subcategories.forEach(sub => {
+          const subData = categoryData.subcategories[sub];
+          if (subData && subData.years) {
+            Object.values(subData.years).forEach(yearData => {
+              if (yearData.semesters) {
+                Object.values(yearData.semesters).forEach(semData => {
+                  semData.forEach(module => validModuleCodes.add(module.code));
+                });
+              }
+            });
+          }
+        });
+      }
+      if (validModuleCodes.size > 0) {
+        filtered = filtered.filter((note) => validModuleCodes.has(note.moduleCode));
+      }
+    }
+
     // Filter by module
     if (selectedModule !== "All") {
-      filtered = filtered.filter((note) => (note.moduleName || note.moduleCode) === selectedModule);
+      filtered = filtered.filter((note) => {
+        const noteModule = (note.moduleName || note.moduleCode || "").trim();
+        // Check if selectedModule matches the note's module exactly
+        if (noteModule === selectedModule) return true;
+        // Check if selectedModule is "CODE - NAME" and matches the note's moduleCode
+        if (selectedModule.includes(" - ") && note.moduleCode === selectedModule.split(" - ")[0]) return true;
+        return false;
+      });
     }
 
     // Filter by academic year
@@ -111,7 +136,47 @@ function Categories() {
     }
 
     setFilteredNotes(filtered);
-  }, [selectedModule, selectedYear, selectedSemester, notes]);
+  }, [selectedCategory, selectedSubcategory, selectedModule, selectedYear, selectedSemester, notes]);
+
+  // Update modules based on selected filters from ProgramsData
+  useEffect(() => {
+    let availableModules = new Set();
+
+    // Add modules from ProgramsData based on selected category/subcategory/year/semester
+    if (selectedCategory !== "All") {
+      const categoryData = programsData.categories[selectedCategory];
+      if (categoryData) {
+        const subcategories = selectedSubcategory !== "All" ? [selectedSubcategory] : Object.keys(categoryData.subcategories);
+        subcategories.forEach(sub => {
+          const subData = categoryData.subcategories[sub];
+          if (subData && subData.years) {
+            const years = selectedYear !== "All" ? [selectedYear] : Object.keys(subData.years);
+            years.forEach(year => {
+              const yearData = subData.years[year];
+              if (yearData && yearData.semesters) {
+                const semesters = selectedSemester !== "All" ? [selectedSemester] : Object.keys(yearData.semesters);
+                semesters.forEach(sem => {
+                  const semData = yearData.semesters[sem];
+                  if (semData) {
+                    semData.forEach(module => {
+                      availableModules.add(`${module.code} - ${module.name}`);
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    }
+
+    const sortedModules = Array.from(availableModules).sort((a, b) => a.localeCompare(b));
+    setModules(["All", ...sortedModules]);
+
+    if (!sortedModules.includes(selectedModule) && selectedModule !== "All") {
+      setSelectedModule("All");
+    }
+  }, [selectedCategory, selectedSubcategory, selectedYear, selectedSemester, selectedModule]);
 
   // Download handler
   const handleDownload = useCallback(async (id, title) => {
@@ -224,63 +289,119 @@ function Categories() {
           </div>
         )}
 
-        {/* Year & Semester Filter - PRIMARY */}
+        {/* Category & Subcategory Filter */}
         {!loading && (
           <div className="filters-section">
             <div className="filter-group">
-              <h3 className="filter-title">📅 Select Academic Year</h3>
-              <div className="category-buttons">
-                <button
-                  className={`cat-btn ${selectedYear === "All" ? "active" : ""}`}
-                  onClick={() => setSelectedYear("All")}
-                >
-                  All Years
-                </button>
-                {[1, 2, 3, 4].map((year) => (
-                  <button
-                    key={year}
-                    className={`cat-btn ${selectedYear === year.toString() ? "active" : ""}`}
-                    onClick={() => setSelectedYear(year.toString())}
-                  >
-                    Year {year}
-                  </button>
+              <h3 className="filter-title">🏫 Select Category</h3>
+              <select
+                className="category-select"
+                value={selectedCategory}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedCategory(value);
+                  setSelectedSubcategory("All");
+                  setSelectedYear("All");
+                  setSelectedSemester("All");
+                  setSelectedModule("All");
+                }}
+              >
+                <option value="All">All Categories</option>
+                {Object.keys(programsData.categories).map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
                 ))}
+              </select>
+            </div>
+
+            {selectedCategory !== "All" && (
+              <div className="filter-group">
+                <h3 className="filter-title">📚 Select Subcategory</h3>
+                <select
+                  className="category-select"
+                  value={selectedSubcategory}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedSubcategory(value);
+                    setSelectedYear("All");
+                    setSelectedSemester("All");
+                    setSelectedModule("All");
+                  }}
+                >
+                  <option value="All">All Subcategories</option>
+                  {Object.keys(programsData.categories[selectedCategory].subcategories).map((subcategory) => (
+                    <option key={subcategory} value={subcategory}>
+                      {subcategory}
+                    </option>
+                  ))}
+                </select>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Year & Semester Filter - PRIMARY */}
+          <div className="filters-section">
+            <div className="filter-group">
+              <h3 className="filter-title">📅 Select Academic Year</h3>
+              <select
+                className="category-select"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                <option value="All">All Years</option>
+                {[1, 2, 3, 4].map((year) => (
+                  <option key={year} value={year.toString()}>
+                    Year {year}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="filter-group">
               <h3 className="filter-title">🔢 Select Semester</h3>
-              <div className="category-buttons">
-                <button
-                  className={`cat-btn ${selectedSemester === "All" ? "active" : ""}`}
-                  onClick={() => setSelectedSemester("All")}
-                >
-                  All Semesters
-                </button>
+              <select
+                className="category-select"
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
+              >
+                <option value="All">All Semesters</option>
                 {[1, 2].map((sem) => (
-                  <button
-                    key={sem}
-                    className={`cat-btn ${selectedSemester === sem.toString() ? "active" : ""}`}
-                    onClick={() => setSelectedSemester(sem.toString())}
-                  >
+                  <option key={sem} value={sem.toString()}>
                     Semester {sem}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
           </div>
-        )}
-
+        
         {/* Active Filter Display */}
-        {!loading && (selectedYear !== "All" || selectedSemester !== "All" || selectedModule !== "All") && (
+        {!loading && (selectedCategory !== "All" || selectedSubcategory !== "All" || selectedYear !== "All" || selectedSemester !== "All" || selectedModule !== "All") && (
           <div className="active-filter-display">
             <span className="filter-badge">
-              {selectedModule !== "All" ? `Module: ${selectedModule}` : "All Modules"}
+              {selectedCategory !== "All" ? `${selectedCategory}` : "All Categories"}
+              {selectedSubcategory !== "All" ? ` > ${selectedSubcategory}` : ""}
               {" • "}
               {selectedYear !== "All" ? `Year ${selectedYear}` : "All Years"}
               {" • "}
               {selectedSemester !== "All" ? `Semester ${selectedSemester}` : "All Semesters"}
+              {" • "}
+              {selectedModule !== "All" ? `Module: ${selectedModule}` : "All Modules"}
             </span>
+            
+            {/* Chat button appears when a specific module is selected */}
+            {selectedModule !== "All" && (
+              <button
+                className="module-chat-access-btn"
+                onClick={() => {
+                  const moduleCode = selectedModule.split(" - ")[0];
+                  navigate(`/module/${moduleCode}`);
+                }}
+              >
+                💬 Open {selectedModule.split(" - ")[0]} Chat
+              </button>
+            )}
           </div>
         )}
 
@@ -288,19 +409,18 @@ function Categories() {
         {!loading && (
           <div className="categories-filter">
             <h3 className="filter-title">📚 Filter by Module</h3>
-            <div className="category-buttons">
+            <select
+              className="category-select"
+              value={selectedModule}
+              onChange={(e) => setSelectedModule(e.target.value)}
+            >
               {modules.map((mod) => (
-                <button
-                  key={mod}
-                  className={`cat-btn ${selectedModule === mod ? "active" : ""}`}
-                  onClick={() => setSelectedModule(mod)}
-                >
-                  {mod === "All" && "📂"}
-                  {mod !== "All" && "📖"}
-                  {` ${mod}`}
-                </button>
+                <option key={mod} value={mod}>
+                  {mod === "All" && "📂 All Modules"}
+                  {mod !== "All" && `📖 ${mod}`}
+                </option>
               ))}
-            </div>
+            </select>
           </div>
         )}
 
@@ -339,7 +459,7 @@ function Categories() {
                   </div>
 
                   <div className="cat-card-content">
-                    <h3 className="cat-title">{note.title}</h3>
+                    <h3 className="cat-title">{note.header || note.title}</h3>
                     <div className="cat-meta">
                       <span className="cat-subject">📚 {note.subject}</span>
                       <span className="cat-downloads">📥 {note.downloads}</span>
@@ -399,6 +519,14 @@ function Categories() {
                       title="Show comments"
                     >
                       {expandedCommentsNote === note._id ? "Hide 💬" : "💬 Comments"}
+                    </button>
+
+                    <button
+                      className="cat-chat-btn"
+                      onClick={() => navigate(`/module/${note.moduleCode}`)}
+                      title="Open module chat"
+                    >
+                      💬 Module Chat
                     </button>
                   </div>
                 </div>

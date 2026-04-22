@@ -207,6 +207,10 @@ app.get("/api/test", (req, res) => {
 // admin videos
 app.use("/api/videos", videoRoutes);
 
+// module chat
+const chatRoutes = require("./routes/chatRoutes");
+app.use("/api/chat", chatRoutes);
+
 // dashboard (protected)
 app.get("/api/dashboard", authMiddleware, async (req, res) => {
   try {
