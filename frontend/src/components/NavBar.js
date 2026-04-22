@@ -137,11 +137,6 @@ function NavBar() {
                   {adminNavItems.map((item, index) =>
                     renderNavItem(item.label, item.path, "admin", index)
                   )}
-                  <li className="nav-item" style={{ "--item-delay": adminNavItems.length }}>
-                    <button className="nav-link logout" onClick={handleLogout}>
-                      Logout
-                    </button>
-                  </li>
                 </>
               ) : (
                 <>
@@ -153,19 +148,12 @@ function NavBar() {
                   {renderNavItem("Recommended", "/recommend", "", 6)}
                   {renderNavItem("Upload", "/upload", "", 7)}
                   {renderNavItem("Categories", "/categories", "", 8)}
-
                   {userRole === "admin" && (
                     <>
                       <li className="nav-divider"></li>
-                      {renderNavItem("Admin", "/admin-dashboard", "admin", 9)}
+                      {renderNavItem("Admin", "/admin-dashboard", "admin", 10)}
                     </>
                   )}
-
-                  <li className="nav-item" style={{ "--item-delay": 10 }}>
-                    <button className="nav-link logout" onClick={handleLogout}>
-                      Logout
-                    </button>
-                  </li>
                 </>
               )}
             </>
@@ -182,6 +170,11 @@ function NavBar() {
             </>
           )}
         </ul>
+        {isLoggedIn && (
+          <button className="nav-link logout nav-logout-corner" onClick={handleLogout}>
+            Logout
+          </button>
+        )}
       </div>
     </nav>
   );
