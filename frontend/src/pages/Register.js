@@ -145,8 +145,8 @@ function Register() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div className="auth-container register-container">
+      <div className="auth-card register-card">
         <div className="auth-header">
           <span 
             className="auth-back-btn" 

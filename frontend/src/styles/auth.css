@@ -486,12 +486,41 @@ body {
   margin-top: 26px !important;
 }
 
+/* Register page: fixed professional card (not full-width) */
+.register-container {
+  padding: 40px 20px;
+  align-items: flex-start;
+}
+
+.register-card {
+  width: min(760px, 100%);
+  max-width: 760px;
+  border-radius: 18px;
+  padding: 36px 34px;
+  margin: 0 auto;
+}
+
+.register-card form {
+  width: 100%;
+}
+
 @media (max-width: 720px) {
   .reg-grid {
     grid-template-columns: 1fr;
   }
   .reg-span-2 {
     grid-column: span 1;
+  }
+
+  .register-container {
+    padding: 24px 14px;
+  }
+
+  .register-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 28px 20px;
+    border-radius: 14px;
   }
 }
 
