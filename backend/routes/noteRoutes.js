@@ -27,14 +27,20 @@ const {
   getQuizStatus,
 } = require("../controllers/noteController");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join("uploads", "notes");
-    fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+  cloud_name: 'dyzwk3jxt',
+  api_key: '844325688167564',
+  api_secret: 'U7Wh0BpdA8XmVw7_THFAM_XVzTw'
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'notes',
+    resource_type: 'auto',
   }
 });
 

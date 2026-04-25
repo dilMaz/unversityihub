@@ -164,7 +164,7 @@ exports.downloadNote = async (req, res) => {
       return res.status(403).json({ message: "This note is not available for users" });
     }
 
-    if (note.filePath && note.filePath !== "seed" && !fs.existsSync(note.filePath)) {
+    if (note.filePath && note.filePath !== "seed" && !note.filePath.startsWith("http") && !fs.existsSync(note.filePath)) {
       return res.status(404).json({ message: "File not found on server. Please re-upload this note." });
     }
 
@@ -209,7 +209,7 @@ exports.viewNote = async (req, res) => {
       return res.status(404).json({ message: "This note has no viewable file" });
     }
 
-    if (!fs.existsSync(note.filePath)) {
+    if (!note.filePath.startsWith("http") && !fs.existsSync(note.filePath)) {
       return res.status(404).json({ message: "File not found on server. Please re-upload this note." });
     }
 
@@ -317,8 +317,10 @@ exports.deleteReviewedNote = async (req, res) => {
       return res.status(400).json({ message: "Only approved or rejected notes can be deleted" });
     }
 
-    if (note.filePath && note.filePath !== "seed" && fs.existsSync(note.filePath)) {
-      fs.unlinkSync(note.filePath);
+    if (note.filePath && note.filePath !== "seed") {
+      if (!note.filePath.startsWith("http") && fs.existsSync(note.filePath)) {
+        fs.unlinkSync(note.filePath);
+      }
     }
 
     await note.deleteOne();
